@@ -3,123 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AzDi Juegos Web</title>
+<title>AzDi Juegos</title>
 
 <style>
 body{
   margin:0;
   font-family:Arial,Helvetica,sans-serif;
-  background:#0f2027;
+  background:#071a20;
   color:white;
 }
 
-/* HERO (PORTADA) */
-.hero{
-  position:relative;
-  height:220px;
-  background:
-    linear-gradient(rgba(10,20,25,.85), rgba(10,20,25,.95)),
-    url("css/logo.png") center/contain no-repeat,
-    #08161b;
+/* HEADER */
+header{
+  position:sticky;
+  top:0;
+  background:#0b2a33;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  z-index:10;
+}
+
+header img{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+}
+
+header h1{
+  font-size:20px;
+  margin:0;
+}
+
+/* SECCIONES */
+.section{
+  padding:18px;
+}
+
+.section h2{
+  margin:10px 0 14px;
+  font-size:20px;
+  opacity:.9;
+}
+
+/* HERO DESTACADO */
+.featured{
+  display:flex;
+  gap:16px;
+  overflow-x:auto;
+  padding-bottom:10px;
+}
+
+.big-card{
+  min-width:260px;
+  height:140px;
+  border-radius:18px;
+  padding:14px;
   display:flex;
   flex-direction:column;
-  justify-content:flex-start;
-  align-items:center;
-  padding-top:20px;
-}
-
-/* TEXTO ARRIBA */
-.brand{
-  font-size:34px;
-  font-weight:bold;
-  letter-spacing:3px;
-}
-
-.subtitle{
-  opacity:.8;
-  margin-top:6px;
-  font-size:15px;
-}
-
-/* GRID JUEGOS */
-.games{
-  max-width:1000px;
-  margin:30px auto;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:25px;
-  padding:20px;
-}
-
-/* TARJETAS */
-.card{
-  background:#132a33;
-  border-radius:20px;
-  overflow:hidden;
-  cursor:pointer;
-  transition:.25s;
+  justify-content:flex-end;
+  text-decoration:none;
+  color:white;
   box-shadow:0 10px 25px rgba(0,0,0,.4);
 }
 
-.card:hover{
-  transform:translateY(-6px) scale(1.02);
-  box-shadow:0 20px 40px rgba(0,0,0,.6);
-}
-
-.thumb{
-  height:150px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:50px;
-}
-
 .runner{background:linear-gradient(#87CEEB,#6b8e23);}
-.merge{background:linear-gradient(#e8f4ff,#b5d3e7);}
+.merge{background:linear-gradient(#dcefff,#9ecae1);}
 
-.info{padding:16px;}
-.title{font-weight:bold;font-size:18px;}
-.desc{opacity:.7;font-size:14px;margin-top:6px;}
+.big-card span{
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:14px;
+}
+
+.card{
+  background:#0f2f39;
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+  text-decoration:none;
+  color:white;
+}
+
+.icon{
+  font-size:36px;
+  margin-bottom:8px;
+  display:block;
+}
+
+footer{
+  text-align:center;
+  padding:30px 10px;
+  opacity:.5;
+  font-size:13px;
+}
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="brand">AZDI</div>
-  <div class="subtitle">Juegos web rápidos y adictivos</div>
+<header>
+  <img src="css/logo.png">
+  <h1>AzDi Juegos</h1>
+</header>
+
+<!-- DESTACADOS -->
+<div class="section">
+<h2>Destacados</h2>
+
+<div class="featured">
+  <a class="big-card runner" href="juegos/runner/">
+    <span>🏃 AzDi Runner</span>
+  </a>
+
+  <a class="big-card merge" href="juegos/merge/">
+    <span>🟨 AzDi Merge</span>
+  </a>
+</div>
 </div>
 
-<div class="games">
+<!-- TODOS -->
+<div class="section">
+<h2>Todos los juegos</h2>
 
-  <a href="juegos/runner/" style="text-decoration:none;color:inherit;">
-    <div class="card">
-      <div class="thumb runner">🏃</div>
-      <div class="info">
-        <div class="title">AzDi Runner</div>
-        <div class="desc">Esquiva obstáculos cada vez más rápidos</div>
-      </div>
-    </div>
+<div class="grid">
+  <a class="card" href="juegos/runner/">
+    <span class="icon">🏃</span>
+    Runner
   </a>
 
-  <a href="juegos/merge/" style="text-decoration:none;color:inherit;">
-    <div class="card">
-      <div class="thumb merge">🟨</div>
-      <div class="info">
-        <div class="title">AzDi Merge</div>
-        <div class="desc">Combina cubos y evita llenar la pantalla</div>
-      </div>
-    </div>
+  <a class="card" href="juegos/merge/">
+    <span class="icon">🟨</span>
+    Merge
   </a>
 
-  <div class="card" style="opacity:.4;cursor:default;">
-    <div class="thumb">🎮</div>
-    <div class="info">
-      <div class="title">Próximamente</div>
-      <div class="desc">Más juegos en camino...</div>
-    </div>
+  <div class="card">
+    <span class="icon">🎮</span>
+    Próximamente
   </div>
-
 </div>
+</div>
+
+<footer>
+AzDi Juegos Web — nuevos juegos cada semana
+</footer>
 
 </body>
 </html>
