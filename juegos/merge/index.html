@@ -136,7 +136,7 @@ let score=0;
 let playing=false;
 
 const size=40;
-const gravity=0.4;
+const gravity=0.45;
 
 function color(n){
 const colors=[
@@ -152,7 +152,9 @@ this.x=x;
 this.y=y;
 this.vy=0;
 this.n=n;
+this.landed=false;
 }
+
 draw(){
 ctx.fillStyle=color(this.n);
 ctx.beginPath();
@@ -165,14 +167,46 @@ ctx.textAlign="center";
 ctx.textBaseline="middle";
 ctx.fillText(this.n,this.x+size/2,this.y+size/2);
 }
+
 update(){
+
+if(this.landed) return;
+
 this.vy+=gravity;
 this.y+=this.vy;
 
+/* SUELO */
 if(this.y>H-size){
 this.y=H-size;
 this.vy=0;
+this.landed=true;
 }
+
+/* COLISIONES CON OTROS BLOQUES */
+for(let b of blocks){
+if(b===this) continue;
+
+let touching =
+this.x < b.x+size &&
+this.x+size > b.x &&
+this.y+size > b.y &&
+this.y+size < b.y+20;
+
+if(touching && this.vy>=0){
+this.y=b.y-size;
+this.vy=0;
+this.landed=true;
+}
+
+/* empuje lateral suave */
+if(Math.abs(this.y-b.y)<size-5 &&
+Math.abs(this.x-b.x)<size){
+
+if(this.x<b.x) this.x-=1.2;
+else this.x+=1.2;
+}
+}
+
 }
 }
 
@@ -184,9 +218,10 @@ function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
 let a=blocks[i],b=blocks[j];
+
 if(a.n===b.n &&
-Math.abs(a.x-b.x)<size &&
-Math.abs(a.y-b.y)<size){
+Math.abs(a.x-b.x)<size-4 &&
+Math.abs(a.y-b.y)<size-4){
 
 a.n++;
 blocks.splice(j,1);
@@ -194,6 +229,16 @@ score+=a.n*10;
 document.getElementById("score").textContent=score;
 return;
 }
+}
+}
+}
+
+function checkLose(){
+for(let b of blocks){
+if(b.y<20){
+playing=false;
+alert("Game Over — puntuación: "+score);
+location.reload();
 }
 }
 }
@@ -211,11 +256,12 @@ current.draw();
 }
 
 merge();
+checkLose();
 requestAnimationFrame(update);
 }
 
 function drop(){
-if(!playing) return;
+if(!playing || !current) return;
 blocks.push(current);
 spawn();
 }
@@ -243,6 +289,7 @@ spawn();
 update();
 }
 </script>
+
 
 </body>
 </html>
