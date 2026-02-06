@@ -6,150 +6,231 @@
 <title>AzDi Merge</title>
 
 <style>
-html,body{
-  margin:0;
-  height:100%;
-  background:#0e1a1f;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+body{
+margin:0;
+background:#021014;
+font-family:system-ui;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+overflow:hidden;
 }
 
-canvas{
-  background:#e8f4ff;
-  border-radius:18px;
-  width:min(94vw,520px);
-  height:calc(min(94vw,520px)*1.4);
-  max-height:85vh;
-  box-shadow:0 25px 60px rgba(0,0,0,0.7);
+/* ===== PANTALLA ===== */
+
+#game{
+width:340px;
+height:520px;
+background:linear-gradient(#cfe9ff,#a9d6ff);
+border-radius:18px;
+position:relative;
+overflow:hidden;
+box-shadow:0 0 40px #00e5ff44;
 }
+
+#ground{
+position:absolute;
+bottom:0;
+width:100%;
+height:60px;
+background:#7fb36b;
+}
+
+/* ===== HUD ===== */
+
+#hud{
+position:absolute;
+top:8px;
+left:0;
+right:0;
+text-align:center;
+font-weight:bold;
+color:#003;
+}
+
+/* ===== BLOQUES ===== */
+
+.block{
+position:absolute;
+width:42px;
+height:42px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:18px;
+font-weight:bold;
+color:#222;
+box-shadow:0 3px 0 #0003;
+}
+
+/* colores por nivel */
+
+.lvl1{background:#ffe066;}
+.lvl2{background:#ffb347;}
+.lvl3{background:#ff7a7a;}
+.lvl4{background:#d98cff;}
+.lvl5{background:#8cdfff;}
+.lvl6{background:#8cffb0;}
+.lvl7{background:#fff;}
+
+.face{
+font-size:18px;
+pointer-events:none;
+}
+
+/* ===== TUTORIAL ===== */
+
+#tutorial{
+position:absolute;
+inset:0;
+background:#000c;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:25px;
+}
+
+#tutorial button{
+margin-top:20px;
+padding:12px 20px;
+border:none;
+border-radius:12px;
+background:#00e5ff;
+font-weight:bold;
+font-size:16px;
+}
+
 </style>
 </head>
 <body>
 
-<canvas id="game" width="300" height="420"></canvas>
+<div id="game">
+
+<div id="hud">Puntos: <span id="score">0</span></div>
+
+<div id="ground"></div>
+
+<div id="tutorial">
+<h2>Cómo jugar</h2>
+<p>
+Toca la pantalla para soltar cubos.<br><br>
+Si dos cubos iguales se tocan 👉 se fusionan y suben de nivel.<br><br>
+Cuanto más grandes sean, más puntos dan.<br><br>
+Si los cubos llegan arriba... pierdes 😈
+</p>
+<button onclick="start()">Jugar</button>
+</div>
+
+</div>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
 
-/* ---------- AUDIO ---------- */
-const audio=new AudioContext();
-
-function pop(pitch=400){
-let o=audio.createOscillator();
-let g=audio.createGain();
-o.connect(g);g.connect(audio.destination);
-o.frequency.value=pitch;
-g.gain.value=0.2;
-o.start();
-g.gain.exponentialRampToValueAtTime(0.001,audio.currentTime+0.15);
-o.stop(audio.currentTime+0.15);
-}
-
-/* ---------- BLOQUES ---------- */
-let current={x:150,y:40,size:28,level:1,falling:false,blink:0,face:"normal"};
+const game=document.getElementById("game");
+const groundY=460;
 let blocks=[];
+let score=0;
+let running=false;
 
-const colors=["#ffd43b","#ff9f1c","#ff6b6b","#a29bfe","#55efc4","#74b9ff","#fd79a8","#ffeaa7"];
+/* ===== CREAR BLOQUE ===== */
 
-/* ---------- CARA ---------- */
-function face(b){
-ctx.fillStyle="#222";
+function spawn(x){
+if(!running) return;
 
-// parpadeo
-if(b.blink>0){
-ctx.fillRect(b.x-b.size*0.18,b.y-b.size*0.1,b.size*0.12,2);
-ctx.fillRect(b.x+b.size*0.06,b.y-b.size*0.1,b.size*0.12,2);
+let lvl=Math.random()<0.7?1:2;
+
+let b=document.createElement("div");
+b.className="block lvl"+lvl;
+b.innerHTML='<div class="face">🙂</div>';
+
+let obj={
+el:b,
+x:x-21,
+y:0,
+vy:0,
+lvl:lvl
+};
+
+b.style.left=obj.x+"px";
+b.style.top=obj.y+"px";
+
+game.appendChild(b);
+blocks.push(obj);
+}
+
+/* ===== FISICAS ===== */
+
+function update(){
+if(!running) return;
+
+for(let b of blocks){
+
+b.vy+=0.25;
+b.y+=b.vy;
+
+/* suelo */
+if(b.y>groundY-b.lvl*2){
+b.y=groundY-b.lvl*2;
+b.vy=0;
+}
+
+/* colisiones */
+for(let o of blocks){
+if(o===b) continue;
+
+if(Math.abs(b.x-o.x)<40 && Math.abs(b.y-o.y)<40){
+
+if(b.lvl===o.lvl && b.vy>=0 && o.vy>=0){
+
+merge(b,o);
+return;
+
 }else{
-ctx.fillRect(b.x-b.size*0.18,b.y-b.size*0.15,b.size*0.12,b.size*0.12);
-ctx.fillRect(b.x+b.size*0.06,b.y-b.size*0.15,b.size*0.12,b.size*0.12);
+b.y=o.y-40;
+b.vy=0;
+}
+}
 }
 
-// boca
-ctx.beginPath();
-if(b.face==="surprise"){
-ctx.arc(b.x,b.y+5,b.size*0.15,0,Math.PI*2);
-}else{
-ctx.arc(b.x,b.y+8,b.size*0.22,0,Math.PI);
-}
-ctx.stroke();
+b.el.style.top=b.y+"px";
 }
 
-/* ---------- DIBUJO ---------- */
-function drawBlock(b){
-ctx.fillStyle=colors[(b.level-1)%colors.length];
-ctx.beginPath();
-ctx.roundRect(b.x-b.size/2,b.y-b.size/2,b.size,b.size,8);
-ctx.fill();
-
-ctx.fillStyle="rgba(255,255,255,0.25)";
-ctx.beginPath();
-ctx.roundRect(b.x-b.size/2+4,b.y-b.size/2+4,b.size*0.4,b.size*0.4,6);
-ctx.fill();
-
-face(b);
+requestAnimationFrame(update);
 }
 
-/* ---------- LOOP ---------- */
-function loop(){
-ctx.clearRect(0,0,300,420);
-ctx.fillStyle="#b5d3e7";
-ctx.fillRect(0,380,300,40);
+/* ===== MERGE ===== */
 
-// blink random
-if(Math.random()<0.01)current.blink=6;
-if(current.blink>0)current.blink--;
+function merge(a,b){
 
-blocks.forEach(drawBlock);
+score+=a.lvl*10;
+document.getElementById("score").innerText=score;
 
-if(current.falling){
-current.y+=3;
-current.face="surprise";
+a.lvl++;
+a.el.className="block lvl"+a.lvl;
+a.el.innerHTML='<div class="face">😆</div>';
 
-if(current.y+current.size/2>=380){
-current.y=380-current.size/2;
-blocks.push({...current});
-pop(300+current.level*40);
-reset();
+b.el.remove();
+blocks.splice(blocks.indexOf(b),1);
 }
 
-blocks.forEach(b=>{
-if(Math.abs(current.x-b.x)<current.size &&
-Math.abs(current.y-b.y)<current.size){
-current.y=b.y-current.size;
-blocks.push({...current});
-pop(300+current.level*40);
-reset();
-}
-});
-}
+/* ===== INPUT ===== */
 
-drawBlock(current);
-requestAnimationFrame(loop);
-}
-
-/* ---------- CONTROL ---------- */
-function reset(){
-current={x:150,y:40,size:28,level:1,falling:false,blink:0,face:"normal"};
-}
-
-canvas.addEventListener("mousemove",e=>{
-if(current.falling)return;
-const r=canvas.getBoundingClientRect();
-current.x=(e.clientX-r.left)*(300/r.width);
+game.addEventListener("click",e=>{
+spawn(e.offsetX);
 });
 
-canvas.addEventListener("touchmove",e=>{
-if(current.falling)return;
-const r=canvas.getBoundingClientRect();
-current.x=(e.touches[0].clientX-r.left)*(300/r.width);
-});
+/* ===== START ===== */
 
-canvas.addEventListener("click",()=>{audio.resume();current.falling=true;});
-canvas.addEventListener("touchstart",()=>{audio.resume();current.falling=true;});
+function start(){
+document.getElementById("tutorial").style.display="none";
+running=true;
+update();
+}
 
-loop();
 </script>
 
 </body>
