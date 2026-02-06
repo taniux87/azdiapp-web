@@ -3,181 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AzDi Juegos</title>
+<title>AzDi Arcade</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 
+/* ========= BASE ========= */
+
 body{
-  margin:0;
-  font-family:'Segoe UI',Arial,sans-serif;
-  background:
-    radial-gradient(circle at 20% 10%, #09252f 0%, #050d12 60%);
-  color:white;
+ margin:0;
+ font-family:'Orbitron',sans-serif;
+ background:
+ radial-gradient(circle at 30% -20%, #00343a, transparent 60%),
+ radial-gradient(circle at 80% 120%, #001015, transparent 60%),
+ #02070a;
+ color:white;
 }
 
-/* HERO LOGO */
+/* ========= HEADER ========= */
 
-.hero{
-  width:100%;
-  height:220px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:
-    radial-gradient(circle at center, rgba(0,255,255,.15), transparent 70%),
-    linear-gradient(to bottom, #041014, #02080b);
-  border-bottom:1px solid rgba(0,255,255,.15);
+header{
+ text-align:center;
+ padding:25px 10px 10px;
 }
 
-.hero-logo{
-  width:180px;
-  max-width:70%;
-  border-radius:35px;
-  box-shadow:
-    0 0 35px rgba(0,255,255,.7),
-    0 0 80px rgba(0,150,255,.5);
+.logo{
+ width:140px;
+ filter:
+ drop-shadow(0 0 12px #00f7ff)
+ drop-shadow(0 0 25px #00aaff);
 }
 
-/* SECCIONES */
+.subtitle{
+ margin-top:8px;
+ font-size:13px;
+ opacity:.7;
+}
+
+/* ========= SECCIONES ========= */
 
 .section{
-  padding:22px 18px;
+ padding:20px 16px;
 }
 
 .section h2{
-  margin:0 0 14px;
-  font-size:18px;
-  color:#9cf9ff;
-  text-shadow:0 0 10px rgba(0,255,255,.4);
+ font-size:16px;
+ margin:0 0 15px;
+ color:#7efaff;
+ letter-spacing:2px;
 }
 
-/* DESTACADOS */
+/* ========= DESTACADOS ========= */
 
 .featured{
-  display:flex;
-  gap:16px;
-  overflow-x:auto;
-  padding-bottom:10px;
+ display:flex;
+ gap:14px;
+ overflow-x:auto;
 }
 
-.big-card{
-  min-width:260px;
-  height:160px;
-  border-radius:22px;
-  display:flex;
-  align-items:flex-end;
-  padding:14px;
-  text-decoration:none;
-  color:white;
-  position:relative;
-  overflow:hidden;
-  background-size:cover;
-  background-position:center;
+.featured-card{
+ min-width:260px;
+ height:150px;
+ border-radius:20px;
+ position:relative;
+ overflow:hidden;
+ text-decoration:none;
 }
 
-/* overlay oscuro */
-.big-card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(to top, rgba(0,0,0,.7), transparent 60%);
+.featured-card img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
 }
 
-.big-card span{
-  position:relative;
-  z-index:2;
-  font-size:20px;
-  font-weight:bold;
-  text-shadow:0 0 10px black;
+.featured-card span{
+ position:absolute;
+ bottom:0;
+ left:0;
+ right:0;
+ padding:12px;
+ background:linear-gradient(to top, rgba(0,0,0,.85), transparent);
+ font-size:18px;
 }
 
-.runner{ background-image:url("css/runner.png"); }
-.merge{ background-image:url("css/merge.png"); }
-
-/* GRID */
+/* ========= GRID ========= */
 
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:16px;
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:14px;
 }
 
-.card{
-  background:#0c2027;
-  border-radius:18px;
-  padding:12px;
-  text-align:center;
-  text-decoration:none;
-  color:white;
-  transition:.25s;
+.game-card{
+ background:#07171d;
+ border-radius:18px;
+ padding:18px 10px;
+ text-align:center;
+ text-decoration:none;
+ color:white;
+ border:1px solid rgba(0,255,255,.15);
+ transition:.25s;
 }
 
-.card:hover{
-  transform:translateY(-4px) scale(1.03);
-  box-shadow:0 0 18px rgba(0,255,255,.4);
+.game-card:hover{
+ transform:translateY(-4px);
+ box-shadow:0 0 18px rgba(0,255,255,.5);
+ border:1px solid #00f7ff;
 }
 
-.card img{
-  width:70px;
-  margin-bottom:10px;
-  filter:drop-shadow(0 0 10px rgba(0,255,255,.6));
+.game-card img{
+ width:72px;
+ margin-bottom:10px;
 }
 
-/* FOOTER */
+.game-card span{
+ display:block;
+ font-size:14px;
+}
+
+/* ========= FOOTER ========= */
 
 footer{
-  text-align:center;
-  padding:40px 10px;
-  opacity:.4;
-  font-size:13px;
+ text-align:center;
+ padding:40px 10px;
+ opacity:.4;
+ font-size:12px;
 }
 
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <img class="hero-logo" src="css/logo.png">
+<header>
+ <img class="logo" src="css/logo.png">
+ <div class="subtitle">juegos rápidos y adictivos</div>
 </header>
 
-<!-- DESTACADOS -->
-<div class="section">
-<h2>🔥 Destacados</h2>
-
+<section class="section">
+<h2>DESTACADOS</h2>
 <div class="featured">
-  <a class="big-card runner" href="juegos/runner/">
-    <span>AzDi Runner</span>
-  </a>
+ <a class="featured-card" href="juegos/runner/">
+   <img src="css/runner.png">
+   <span>AzDi Runner</span>
+ </a>
 
-  <a class="big-card merge" href="juegos/merge/">
-    <span>AzDi Merge</span>
-  </a>
+ <a class="featured-card" href="juegos/merge/">
+   <img src="css/merge.png">
+   <span>AzDi Merge</span>
+ </a>
 </div>
-</div>
+</section>
 
-<!-- TODOS -->
-<div class="section">
-<h2>🎮 Todos los juegos</h2>
-
+<section class="section">
+<h2>CATÁLOGO</h2>
 <div class="grid">
-  <a class="card" href="juegos/runner/">
-    <img src="css/runner.png">
-    Runner
-  </a>
 
-  <a class="card" href="juegos/merge/">
-    <img src="css/merge.png">
-    Merge
-  </a>
+ <a class="game-card" href="juegos/runner/">
+   <img src="css/runner.png">
+   <span>Runner</span>
+ </a>
 
-  <div class="card">
-    🚧<br>Próximamente
-  </div>
+ <a class="game-card" href="juegos/merge/">
+   <img src="css/merge.png">
+   <span>Merge</span>
+ </a>
+
+ <div class="game-card">
+   <img src="css/logo.png">
+   <span>Próximamente</span>
+ </div>
+
 </div>
-</div>
+</section>
 
 <footer>
-AzDi Arcade — nuevos juegos cada semana
+AzDi Arcade · nuevos juegos cada semana
 </footer>
 
 </body>
