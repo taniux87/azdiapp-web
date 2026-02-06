@@ -1,309 +1,316 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Animal Crush Saga</title>
-    <style>
-        :root {
-            --bg-color: #f0f9ff;
-            --primary: #4cc9f0;
-            --secondary: #4895ef;
-            --accent: #f72585;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Pop Adventure</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            overflow: hidden;
-        }
+<style>
+:root{
+--bg:#06141b;
+--panel:#0d2230;
+--accent:#00e5ff;
+--pink:#ff2ea6;
+}
 
-        #game-container {
-            width: 400px;
-            height: 600px;
-            background: white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-            border-radius: 15px;
-            margin-top: 20px;
-        }
+body{
+margin:0;
+background:radial-gradient(circle at 30% 10%,#0b2a38,#02070a 70%);
+font-family:Segoe UI;
+color:white;
+display:flex;
+justify-content:center;
+}
 
-        /* Pantalla de Mapa */
-        #map-screen {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            height: 100%;
-            overflow-y: auto;
-            background: linear-gradient(180deg, #a8dadc 0%, #f1faee 100%);
-        }
+#game-container{
+width:420px;
+height:680px;
+background:var(--panel);
+border-radius:20px;
+box-shadow:0 0 40px #00e5ff33;
+overflow:hidden;
+margin-top:20px;
+}
 
-        .level-node {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            cursor: pointer;
-            border: 4px solid var(--secondary);
-            transition: transform 0.2s;
-        }
+/* MAPA */
+#map-screen{
+padding:20px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+overflow-y:auto;
+height:100%;
+}
 
-        .level-node.locked {
-            background: #ccc;
-            border-color: #999;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
+.level-node{
+width:60px;height:60px;
+border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+background:#123648;
+border:3px solid var(--accent);
+cursor:pointer;
+font-weight:bold;
+}
 
-        /* Pantalla de Juego */
-        #game-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-        }
+.locked{
+opacity:.35;
+cursor:not-allowed;
+border-color:#555;
+}
 
-        #grid {
-            display: grid;
-            grid-template-columns: repeat(8, 45px);
-            grid-template-rows: repeat(8, 45px);
-            gap: 2px;
-            background: #eee;
-            padding: 5px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
+/* GAME */
+#game-screen{display:none;flex-direction:column;height:100%}
 
-        .cell {
-            width: 45px;
-            height: 45px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.1s;
-        }
+.header{
+display:flex;
+justify-content:space-around;
+padding:14px;
+background:#0c2a3b;
+}
 
-        .cell:active { transform: scale(0.9); }
-        .selected { outline: 3px solid var(--accent); z-index: 10; }
+#grid{
+display:grid;
+grid-template-columns:repeat(8,48px);
+grid-template-rows:repeat(8,48px);
+gap:3px;
+margin:12px auto;
+}
 
-        .header {
-            width: 100%;
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            background: var(--primary);
-            color: white;
-            font-weight: bold;
-        }
+.cell{
+background:#08212c;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:26px;
+border-radius:10px;
+cursor:pointer;
+transition:.15s;
+}
 
-        .btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-    </style>
+.cell.selected{outline:3px solid var(--pink)}
+
+.btn{
+margin:10px auto;
+padding:10px 18px;
+background:linear-gradient(90deg,#00e5ff,#ff2ea6);
+border:none;
+border-radius:18px;
+color:white;
+cursor:pointer;
+}
+</style>
 </head>
+
 <body>
 
 <div id="game-container">
-    <div id="map-screen"></div>
 
-    <div id="game-screen">
-        <div class="header">
-            <div id="level-display">Nivel: 1</div>
-            <div id="score-display">Puntos: 0</div>
-            <div id="target-display">Meta: 500</div>
-        </div>
-        <div id="grid"></div>
-        <button class="btn" onclick="goToMap()">Volver al Mapa</button>
-    </div>
+<div id="map-screen"></div>
+
+<div id="game-screen">
+<div class="header">
+<div id="level-display"></div>
+<div id="score-display"></div>
+<div id="target-display"></div>
+</div>
+
+<div id="grid"></div>
+<button class="btn" onclick="goToMap()">Volver al mapa</button>
+</div>
+
 </div>
 
 <script>
-    const animals = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻'];
-    const GRID_SIZE = 8;
-    let currentLevel = 1;
-    let score = 0;
-    let targetScore = 0;
-    let unlockedLevel = 1;
-    let gridData = [];
-    let selectedCell = null;
+const animals=["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼"];
+const SIZE=8;
 
-    const mapScreen = document.getElementById('map-screen');
-    const gameScreen = document.getElementById('game-screen');
-    const gridElement = document.getElementById('grid');
+let level=1;
+let score=0;
+let target=0;
+let unlocked=parseInt(localStorage.getItem("animalpop")||1);
 
-    // Inicializar Mapa
-    function initMap() {
-        mapScreen.innerHTML = '';
-        for (let i = 1; i <= 20; i++) {
-            const div = document.createElement('div');
-            div.className = `level-node ${i > unlockedLevel ? 'locked' : ''}`;
-            div.innerText = i;
-            div.onclick = () => { if (i <= unlockedLevel) startLevel(i); };
-            mapScreen.appendChild(div);
-        }
-    }
+let grid=[];
+let selected=null;
 
-    function startLevel(lvl) {
-        currentLevel = lvl;
-        score = 0;
-        targetScore = lvl * 300; // La dificultad aumenta
-        document.getElementById('level-display').innerText = `Nivel: ${lvl}`;
-        document.getElementById('target-display').innerText = `Meta: ${targetScore}`;
-        document.getElementById('score-display').innerText = `Puntos: 0`;
-        
-        mapScreen.style.display = 'none';
-        gameScreen.style.display = 'flex';
-        
-        createGrid();
-    }
+const map=document.getElementById("map-screen");
+const game=document.getElementById("game-screen");
+const gridEl=document.getElementById("grid");
 
-    function createGrid() {
-        gridElement.innerHTML = '';
-        gridData = [];
-        for (let r = 0; r < GRID_SIZE; r++) {
-            gridData[r] = [];
-            for (let c = 0; c < GRID_SIZE; c++) {
-                const animal = animals[Math.floor(Math.random() * animals.length)];
-                gridData[r][c] = animal;
-                
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.dataset.r = r;
-                cell.dataset.c = c;
-                cell.innerText = animal;
-                cell.onclick = () => handleCellClick(r, c, cell);
-                gridElement.appendChild(cell);
-            }
-        }
-        // Limpiar combinaciones iniciales sin dar puntos
-        checkMatches();
-    }
+/* ===== MAPA ===== */
+function initMap(){
+map.innerHTML="";
+for(let i=1;i<=20;i++){
+const n=document.createElement("div");
+n.className="level-node "+(i>unlocked?"locked":"");
+n.textContent=i;
+n.onclick=()=>{if(i<=unlocked)startLevel(i)};
+map.appendChild(n);
+}
+}
 
-    function handleCellClick(r, c, el) {
-        if (!selectedCell) {
-            selectedCell = { r, c, el };
-            el.classList.add('selected');
-        } else {
-            const dist = Math.abs(selectedCell.r - r) + Math.abs(selectedCell.c - c);
-            if (dist === 1) {
-                swap(selectedCell.r, selectedCell.c, r, c);
-                selectedCell.el.classList.remove('selected');
-                selectedCell = null;
-                setTimeout(checkMatches, 300);
-            } else {
-                selectedCell.el.classList.remove('selected');
-                selectedCell = { r, c, el };
-                el.classList.add('selected');
-            }
-        }
-    }
+/* ===== NIVEL ===== */
+function startLevel(lvl){
+level=lvl;
+score=0;
+target=lvl*300;
 
-    function swap(r1, c1, r2, c2) {
-        const temp = gridData[r1][c1];
-        gridData[r1][c1] = gridData[r2][c2];
-        gridData[r2][c2] = temp;
-        renderGrid();
-    }
+document.getElementById("level-display").textContent="Nivel "+lvl;
+document.getElementById("score-display").textContent="0";
+document.getElementById("target-display").textContent="Meta "+target;
 
-    function renderGrid() {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach(cell => {
-            const r = cell.dataset.r;
-            const c = cell.dataset.c;
-            cell.innerText = gridData[r][c];
-        });
-    }
+map.style.display="none";
+game.style.display="flex";
 
-    function checkMatches() {
-        let toRemove = [];
+generateCleanGrid();
+render();
+}
 
-        // Filas
-        for (let r = 0; r < GRID_SIZE; r++) {
-            for (let c = 0; c < GRID_SIZE - 2; c++) {
-                if (gridData[r][c] && gridData[r][c] === gridData[r][c+1] && gridData[r][c] === gridData[r][c+2]) {
-                    toRemove.push({r, c}, {r, c+1}, {r, c+2});
-                }
-            }
-        }
+/* ===== GRID SIN COMBOS INICIALES ===== */
+function generateCleanGrid(){
+grid=[];
+for(let r=0;r<SIZE;r++){
+grid[r]=[];
+for(let c=0;c<SIZE;c++){
+let val;
+do{
+val=randAnimal();
+grid[r][c]=val;
+}while(matchAt(r,c));
+}
+}
+}
 
-        // Columnas
-        for (let c = 0; c < GRID_SIZE; c++) {
-            for (let r = 0; r < GRID_SIZE - 2; r++) {
-                if (gridData[r][c] && gridData[r][c] === gridData[r+1][c] && gridData[r][c] === gridData[r+2][c]) {
-                    toRemove.push({r, c}, {r+1, c}, {r+2, c});
-                }
-            }
-        }
+function randAnimal(){
+return animals[Math.floor(Math.random()*animals.length)];
+}
 
-        if (toRemove.length > 0) {
-            score += toRemove.length * 10;
-            document.getElementById('score-display').innerText = `Puntos: ${score}`;
-            
-            toRemove.forEach(pos => {
-                gridData[pos.r][pos.c] = null;
-            });
+/* ===== RENDER ===== */
+function render(){
+gridEl.innerHTML="";
+for(let r=0;r<SIZE;r++){
+for(let c=0;c<SIZE;c++){
+const d=document.createElement("div");
+d.className="cell";
+d.textContent=grid[r][c];
+d.onclick=()=>clickCell(r,c,d);
+gridEl.appendChild(d);
+}
+}
+}
 
-            fillGaps();
-            setTimeout(checkMatches, 400);
-        } else {
-            checkWinCondition();
-        }
-    }
+/* ===== CLICK ===== */
+function clickCell(r,c,el){
+if(!selected){
+selected={r,c,el};
+el.classList.add("selected");
+return;
+}
 
-    function fillGaps() {
-        for (let c = 0; c < GRID_SIZE; c++) {
-            for (let r = GRID_SIZE - 1; r >= 0; r--) {
-                if (gridData[r][c] === null) {
-                    for (let kr = r - 1; kr >= 0; kr--) {
-                        if (gridData[kr][c] !== null) {
-                            gridData[r][c] = gridData[kr][c];
-                            gridData[kr][c] = null;
-                            break;
-                        }
-                    }
-                }
-                if (gridData[r][c] === null) {
-                    gridData[r][c] = animals[Math.floor(Math.random() * animals.length)];
-                }
-            }
-        }
-        renderGrid();
-    }
+const dist=Math.abs(selected.r-r)+Math.abs(selected.c-c);
+if(dist!==1){
+selected.el.classList.remove("selected");
+selected={r,c,el};
+el.classList.add("selected");
+return;
+}
 
-    function checkWinCondition() {
-        if (score >= targetScore) {
-            alert("¡Nivel Superado!");
-            if (currentLevel === unlockedLevel) unlockedLevel++;
-            goToMap();
-        }
-    }
+/* probar swap */
+swap(selected.r,selected.c,r,c);
 
-    function goToMap() {
-        gameScreen.style.display = 'none';
-        mapScreen.style.display = 'grid';
-        initMap();
-    }
+if(hasMatch()){
+selected=null;
+cascade();
+}else{
+swap(selected.r,selected.c,r,c);
+}
 
-    initMap();
+render();
+}
+
+/* ===== LOGICA ===== */
+function swap(r1,c1,r2,c2){
+let t=grid[r1][c1];
+grid[r1][c1]=grid[r2][c2];
+grid[r2][c2]=t;
+}
+
+function matchAt(r,c){
+const v=grid[r][c];
+if(!v)return false;
+
+return(
+(c>1 && v===grid[r][c-1]&&v===grid[r][c-2])||
+(r>1 && v===grid[r-1][c]&&v===grid[r-2][c])
+);
+}
+
+function hasMatch(){
+for(let r=0;r<SIZE;r++)
+for(let c=0;c<SIZE;c++)
+if(matchAt(r,c))return true;
+return false;
+}
+
+/* ===== ELIMINAR + CAER ===== */
+function cascade(){
+let removed=false;
+
+let mark=[...Array(SIZE)].map(()=>Array(SIZE).fill(false));
+
+for(let r=0;r<SIZE;r++)
+for(let c=0;c<SIZE;c++){
+let v=grid[r][c];
+if(!v)continue;
+
+if(c<SIZE-2&&v===grid[r][c+1]&&v===grid[r][c+2])
+mark[r][c]=mark[r][c+1]=mark[r][c+2]=true;
+
+if(r<SIZE-2&&v===grid[r+1][c]&&v===grid[r+2][c])
+mark[r][c]=mark[r+1][c]=mark[r+2][c]=true;
+}
+
+for(let r=0;r<SIZE;r++)
+for(let c=0;c<SIZE;c++)
+if(mark[r][c]){
+grid[r][c]=null;
+score+=10;
+removed=true;
+}
+
+if(!removed){checkWin();return;}
+
+document.getElementById("score-display").textContent=score;
+
+/* gravedad */
+for(let c=0;c<SIZE;c++){
+let col=[];
+for(let r=SIZE-1;r>=0;r--)if(grid[r][c])col.push(grid[r][c]);
+for(let r=SIZE-1;r>=0;r--)grid[r][c]=col.shift()||randAnimal();
+}
+
+render();
+setTimeout(cascade,200);
+}
+
+/* ===== WIN ===== */
+function checkWin(){
+if(score>=target){
+alert("Nivel superado!");
+if(level===unlocked){
+unlocked++;
+localStorage.setItem("animalpop",unlocked);
+}
+goToMap();
+}
+}
+
+function goToMap(){
+game.style.display="none";
+map.style.display="grid";
+initMap();
+}
+
+initMap();
 </script>
 
 </body>
