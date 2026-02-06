@@ -6,50 +6,59 @@
 <title>AzDi Merge</title>
 
 <style>
-body{
+html,body{
   margin:0;
-  background:#1e2f38;
+  height:100%;
+  background:#0e1a1f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
   font-family:Arial;
   color:white;
-  text-align:center;
 }
 
-.header{
-  background:#142028;
-  padding:14px;
-  font-weight:bold;
-  letter-spacing:2px;
-  font-size:22px;
+/* contenedor ocupa pantalla */
+.wrapper{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  width:100%;
 }
 
+/* juego grande siempre visible */
 canvas{
   background:#e8f4ff;
-  margin-top:20px;
-  border-radius:14px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.6);
-  width:min(95vw,420px);
-  height:calc(min(95vw,420px)*1.4);
+  border-radius:18px;
+  width:min(94vw,520px);
+  height:calc(min(94vw,520px)*1.4);
+  max-height:85vh;
+  box-shadow:0 25px 60px rgba(0,0,0,0.7);
 }
 
-.info{
-  margin-top:15px;
-  opacity:.7;
+.title{
+  position:absolute;
+  top:12px;
+  font-weight:bold;
+  letter-spacing:2px;
+  opacity:.8;
 }
 </style>
 </head>
 <body>
 
-<div class="header">AZDI MERGE</div>
+<div class="title">AZDI MERGE</div>
 
-<canvas id="game" width="300" height="420"></canvas>
-
-<div class="info">Mueve y toca para soltar</div>
+<div class="wrapper">
+  <canvas id="game" width="300" height="420"></canvas>
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let current = {x:150,y:40,size:28,falling:false};
+let current={x:150,y:40,size:28,falling:false};
 let blocks=[];
 
 function drawBlock(b){
@@ -67,54 +76,46 @@ function drawBlock(b){
 function loop(){
   ctx.clearRect(0,0,300,420);
 
-  // suelo
   ctx.fillStyle="#b5d3e7";
   ctx.fillRect(0,380,300,40);
 
-  // bloques colocados
   blocks.forEach(drawBlock);
 
-  // gravedad
   if(current.falling){
     current.y+=3;
 
-    // colision suelo
     if(current.y+current.size/2>=380){
       current.y=380-current.size/2;
       blocks.push({...current});
-      resetBlock();
+      reset();
     }
 
-    // colision bloques
     blocks.forEach(b=>{
       if(Math.abs(current.x-b.x)<current.size &&
          Math.abs(current.y-b.y)<current.size){
           current.y=b.y-current.size;
           blocks.push({...current});
-          resetBlock();
+          reset();
       }
     });
   }
 
   drawBlock(current);
-
   requestAnimationFrame(loop);
 }
 
-function resetBlock(){
-  current={x:150,y:40,size:28,falling:false};
-}
+function reset(){current={x:150,y:40,size:28,falling:false};}
 
 canvas.addEventListener("mousemove",e=>{
-  if(current.falling) return;
-  const rect=canvas.getBoundingClientRect();
-  current.x=(e.clientX-rect.left)*(300/rect.width);
+  if(current.falling)return;
+  const r=canvas.getBoundingClientRect();
+  current.x=(e.clientX-r.left)*(300/r.width);
 });
 
 canvas.addEventListener("touchmove",e=>{
-  if(current.falling) return;
-  const rect=canvas.getBoundingClientRect();
-  current.x=(e.touches[0].clientX-rect.left)*(300/rect.width);
+  if(current.falling)return;
+  const r=canvas.getBoundingClientRect();
+  current.x=(e.touches[0].clientX-r.left)*(300/r.width);
 });
 
 canvas.addEventListener("click",()=>current.falling=true);
