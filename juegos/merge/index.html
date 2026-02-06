@@ -42,11 +42,11 @@ letter-spacing:2px;
 #board{
 background:rgba(20,25,35,.85);
 border-radius:28px;
-box-shadow:0 0 80px #00f0ff44,inset 0 -120px 150px #000000aa;
+box-shadow:0 0 80px #00f0ff55;
 }
 
-/* overlay */
-.overlay{
+/* menu */
+#menu,#gameover{
 position:fixed;
 inset:0;
 display:flex;
@@ -61,13 +61,13 @@ padding:34px;
 border-radius:22px;
 text-align:center;
 width:280px;
-box-shadow:0 0 60px #00f0ff66;
+box-shadow:0 0 50px #00f0ff44;
 }
 
 .title{
 font-size:28px;
 color:#00f0ff;
-text-shadow:0 0 18px #00f0ff;
+text-shadow:0 0 15px #00f0ff;
 margin-bottom:15px;
 }
 
@@ -84,6 +84,8 @@ cursor:pointer;
 box-shadow:0 0 25px #00f0ff;
 }
 button:hover{transform:scale(1.08)}
+
+#gameover{display:none}
 </style>
 </head>
 
@@ -91,19 +93,14 @@ button:hover{transform:scale(1.08)}
 
 <canvas id="stars"></canvas>
 
-<div id="menu" class="overlay">
+<div id="menu">
 <div class="card">
 <div class="title">AzDi Merge</div>
-<div class="desc">Fusiona criaturas iguales y no dejes que la torre llegue arriba 👀</div>
-<button onclick="start()">JUGAR</button>
+<div class="desc">
+Fusiona criaturas iguales para evolucionarlas.<br><br>
+No llenes la caja hasta arriba 👀
 </div>
-</div>
-
-<div id="gameover" class="overlay" style="display:none">
-<div class="card">
-<div class="title">GAME OVER</div>
-<div id="finalscore" class="desc"></div>
-<button onclick="restart()">REINTENTAR</button>
+<button onclick="startGame()">JUGAR</button>
 </div>
 </div>
 
@@ -112,25 +109,43 @@ button:hover{transform:scale(1.08)}
 <canvas id="board"></canvas>
 </div>
 
+<div id="gameover">
+<div class="card">
+<div class="title">GAME OVER</div>
+<div id="finalScore"></div><br>
+<button onclick="restart()">REINTENTAR</button>
+</div>
+</div>
+
 <script>
-/* fondo estrellas */
+/* ---------- estrellas ---------- */
 const starCanvas=document.getElementById("stars");
 const sctx=starCanvas.getContext("2d");
+
+function resizeStars(){
 starCanvas.width=innerWidth;
 starCanvas.height=innerHeight;
+}
+resizeStars();
+window.onresize=resizeStars;
 
 let stars=[];
-for(let i=0;i<140;i++){
-stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2,c:`hsl(${Math.random()*360}deg 100% 70%)`});
+for(let i=0;i<160;i++){
+stars.push({
+x:Math.random()*starCanvas.width,
+y:Math.random()*starCanvas.height,
+r:Math.random()*2,
+c:`hsl(${Math.random()*360}deg 100% 70%)`
+});
 }
 
 function drawStars(){
 sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
 for(const s of stars){
-sctx.beginPath();
 sctx.fillStyle=s.c;
 sctx.shadowBlur=10;
 sctx.shadowColor=s.c;
+sctx.beginPath();
 sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
 sctx.fill();
 }
@@ -138,20 +153,24 @@ requestAnimationFrame(drawStars);
 }
 drawStars();
 
-/* tablero */
+/* ---------- tablero ---------- */
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
+function resizeBoard(){
 canvas.width=Math.min(innerWidth*0.9,520);
 canvas.height=Math.min(innerHeight*0.75,780);
+}
+resizeBoard();
+window.addEventListener("resize",resizeBoard);
 
-/* juego */
+/* ---------- juego ---------- */
 let blocks=[];
 let score=0;
 let running=false;
 
 const size=56;
-const gravity=.45;
+const gravity=.5;
 
 const creatures=["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
 const colors=["#ffe082","#ffd54f","#ffca28","#ffc107","#ff9800","#ff5722","#9c27b0","#673ab7","#2196f3","#00f0ff"];
@@ -162,27 +181,34 @@ this.x=x;
 this.y=0;
 this.vy=0;
 this.n=n;
+this.grounded=false;
 }
 
 update(){
 this.vy+=gravity;
 this.y+=this.vy;
+this.grounded=false;
 
-if(this.y+size>canvas.height){
+/* suelo */
+if(this.y+size>=canvas.height){
 this.y=canvas.height-size;
 this.vy=0;
+this.grounded=true;
 }
 
-for(const other of blocks){
-if(other===this)continue;
+/* otros bloques */
+for(const o of blocks){
+if(o===this)continue;
 
-if(this.x < other.x+size &&
-this.x+size > other.x &&
-this.y+size > other.y &&
-this.y < other.y &&
+if(this.x < o.x+size &&
+this.x+size > o.x &&
+this.y+size > o.y &&
+this.y < o.y &&
 this.vy>0){
-this.y=other.y-size;
+
+this.y=o.y-size;
 this.vy=0;
+this.grounded=true;
 }
 }
 }
@@ -190,7 +216,6 @@ this.vy=0;
 draw(){
 ctx.shadowBlur=25;
 ctx.shadowColor=colors[this.n%colors.length];
-
 ctx.fillStyle=colors[this.n%colors.length];
 ctx.beginPath();
 ctx.roundRect(this.x,this.y,size,size,16);
@@ -208,15 +233,21 @@ function collide(a,b){
 return a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
 }
 
+/* merge */
 function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
+
 let a=blocks[i],b=blocks[j];
 
-if(a.n===b.n && collide(a,b) && Math.abs(a.vy)<1 && Math.abs(b.vy)<1){
+if(a.n===b.n && collide(a,b) && a.grounded && b.grounded){
+
+const nx=(a.x+b.x)/2;
+
 blocks.splice(j,1);
 blocks.splice(i,1);
-blocks.push(new Block(a.x,a.n+1));
+blocks.push(new Block(nx,a.n+1));
+
 score+=10;
 document.getElementById("score").innerText="Puntos: "+score;
 return;
@@ -225,18 +256,24 @@ return;
 }
 }
 
-/* GAME OVER correcto */
+/* game over */
 function checkGameOver(){
 for(const b of blocks){
-if(Math.abs(b.vy)<0.1 && b.y<30){
+if(b.grounded && b.y<10){
 endGame();
 return;
 }
 }
 }
 
+function endGame(){
+running=false;
+document.getElementById("finalScore").innerText="Puntuación: "+score;
+document.getElementById("gameover").style.display="flex";
+}
+
 function update(){
-if(!running) return;
+if(!running)return;
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -248,30 +285,31 @@ for(const b of blocks)b.draw();
 requestAnimationFrame(update);
 }
 
+/* spawn */
 canvas.addEventListener("click",e=>{
 if(!running)return;
+
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
-const startLevel=Math.random()<0.8?0:1;
-blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),startLevel));
+const level=Math.random()<0.8?0:1;
+blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),level));
 });
 
-/* control */
-function start(){
+/* controles */
+function startGame(){
 document.getElementById("menu").style.display="none";
 document.getElementById("game").style.display="flex";
 running=true;
 update();
 }
 
-function endGame(){
-running=false;
-document.getElementById("finalscore").innerText="Puntuación: "+score;
-document.getElementById("gameover").style.display="flex";
-}
-
 function restart(){
-location.reload();
+blocks=[];
+score=0;
+document.getElementById("score").innerText="Puntos: 0";
+document.getElementById("gameover").style.display="none";
+running=true;
+update();
 }
 </script>
 
