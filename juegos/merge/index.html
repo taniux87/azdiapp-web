@@ -167,8 +167,34 @@ let score=0;
 const size=56;
 const gravity=.45;
 
-const creatures=["🥚","🟢","🐱","🤖","👽","😈","🐉","🌌","🧠","👑"];
-const colors=["#ffd166","#ef476f","#06d6a0","#118ab2","#8338ec","#ff006e","#fb5607","#3a86ff","#00f0ff","#ff00d4"];
+/* evolución clara y adictiva */
+const creatures=[
+"🥚",
+"🐣",
+"🐤",
+"🐥",
+"🐔",
+"🐓",
+"🦅",
+"🐲",
+"🐉",
+"👑"
+];
+
+/* colores progresivos */
+const colors=[
+"#ffe082",
+"#ffd54f",
+"#ffca28",
+"#ffc107",
+"#ff9800",
+"#ff5722",
+"#9c27b0",
+"#673ab7",
+"#2196f3",
+"#00f0ff"
+];
+
 
 class Block{
 constructor(x,n){
@@ -257,8 +283,10 @@ requestAnimationFrame(update);
 canvas.addEventListener("click",e=>{
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
-blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),0));
-});
+// 80% huevo, 20% nivel 1 (para que el juego arranque)
+const startLevel = Math.random()<0.8 ? 0 : 1;
+blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),startLevel));
+
 
 function start(){
 document.getElementById("menu").style.display="none";
