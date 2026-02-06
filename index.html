@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AzDi App</title>
+<title>AzDi Juegos Web</title>
 
 <style>
 body{
@@ -19,27 +19,15 @@ body{
   padding:40px 10px 10px;
 }
 
-.logo{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-}
-
-.logo svg{
-  width:90px;
-  height:90px;
-}
-
-.brand{
-  font-size:34px;
-  font-weight:bold;
-  letter-spacing:2px;
+.logo img{
+  width:160px;
+  max-width:70vw;
+  margin-bottom:10px;
+  filter:drop-shadow(0 8px 25px rgba(0,0,0,.6));
 }
 
 .subtitle{
   opacity:.7;
-  margin-top:6px;
   font-size:16px;
 }
 
@@ -82,7 +70,6 @@ body{
 .info{padding:16px;}
 
 .title{font-weight:bold;font-size:18px;}
-
 .desc{opacity:.7;font-size:14px;margin-top:6px;}
 </style>
 </head>
@@ -90,22 +77,13 @@ body{
 
 <div class="header">
   <div class="logo">
-
-    <svg viewBox="0 0 100 100">
-      <rect x="15" y="15" width="70" height="70" rx="18" fill="#ffd43b"/>
-      <circle cx="40" cy="45" r="6" fill="#222"/>
-      <circle cx="60" cy="45" r="6" fill="#222"/>
-      <path d="M35 65 Q50 80 65 65" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>
-    </svg>
-
-    <div class="brand">AzDi</div>
-    <div class="subtitle">Juegos rápidos para pasar el rato</div>
+    <img src="css/logo.png" alt="AzDi Juegos Web">
   </div>
+  <div class="subtitle">Juegos rápidos para pasar el rato</div>
 </div>
 
 <div class="games">
 
-  <!-- RUNNER -->
   <a href="juegos/runner/" style="text-decoration:none;color:inherit;">
     <div class="card">
       <div class="thumb runner">🏃</div>
@@ -116,7 +94,6 @@ body{
     </div>
   </a>
 
-  <!-- MERGE -->
   <a href="juegos/merge/" style="text-decoration:none;color:inherit;">
     <div class="card">
       <div class="thumb merge">🟨</div>
@@ -127,7 +104,6 @@ body{
     </div>
   </a>
 
-  <!-- FUTUROS -->
   <div class="card" style="opacity:.4;cursor:default;">
     <div class="thumb">🎮</div>
     <div class="info">
