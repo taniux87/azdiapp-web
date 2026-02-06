@@ -2,294 +2,252 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AzDi Merge</title>
 
 <style>
-
-/* ================== FONDO ARCADE ================== */
 body{
 margin:0;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
 overflow:hidden;
+background:#05070d;
+font-family:Segoe UI,Arial;
 color:white;
-font-family:system-ui;
-
-background:
-radial-gradient(circle at 20% 20%, #00f7ff22 0%, transparent 40%),
-radial-gradient(circle at 80% 70%, #ff00ff22 0%, transparent 40%),
-linear-gradient(180deg,#020617,#020617 40%,#01030a);
-
-background-image:
-linear-gradient(#00f7ff11 1px, transparent 1px),
-linear-gradient(90deg,#00f7ff11 1px, transparent 1px);
-background-size: 60px 60px;
-
-animation:bgMove 18s linear infinite;
 }
 
-@keyframes bgMove{
-0%{background-position:0 0;}
-100%{background-position:600px 600px;}
+/* estrellas */
+canvas#stars{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
 }
 
-/* ================== CONTENEDOR ================== */
-.gameBox{
-position:relative;
+/* zona juego */
+#game{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
 }
 
-/* ================== CANVAS ================== */
-canvas{
-background:#dfe7ef;
-border-radius:18px;
-box-shadow:0 0 40px #00f7ff55, inset 0 -80px 0 #9fb7c9;
-touch-action:none;
-}
-
-/* ================== UI ================== */
-.top{
-position:absolute;
-top:-60px;
-width:100%;
-text-align:center;
-font-weight:bold;
+#score{
+color:#00f0ff;
+text-shadow:0 0 10px #00f0ff;
+margin-bottom:10px;
+font-size:22px;
 letter-spacing:2px;
 }
 
-.score{
-font-size:18px;
-color:#00f7ff;
-text-shadow:0 0 10px #00f7ff;
+#board{
+background:rgba(20,25,35,.8);
+border-radius:20px;
+box-shadow:0 0 30px #00f0ff33;
 }
 
-/* ================== PANTALLA INICIO ================== */
-.start{
-position:absolute;
+/* menu inicio */
+#menu{
+position:fixed;
 inset:0;
-background:#000c;
 display:flex;
-flex-direction:column;
-justify-content:center;
 align-items:center;
-border-radius:18px;
+justify-content:center;
+backdrop-filter:blur(6px);
+}
+
+.card{
+background:linear-gradient(180deg,#0b0f18,#121826);
+padding:30px;
+border-radius:20px;
 text-align:center;
+width:260px;
+box-shadow:0 0 40px #00f0ff44;
+animation:float 4s ease-in-out infinite;
 }
 
-.start h1{
-margin:0;
-font-size:28px;
-color:#00f7ff;
-text-shadow:0 0 20px #00f7ff;
+@keyframes float{
+0%,100%{transform:translateY(0)}
+50%{transform:translateY(-10px)}
 }
 
-.start p{
-max-width:240px;
-opacity:.9;
+.title{
+font-size:26px;
+color:#00f0ff;
+text-shadow:0 0 15px #00f0ff;
+margin-bottom:15px;
+}
+
+.desc{
+opacity:.85;
+margin-bottom:20px;
+line-height:1.4;
 }
 
 button{
-margin-top:15px;
-padding:12px 25px;
+background:linear-gradient(90deg,#00f0ff,#ff00d4);
 border:none;
+padding:12px 26px;
 border-radius:12px;
-background:linear-gradient(45deg,#00f7ff,#ff00ff);
 color:white;
-font-size:18px;
+font-weight:bold;
 cursor:pointer;
+box-shadow:0 0 20px #00f0ff;
+transition:.2s;
 }
-
+button:hover{
+transform:scale(1.08);
+box-shadow:0 0 35px #ff00d4;
+}
 </style>
 </head>
 
 <body>
 
-<div class="gameBox">
-<div class="top">
-<div class="score">Puntos: <span id="score">0</span></div>
+<canvas id="stars"></canvas>
+
+<div id="menu">
+<div class="card">
+<div class="title">AzDi Merge</div>
+<div class="desc">
+Fusiona criaturas iguales para evolucionarlas.<br><br>
+No dejes que la torre llegue arriba 👀
+</div>
+<button onclick="start()">JUGAR</button>
+</div>
 </div>
 
-<canvas id="game" width="320" height="500"></canvas>
-
-<div class="start" id="start">
-<h1>AzDi Merge</h1>
-<p>
-Une cubos del mismo número para crear uno más grande.<br><br>
-Si la torre llega arriba… pierdes 😈
-</p>
-<button onclick="startGame()">JUGAR</button>
-</div>
-
+<div id="game" style="display:none">
+<div id="score">Puntos: 0</div>
+<canvas id="board" width="320" height="480"></canvas>
 </div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const W = canvas.width;
-const H = canvas.height;
+/* ---------- estrellas ---------- */
+const starCanvas=document.getElementById("stars");
+const sctx=starCanvas.getContext("2d");
+let stars=[];
+
+function resizeStars(){
+starCanvas.width=innerWidth;
+starCanvas.height=innerHeight;
+}
+window.onresize=resizeStars;
+resizeStars();
+
+for(let i=0;i<120;i++){
+stars.push({
+x:Math.random()*starCanvas.width,
+y:Math.random()*starCanvas.height,
+r:Math.random()*2,
+c:`hsl(${Math.random()*360}deg 100% 70%)`
+});
+}
+
+function drawStars(){
+sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
+for(const s of stars){
+sctx.beginPath();
+sctx.fillStyle=s.c;
+sctx.shadowBlur=10;
+sctx.shadowColor=s.c;
+sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+sctx.fill();
+}
+requestAnimationFrame(drawStars);
+}
+drawStars();
+
+/* ---------- juego ---------- */
+const canvas=document.getElementById("board");
+const ctx=canvas.getContext("2d");
 
 let blocks=[];
-let current=null;
 let score=0;
-let playing=false;
+const size=48;
+const gravity=.35;
 
-const size=40;
-const gravity=0.45;
-
-function color(n){
-const colors=[
-"#ffd166","#ef476f","#06d6a0","#118ab2",
-"#8338ec","#ff006e","#fb5607","#3a86ff"
-];
-return colors[(n-1)%colors.length];
-}
+const creatures=["🥚","🟢","🐱","🤖","👽","😈","🐉","🌌","🧠","👑"];
+const colors=["#ffd166","#ef476f","#06d6a0","#118ab2","#8338ec","#ff006e","#fb5607","#3a86ff","#00f0ff","#ff00d4"];
 
 class Block{
-constructor(x,y,n){
+constructor(x,n){
 this.x=x;
-this.y=y;
+this.y=0;
 this.vy=0;
 this.n=n;
-this.landed=false;
-}
-
-draw(){
-ctx.fillStyle=color(this.n);
-ctx.beginPath();
-ctx.roundRect(this.x,this.y,size,size,10);
-ctx.fill();
-
-ctx.fillStyle="#000";
-ctx.font="bold 16px Arial";
-ctx.textAlign="center";
-ctx.textBaseline="middle";
-ctx.fillText(this.n,this.x+size/2,this.y+size/2);
+this.merged=false;
 }
 
 update(){
-
-if(this.landed) return;
-
 this.vy+=gravity;
 this.y+=this.vy;
 
-/* SUELO */
-if(this.y>H-size){
-this.y=H-size;
+if(this.y+size>canvas.height){
+this.y=canvas.height-size;
 this.vy=0;
-this.landed=true;
-}
-
-/* COLISIONES CON OTROS BLOQUES */
-for(let b of blocks){
-if(b===this) continue;
-
-let touching =
-this.x < b.x+size &&
-this.x+size > b.x &&
-this.y+size > b.y &&
-this.y+size < b.y+20;
-
-if(touching && this.vy>=0){
-this.y=b.y-size;
-this.vy=0;
-this.landed=true;
-}
-
-/* empuje lateral suave */
-if(Math.abs(this.y-b.y)<size-5 &&
-Math.abs(this.x-b.x)<size){
-
-if(this.x<b.x) this.x-=1.2;
-else this.x+=1.2;
 }
 }
 
+draw(){
+ctx.shadowBlur=25;
+ctx.shadowColor=colors[this.n%colors.length];
+
+ctx.fillStyle=colors[this.n%colors.length];
+ctx.beginPath();
+ctx.roundRect(this.x,this.y,size,size,14);
+ctx.fill();
+
+ctx.shadowBlur=0;
+ctx.font="26px serif";
+ctx.textAlign="center";
+ctx.textBaseline="middle";
+ctx.fillText(creatures[this.n%creatures.length],this.x+size/2,this.y+size/2);
 }
 }
 
-function spawn(){
-current=new Block(W/2-size/2,0,Math.ceil(Math.random()*3));
+function collide(a,b){
+return a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
 }
 
 function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
 let a=blocks[i],b=blocks[j];
-
-if(a.n===b.n &&
-Math.abs(a.x-b.x)<size-4 &&
-Math.abs(a.y-b.y)<size-4){
-
-a.n++;
+if(!a.merged&&!b.merged&&a.n===b.n&&collide(a,b)&&Math.abs(a.vy)<1&&Math.abs(b.vy)<1){
+a.merged=b.merged=true;
 blocks.splice(j,1);
-score+=a.n*10;
-document.getElementById("score").textContent=score;
+blocks.splice(i,1);
+blocks.push(new Block(a.x,a.n+1));
+score+=10;
+document.getElementById("score").innerText="Puntos: "+score;
 return;
 }
 }
 }
 }
 
-function checkLose(){
-for(let b of blocks){
-if(b.y<20){
-playing=false;
-alert("Game Over — puntuación: "+score);
-location.reload();
-}
-}
-}
-
 function update(){
-ctx.clearRect(0,0,W,H);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-blocks.forEach(b=>{
-b.update();
-b.draw();
-});
-
-if(current){
-current.draw();
-}
-
+for(const b of blocks)b.update();
 merge();
-checkLose();
+for(const b of blocks)b.draw();
+
 requestAnimationFrame(update);
 }
 
-function drop(){
-if(!playing || !current) return;
-blocks.push(current);
-spawn();
-}
-
-canvas.addEventListener("mousemove",e=>{
-if(!current) return;
+canvas.addEventListener("click",e=>{
 const rect=canvas.getBoundingClientRect();
-current.x=e.clientX-rect.left-size/2;
+const x=e.clientX-rect.left-size/2;
+blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),0));
 });
 
-canvas.addEventListener("touchmove",e=>{
-e.preventDefault();
-if(!current) return;
-const rect=canvas.getBoundingClientRect();
-current.x=e.touches[0].clientX-rect.left-size/2;
-});
-
-canvas.addEventListener("click",drop);
-canvas.addEventListener("touchstart",drop);
-
-function startGame(){
-document.getElementById("start").style.display="none";
-playing=true;
-spawn();
+function start(){
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="flex";
 update();
 }
 </script>
-
 
 </body>
 </html>
