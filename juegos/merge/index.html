@@ -1,302 +1,327 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AzDi Merge | Fix</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>AzDi Merge | Edición Completa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #05070d;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-<style>
-body{
-margin:0;
-overflow:hidden;
-background:#05070d;
-font-family:Segoe UI,Arial;
-color:white;
-}
+        /* Estrellas de fondo */
+        #stars {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+        }
 
-/* estrellas */
-#stars{
-position:fixed;
-inset:0;
-z-index:-1;
-}
+        /* HUD */
+        #ui {
+            text-align: center;
+            padding: 20px;
+            z-index: 5;
+        }
 
-/* juego */
-#game{
-display:none;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
-}
+        #score {
+            font-size: 32px;
+            color: #00f0ff;
+            text-shadow: 0 0 15px #00f0ff;
+            margin: 0;
+        }
 
-#score{
-color:#00f0ff;
-text-shadow:0 0 12px #00f0ff;
-margin-bottom:14px;
-font-size:26px;
-letter-spacing:2px;
-}
+        #next-preview {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
 
-/* tablero */
-#board{
-background:rgba(20,25,35,.8);
-border-radius:28px;
-box-shadow:0 0 60px #00f0ff33,inset 0 -80px 120px #00000088;
-cursor: crosshair;
-}
+        /* Contenedor del Tablero */
+        #game-container {
+            position: relative;
+            border: 4px solid #00f0ff;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.2);
+            background: rgba(10, 15, 25, 0.8);
+            overflow: hidden;
+            cursor: crosshair;
+        }
 
-/* menu */
-#menu{
-position:fixed;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
-backdrop-filter:blur(6px);
-z-index: 10;
-}
+        canvas#board {
+            display: block;
+        }
 
-.card{
-background:linear-gradient(180deg,#0b0f18,#121826);
-padding:34px;
-border-radius:22px;
-text-align:center;
-width:280px;
-box-shadow:0 0 50px #00f0ff44;
-border: 1px solid #00f0ff33;
-}
+        /* Línea de Danger */
+        .danger-line {
+            position: absolute;
+            top: 80px;
+            width: 100%;
+            border-top: 2px dashed rgba(255, 0, 0, 0.4);
+            pointer-events: none;
+        }
 
-.title{
-font-size:28px;
-color:#00f0ff;
-text-shadow:0 0 15px #00f0ff;
-margin-bottom:15px;
-}
+        /* Menú de Game Over */
+        #game-over {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-.desc{opacity:.9;margin-bottom:20px;line-height:1.4}
+        .card {
+            background: #111827;
+            padding: 40px;
+            border-radius: 24px;
+            border: 2px solid #ff00d4;
+            text-align: center;
+            box-shadow: 0 0 40px #ff00d444;
+        }
 
-button{
-background:linear-gradient(90deg,#00f0ff,#ff00d4);
-border:none;
-padding:14px 28px;
-border-radius:14px;
-color:white;
-font-weight:bold;
-cursor:pointer;
-box-shadow:0 0 25px #00f0ff;
-transition: 0.2s;
-}
-button:hover { transform: scale(1.05); }
-</style>
+        button {
+            background: linear-gradient(90deg, #00f0ff, #ff00d4);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            font-family: 'Orbitron';
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
 </head>
-
 <body>
 
-<canvas id="stars"></canvas>
+    <canvas id="stars"></canvas>
 
-<div id="menu">
-<div class="card">
-<div class="title">AzDi Merge</div>
-<div class="desc">
-Fusiona criaturas iguales para evolucionarlas.<br>
-Si llegan arriba… pierdes 👀
-</div>
-<button onclick="startGame()">JUGAR</button>
-</div>
-</div>
+    <div id="ui">
+        <p id="score">PUNTOS: 0</p>
+        <div id="next-preview">SIGUIENTE: <span id="next-emoji">🥚</span></div>
+    </div>
 
-<div id="game">
-<div id="score">Puntos: 0</div>
-<canvas id="board"></canvas>
-</div>
+    <div id="game-container">
+        <div class="danger-line"></div>
+        <canvas id="board"></canvas>
+    </div>
+
+    <div id="game-over">
+        <div class="card">
+            <h2 style="color: #ff00d4">GAME OVER</h2>
+            <p id="final-score">Puntos: 0</p>
+            <button onclick="location.reload()">REINTENTAR</button>
+        </div>
+    </div>
 
 <script>
+    /* --- CONFIGURACIÓN --- */
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const starCanvas = document.getElementById("stars");
+    const sctx = starCanvas.getContext("2d");
 
-/* ===== estrellas fondo ===== */
-const starCanvas=document.getElementById("stars");
-const sctx=starCanvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 600;
+    starCanvas.width = window.innerWidth;
+    starCanvas.height = window.innerHeight;
 
-function resizeStars(){
-starCanvas.width=innerWidth;
-starCanvas.height=innerHeight;
-}
-resizeStars();
-window.onresize=resizeStars;
+    const animals = ["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
+    const colors = ["#ffffff","#ffff00","#ffcc00","#ff9900","#ff6600","#ff3300","#cc0099","#9933ff","#3366ff","#00f0ff"];
+    const sizes = [20, 26, 32, 38, 45, 52, 60, 72, 85, 105];
 
-let stars=[];
-for(let i=0;i<140;i++){
-stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2,c:`hsl(${Math.random()*360}deg 100% 70%)`});
-}
-function drawStars(){
-sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
-for(const s of stars){
-sctx.fillStyle=s.c;
-sctx.shadowBlur=10;
-sctx.shadowColor=s.c;
-sctx.beginPath();
-sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-sctx.fill();
-}
-requestAnimationFrame(drawStars);
-}
-drawStars();
+    let entities = [];
+    let score = 0;
+    let nextType = 0;
+    let isGameOver = false;
 
-/* ===== tablero ===== */
-const canvas=document.getElementById("board");
-const ctx=canvas.getContext("2d");
+    /* --- ESTRELLAS --- */
+    let stars = [];
+    for(let i=0; i<150; i++) {
+        stars.push({
+            x: Math.random() * starCanvas.width,
+            y: Math.random() * starCanvas.height,
+            r: Math.random() * 2,
+            opacity: Math.random()
+        });
+    }
 
-function resizeBoard(){
-canvas.width=Math.min(innerWidth*0.9,400);
-canvas.height=Math.min(innerHeight*0.75,600);
-}
-resizeBoard();
+    function drawStars() {
+        sctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+        sctx.fillStyle = "white";
+        stars.forEach(s => {
+            sctx.globalAlpha = s.opacity;
+            sctx.beginPath();
+            sctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            sctx.fill();
+        });
+        requestAnimationFrame(drawStars);
+    }
 
-/* ===== juego ===== */
-let blocks=[];
-let score=0;
-let running=false;
+    /* --- CLASE ENTIDAD (ANIMAL) --- */
+    class Entity {
+        constructor(x, y, type, isNew = false) {
+            this.x = x;
+            this.y = y;
+            this.type = type;
+            this.radius = sizes[type];
+            this.vx = 0;
+            this.vy = 0;
+            this.friction = 0.98;
+            this.gravity = 0.6;
+            this.bounce = 0.2;
+            this.isStatic = false;
+            this.isNew = isNew; // Para efectos visuales
+        }
 
-const size=50; // Ajustado un poco para mejor manejo
-const gravity=.5;
+        update() {
+            if (isGameOver) return;
 
-const creatures=["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
-const colors=["#ffe082","#ffd54f","#ffca28","#ffc107","#ff9800","#ff5722","#9c27b0","#673ab7","#2196f3","#00f0ff"];
+            this.vy += this.gravity;
+            this.x += this.vx;
+            this.y += this.vy;
 
-class Block{
-constructor(x,y,n){
-this.x=x;
-this.y=y;
-this.vy=0;
-this.n=n;
-this.onGround = false;
-}
+            // Colisión Suelo
+            if (this.y + this.radius > canvas.height) {
+                this.y = canvas.height - this.radius;
+                this.vy *= -this.bounce;
+                this.vx *= this.friction;
+                this.isStatic = true;
+            }
 
-update(){
-this.vy+=gravity;
-this.y+=this.vy;
+            // Colisión Paredes
+            if (this.x - this.radius < 0) {
+                this.x = this.radius;
+                this.vx *= -0.5;
+            } else if (this.x + this.radius > canvas.width) {
+                this.x = canvas.width - this.radius;
+                this.vx *= -0.5;
+            }
 
-/* suelo */
-if(this.y+size>=canvas.height){
-this.y=canvas.height-size;
-this.vy=0;
-this.onGround = true;
-} else {
-    this.onGround = false;
-}
+            // Interacción con otros
+            for (let other of entities) {
+                if (other === this) continue;
 
-/* colisiones con otros bloques */
-for(const o of blocks){
-if(o===this)continue;
+                let dx = this.x - other.x;
+                let dy = this.y - other.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                let minDist = this.radius + other.radius;
 
-// Detección de colisión simple
-if(this.x<o.x+size && this.x+size>o.x && this.y+size>o.y && this.y<o.y){
-this.y=o.y-size;
-this.vy=0;
-this.onGround = true;
-}
-}
-}
+                if (distance < minDist) {
+                    // SI SON IGUALES -> FUSIONAR
+                    if (this.type === other.type) {
+                        this.merge(other);
+                        return;
+                    }
 
-draw(){
-ctx.shadowBlur=20;
-ctx.shadowColor=colors[this.n%colors.length];
-ctx.fillStyle=colors[this.n%colors.length];
-ctx.beginPath();
-ctx.roundRect(this.x,this.y,size,size,12);
-ctx.fill();
+                    // RESOLVER COLISIÓN (Física de círculos)
+                    let angle = Math.atan2(dy, dx);
+                    let overlap = minDist - distance;
+                    
+                    this.x += Math.cos(angle) * overlap * 0.5;
+                    this.y += Math.sin(angle) * overlap * 0.5;
+                    
+                    this.vx += Math.cos(angle) * 0.5;
+                    this.vy += Math.sin(angle) * 0.5;
+                    this.isStatic = true;
+                }
+            }
+        }
 
-ctx.shadowBlur=0;
-ctx.font="28px serif";
-ctx.textAlign="center";
-ctx.textBaseline="middle";
-ctx.fillText(creatures[this.n%creatures.length],this.x+size/2,this.y+size/2);
-}
-}
+        merge(other) {
+            if (this.type < animals.length - 1) {
+                let nextLevel = this.type + 1;
+                let newX = (this.x + other.x) / 2;
+                let newY = (this.y + other.y) / 2;
 
-/* merge corregido: Detección por proximidad de centros */
-function merge(){
-for(let i=0;i<blocks.length;i++){
-for(let j=i+1;j<blocks.length;j++){
+                // Eliminar los dos actuales
+                entities = entities.filter(e => e !== this && e !== other);
 
-const a=blocks[i], b=blocks[j];
-if(!a || !b) continue;
+                // Crear el evolucionado
+                let upgraded = new Entity(newX, newY, nextLevel, true);
+                entities.push(upgraded);
 
-// Calculamos distancia entre centros
-const dx = (a.x + size/2) - (b.x + size/2);
-const dy = (a.y + size/2) - (b.y + size/2);
-const distance = Math.sqrt(dx*dx + dy*dy);
+                score += nextLevel * 25;
+                document.getElementById("score").innerText = "PUNTOS: " + score;
+            }
+        }
 
-// Si son iguales y están pegados (distancia menor al tamaño de la pieza)
-if(a.n === b.n && distance < size * 0.95){
-const nx = a.x;
-const ny = a.y;
-const nextLevel = a.n + 1;
+        draw() {
+            ctx.save();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = colors[this.type];
+            ctx.fillStyle = colors[this.type];
+            
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            ctx.font = `${this.radius * 1.2}px serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(animals[this.type], this.x, this.y + 2);
+            ctx.restore();
+        }
+    }
 
-// Eliminar ambos
-blocks.splice(j, 1);
-blocks.splice(i, 1);
+    /* --- BUCLE PRINCIPAL --- */
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Crear el nuevo nivel en la posición de uno de ellos
-if(nextLevel < creatures.length) {
-    const nb = new Block(nx, ny, nextLevel);
-    blocks.push(nb);
-}
+        entities.forEach(e => {
+            e.update();
+            e.draw();
+        });
 
-score += (nextLevel * 10);
-document.getElementById("score").innerText = "Puntos: " + score;
-return; // Importante para no romper el loop
-}
-}
-}
-}
+        // Verificar derrota
+        entities.forEach(e => {
+            if (e.isStatic && e.y < 90 && !isGameOver) {
+                gameOver();
+            }
+        });
 
-function checkLose(){
-for(const b of blocks){
-// Si la pieza está quieta y muy arriba
-if(b.onGround && b.y < 40){
-running=false;
-alert("GAME OVER\nLograste "+score+" puntos");
-location.reload();
-}
-}
-}
+        if (!isGameOver) requestAnimationFrame(gameLoop);
+    }
 
-function loop(){
-if(!running)return;
+    function gameOver() {
+        isGameOver = true;
+        document.getElementById("game-over").style.display = "flex";
+        document.getElementById("final-score").innerText = "Puntuación final: " + score;
+    }
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
+    /* --- CONTROLES --- */
+    canvas.addEventListener("click", (e) => {
+        if (isGameOver) return;
 
-// Dibujar línea de peligro
-ctx.strokeStyle = "rgba(255,0,0,0.2)";
-ctx.beginPath();
-ctx.moveTo(0, 50); ctx.lineTo(canvas.width, 50);
-ctx.stroke();
+        let rect = canvas.getBoundingClientRect();
+        let clickX = e.clientX - rect.left;
+        
+        // Limitar bordes
+        let x = Math.max(30, Math.min(canvas.width - 30, clickX));
+        
+        // Crear pieza
+        entities.push(new Entity(x, 40, nextType));
 
-for(const b of blocks) b.update();
-merge();
-checkLose();
-for(const b of blocks) b.draw();
+        // Preparar siguiente
+        nextType = Math.random() < 0.3 ? 1 : 0;
+        document.getElementById("next-emoji").innerText = animals[nextType];
+    });
 
-requestAnimationFrame(loop);
-}
-
-canvas.addEventListener("click",e=>{
-if(!running)return;
-
-const rect=canvas.getBoundingClientRect();
-const x=e.clientX-rect.left-size/2;
-const level = 0; // Siempre empezamos por el huevo para que sea como 2048
-
-blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)), 0, level));
-});
-
-function startGame(){
-document.getElementById("menu").style.display="none";
-document.getElementById("game").style.display="flex";
-running=true;
-loop();
-}
+    // Iniciar
+    drawStars();
+    gameLoop();
 
 </script>
 </body>
