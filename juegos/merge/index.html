@@ -6,10 +6,13 @@
 <title>AzDi Merge</title>
 
 <style>
+
 body{
 margin:0;
-background:#021014;
-font-family:system-ui;
+font-family:Arial,Helvetica,sans-serif;
+background:
+radial-gradient(circle at 50% 20%, #0ff3 0%, transparent 40%),
+linear-gradient(#02131a,#000);
 color:white;
 display:flex;
 justify-content:center;
@@ -18,217 +21,254 @@ height:100vh;
 overflow:hidden;
 }
 
-/* ===== PANTALLA ===== */
-
+/* PANEL */
 #game{
-width:340px;
-height:520px;
-background:linear-gradient(#cfe9ff,#a9d6ff);
-border-radius:18px;
+width:380px;
+height:600px;
+background:linear-gradient(#dfe9f3,#ffffff);
+border-radius:25px;
 position:relative;
 overflow:hidden;
-box-shadow:0 0 40px #00e5ff44;
+box-shadow:0 0 40px #00f7ff88;
 }
 
+/* SUELO */
 #ground{
 position:absolute;
 bottom:0;
 width:100%;
-height:60px;
-background:#7fb36b;
+height:120px;
+background:linear-gradient(#8fd37c,#4b8a41);
 }
 
-/* ===== HUD ===== */
-
-#hud{
-position:absolute;
-top:8px;
-left:0;
-right:0;
-text-align:center;
-font-weight:bold;
-color:#003;
-}
-
-/* ===== BLOQUES ===== */
-
+/* BLOQUES */
 .block{
 position:absolute;
-width:42px;
-height:42px;
-border-radius:10px;
+width:60px;
+height:60px;
+border-radius:12px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:18px;
+flex-direction:column;
 font-weight:bold;
 color:#222;
-box-shadow:0 3px 0 #0003;
+box-shadow:0 10px 15px #0005;
+transition:transform .08s;
 }
 
-/* colores por nivel */
-
-.lvl1{background:#ffe066;}
-.lvl2{background:#ffb347;}
-.lvl3{background:#ff7a7a;}
-.lvl4{background:#d98cff;}
-.lvl5{background:#8cdfff;}
-.lvl6{background:#8cffb0;}
-.lvl7{background:#fff;}
-
+/* CARA */
 .face{
-font-size:18px;
-pointer-events:none;
+font-size:22px;
+line-height:18px;
+text-align:center;
 }
 
-/* ===== TUTORIAL ===== */
+/* HUD */
+#ui{
+position:absolute;
+top:10px;
+left:10px;
+right:10px;
+display:flex;
+justify-content:space-between;
+font-weight:bold;
+}
 
-#tutorial{
+/* NEXT */
+#next{
+background:#0006;
+padding:6px 12px;
+border-radius:10px;
+}
+
+/* OVERLAY */
+#start{
 position:absolute;
 inset:0;
-background:#000c;
+background:#000a;
+backdrop-filter:blur(6px);
 display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
 text-align:center;
-padding:25px;
+padding:30px;
 }
 
-#tutorial button{
+button{
 margin-top:20px;
-padding:12px 20px;
+padding:12px 25px;
+font-size:18px;
 border:none;
 border-radius:12px;
-background:#00e5ff;
-font-weight:bold;
-font-size:16px;
+background:linear-gradient(45deg,#00e5ff,#6a5cff);
+color:white;
+box-shadow:0 0 15px #00f7ff;
 }
 
 </style>
 </head>
+
 <body>
 
 <div id="game">
 
-<div id="hud">Puntos: <span id="score">0</span></div>
+<div id="ui">
+<div>Puntos: <span id="score">0</span></div>
+<div id="next">Siguiente: 1</div>
+</div>
 
 <div id="ground"></div>
 
-<div id="tutorial">
-<h2>Cómo jugar</h2>
+<div id="start">
+<h2>🧠 Cómo jugar</h2>
 <p>
-Toca la pantalla para soltar cubos.<br><br>
-Si dos cubos iguales se tocan 👉 se fusionan y suben de nivel.<br><br>
-Cuanto más grandes sean, más puntos dan.<br><br>
-Si los cubos llegan arriba... pierdes 😈
+Suelta bloques.<br><br>
+Los bloques IGUALES se fusionan.<br>
+Cada fusión crea uno mayor.<br><br>
+No dejes que lleguen arriba.
 </p>
-<button onclick="start()">Jugar</button>
+<button onclick="startGame()">Jugar</button>
 </div>
 
 </div>
 
 <script>
 
-const game=document.getElementById("game");
-const groundY=460;
+const game = document.getElementById("game");
+const scoreEl = document.getElementById("score");
+const nextEl = document.getElementById("next");
+const startPanel = document.getElementById("start");
+
 let blocks=[];
 let score=0;
+let nextLevel=1;
 let running=false;
 
-/* ===== CREAR BLOQUE ===== */
+const gravity=0.35;
+const ground=480;
 
-function spawn(x){
-if(!running) return;
-
-let lvl=Math.random()<0.7?1:2;
-
-let b=document.createElement("div");
-b.className="block lvl"+lvl;
-b.innerHTML='<div class="face">🙂</div>';
-
-let obj={
-el:b,
-x:x-21,
-y:0,
-vy:0,
-lvl:lvl
+const colors={
+1:"#ffe066",
+2:"#ffd43b",
+3:"#fab005",
+4:"#ff922b",
+5:"#ff6b6b",
+6:"#f06595",
+7:"#845ef7",
+8:"#5c7cfa",
+9:"#339af0"
 };
 
-b.style.left=obj.x+"px";
-b.style.top=obj.y+"px";
+const faces={
+1:"🙂",
+2:"😀",
+3:"😁",
+4:"😆",
+5:"🤯",
+6:"👑",
+7:"🌟",
+8:"🚀",
+9:"💎"
+};
 
-game.appendChild(b);
-blocks.push(obj);
+function startGame(){
+startPanel.style.display="none";
+running=true;
+loop();
 }
 
-/* ===== FISICAS ===== */
+function createBlock(x){
 
-function update(){
-if(!running) return;
+const lvl=nextLevel;
+nextLevel=Math.min(1+Math.floor(Math.random()*3),9);
+nextEl.innerText="Siguiente: "+nextLevel;
 
-for(let b of blocks){
+const el=document.createElement("div");
+el.className="block";
+el.style.background=colors[lvl];
+el.innerHTML=`<div class="face">${faces[lvl]}<br>${lvl}</div>`;
+game.appendChild(el);
 
-b.vy+=0.25;
-b.y+=b.vy;
-
-/* suelo */
-if(b.y>groundY-b.lvl*2){
-b.y=groundY-b.lvl*2;
-b.vy=0;
+blocks.push({
+x:x-30,
+y:0,
+vy:0,
+lvl:lvl,
+el:el
+});
 }
-
-/* colisiones */
-for(let o of blocks){
-if(o===b) continue;
-
-if(Math.abs(b.x-o.x)<40 && Math.abs(b.y-o.y)<40){
-
-if(b.lvl===o.lvl && b.vy>=0 && o.vy>=0){
-
-merge(b,o);
-return;
-
-}else{
-b.y=o.y-40;
-b.vy=0;
-}
-}
-}
-
-b.el.style.top=b.y+"px";
-}
-
-requestAnimationFrame(update);
-}
-
-/* ===== MERGE ===== */
-
-function merge(a,b){
-
-score+=a.lvl*10;
-document.getElementById("score").innerText=score;
-
-a.lvl++;
-a.el.className="block lvl"+a.lvl;
-a.el.innerHTML='<div class="face">😆</div>';
-
-b.el.remove();
-blocks.splice(blocks.indexOf(b),1);
-}
-
-/* ===== INPUT ===== */
 
 game.addEventListener("click",e=>{
-spawn(e.offsetX);
+if(!running)return;
+createBlock(e.offsetX);
 });
 
-/* ===== START ===== */
+function loop(){
 
-function start(){
-document.getElementById("tutorial").style.display="none";
-running=true;
-update();
+blocks.forEach(b=>{
+b.vy+=gravity;
+b.y+=b.vy;
+
+if(b.y>ground-60){
+b.y=ground-60;
+b.vy=0;
+}
+
+b.el.style.transform=`translate(${b.x}px,${b.y}px)`;
+});
+
+merge();
+checkLose();
+
+if(running)requestAnimationFrame(loop);
+}
+
+function merge(){
+
+for(let i=0;i<blocks.length;i++){
+for(let j=i+1;j<blocks.length;j++){
+
+let a=blocks[i];
+let b=blocks[j];
+
+if(a.lvl!==b.lvl)continue;
+
+let dx=a.x-b.x;
+let dy=a.y-b.y;
+
+if(Math.hypot(dx,dy)<55){
+
+a.lvl++;
+score+=a.lvl*10;
+scoreEl.innerText=score;
+
+a.el.style.background=colors[a.lvl]||"#fff";
+a.el.innerHTML=`<div class="face">${faces[a.lvl]||"💎"}<br>${a.lvl}</div>`;
+
+b.el.remove();
+blocks.splice(j,1);
+j--;
+}
+
+}
+}
+
+}
+
+function checkLose(){
+for(let b of blocks){
+if(b.y<40){
+running=false;
+startPanel.style.display="flex";
+startPanel.innerHTML=`
+<h2>💥 Game Over</h2>
+<p>Puntos: ${score}</p>
+<button onclick="location.reload()">Reintentar</button>
+`;
+}
+}
 }
 
 </script>
