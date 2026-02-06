@@ -51,17 +51,30 @@
 
         /* --- MAPA DE NIVELES (Pantalla 1) --- */
         #map-screen {
-            display: block; /* Por defecto visible */
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--map-bg-sky) 0%, var(--map-bg-grass) 100%);
-            position: absolute;
-            top: 0; left: 0;
-            padding-top: 50px; /* Espacio para el top bar */
-            overflow-y: scroll; /* Scroll para los niveles */
-            -webkit-overflow-scrolling: touch;
-        }
+    position: relative;
+    width: 100%;
+    height: 3000px; /* Mapa muy largo para hacer scroll */
+    background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 50%, #88c049 100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block; /* Quitamos el grid antiguo */
+}
 
+.level-node {
+    position: absolute; /* Para moverlos por el mapa libremente */
+    width: 75px; 
+    height: 75px;
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    background: radial-gradient(circle, #f7a52e, #d47a00);
+    border: 5px solid white;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 28px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    z-index: 2;
+}
         .map-path {
             position: absolute;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0 10 Q 25 0, 50 10 T 100 10' stroke='%23ffed8a' stroke-width='4' fill='none' /%3E%3C/svg%3E");
@@ -161,23 +174,16 @@
             margin-left: 5px;
         }
 
-        #grid-container {
-            position: relative;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-            padding: 10px;
-            margin: 20px 0;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-            width: 90%; /* Ajustar ancho para dejar espacio */
-            height: auto;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr); /* 8 columnas flexibles */
-            grid-template-rows: repeat(8, 1fr);   /* 8 filas flexibles */
-            gap: 5px;
-            aspect-ratio: 1 / 1; /* Asegura que sea cuadrado */
-            max-width: 400px; /* Limite de tamaño */
-        }
-
+        #grid {
+    display: grid;
+    grid-template-columns: repeat(8, 55px); /* Más ancho */
+    grid-template-rows: repeat(8, 55px);    /* Más alto */
+    gap: 5px;
+    margin: auto;
+    padding: 15px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+}
         .cell {
             background-color: rgba(255,255,255,0.1); /* Fondo translúcido */
             border-radius: 8px;
@@ -301,20 +307,35 @@
 
     /* --- MAPA DE NIVELES --- */
     function initMap() {
-        mapScreen.style.display = "block";
-        gameScreen.style.display = "none";
-        document.querySelector('.map-nodes').innerHTML = '';
-        mapLevelDisplay.textContent = `Lvl ${unlockedLevels}`;
+    mapEl.innerHTML = "";
+    mapEl.style.display = "block";
+    gameEl.style.display = "none";
 
-        const levelPositions = [ // Coordenadas para que los niveles se vean como un camino
-            { x: 30, y: 50 }, { x: 100, y: 20 }, { x: 200, y: 70 }, { x: 300, y: 40 },
-            { x: 350, y: 120 }, { x: 280, y: 180 }, { x: 180, y: 150 }, { x: 80, y: 220 },
-            { x: 150, y: 300 }, { x: 250, y: 280 }, { x: 320, y: 350 }, { x: 250, y: 420 },
-            { x: 150, y: 450 }, { x: 80, y: 530 }, { x: 180, y: 580 }, { x: 280, y: 620 },
-            { x: 350, y: 550 }, { x: 300, y: 480 }, { x: 200, y: 500 }, { x: 100, y: 400 }
-        ];
+    // Creamos 50 niveles para que el mapa sea largo
+    for (let i = 1; i <= 50; i++) {
+        const n = document.createElement("div");
+        n.className = "level-node " + (i > unlocked ? "locked" : "");
+        n.textContent = i;
+        
+        // CÁLCULO DEL CAMINO EN ZIGZAG
+        // Los niveles suben desde abajo (3000px) hacia arriba
+        let yPos = 2800 - (i * 120); 
+        let xPos = 160 + Math.sin(i * 0.8) * 120; // Esto hace la curva
+        
+        n.style.top = yPos + "px";
+        n.style.left = xPos + "px";
+        
+        n.onclick = () => { if (i <= unlocked) startLevel(i); };
+        mapEl.appendChild(n);
+    }
+    
+    // Auto-scroll al último nivel desbloqueado
+    setTimeout(() => {
+        mapEl.scrollTop = 2800 - (unlocked * 120) - 300;
+    }, 100);
+}
 
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 50; i++) {
             const node = document.createElement("div");
             node.className = "level-node " + (i > unlockedLevels ? "locked" : "");
             node.textContent = i;
