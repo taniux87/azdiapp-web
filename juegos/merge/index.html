@@ -13,21 +13,8 @@ html,body{
   display:flex;
   justify-content:center;
   align-items:center;
-  font-family:Arial;
-  color:white;
 }
 
-/* contenedor ocupa pantalla */
-.wrapper{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100%;
-  width:100%;
-}
-
-/* juego grande siempre visible */
 canvas{
   background:#e8f4ff;
   border-radius:18px;
@@ -36,90 +23,131 @@ canvas{
   max-height:85vh;
   box-shadow:0 25px 60px rgba(0,0,0,0.7);
 }
-
-.title{
-  position:absolute;
-  top:12px;
-  font-weight:bold;
-  letter-spacing:2px;
-  opacity:.8;
-}
 </style>
 </head>
 <body>
 
-<div class="title">AZDI MERGE</div>
-
-<div class="wrapper">
-  <canvas id="game" width="300" height="420"></canvas>
-</div>
+<canvas id="game" width="300" height="420"></canvas>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-let current={x:150,y:40,size:28,falling:false};
+/* ---------- AUDIO ---------- */
+const audio=new AudioContext();
+
+function pop(pitch=400){
+let o=audio.createOscillator();
+let g=audio.createGain();
+o.connect(g);g.connect(audio.destination);
+o.frequency.value=pitch;
+g.gain.value=0.2;
+o.start();
+g.gain.exponentialRampToValueAtTime(0.001,audio.currentTime+0.15);
+o.stop(audio.currentTime+0.15);
+}
+
+/* ---------- BLOQUES ---------- */
+let current={x:150,y:40,size:28,level:1,falling:false,blink:0,face:"normal"};
 let blocks=[];
 
+const colors=["#ffd43b","#ff9f1c","#ff6b6b","#a29bfe","#55efc4","#74b9ff","#fd79a8","#ffeaa7"];
+
+/* ---------- CARA ---------- */
+function face(b){
+ctx.fillStyle="#222";
+
+// parpadeo
+if(b.blink>0){
+ctx.fillRect(b.x-b.size*0.18,b.y-b.size*0.1,b.size*0.12,2);
+ctx.fillRect(b.x+b.size*0.06,b.y-b.size*0.1,b.size*0.12,2);
+}else{
+ctx.fillRect(b.x-b.size*0.18,b.y-b.size*0.15,b.size*0.12,b.size*0.12);
+ctx.fillRect(b.x+b.size*0.06,b.y-b.size*0.15,b.size*0.12,b.size*0.12);
+}
+
+// boca
+ctx.beginPath();
+if(b.face==="surprise"){
+ctx.arc(b.x,b.y+5,b.size*0.15,0,Math.PI*2);
+}else{
+ctx.arc(b.x,b.y+8,b.size*0.22,0,Math.PI);
+}
+ctx.stroke();
+}
+
+/* ---------- DIBUJO ---------- */
 function drawBlock(b){
-  ctx.fillStyle="#ffd43b";
-  ctx.fillRect(b.x-b.size/2,b.y-b.size/2,b.size,b.size);
+ctx.fillStyle=colors[(b.level-1)%colors.length];
+ctx.beginPath();
+ctx.roundRect(b.x-b.size/2,b.y-b.size/2,b.size,b.size,8);
+ctx.fill();
 
-  ctx.fillStyle="#222";
-  ctx.fillRect(b.x-6,b.y-4,4,4);
-  ctx.fillRect(b.x+2,b.y-4,4,4);
-  ctx.beginPath();
-  ctx.arc(b.x,b.y+4,6,0,Math.PI);
-  ctx.stroke();
+ctx.fillStyle="rgba(255,255,255,0.25)";
+ctx.beginPath();
+ctx.roundRect(b.x-b.size/2+4,b.y-b.size/2+4,b.size*0.4,b.size*0.4,6);
+ctx.fill();
+
+face(b);
 }
 
+/* ---------- LOOP ---------- */
 function loop(){
-  ctx.clearRect(0,0,300,420);
+ctx.clearRect(0,0,300,420);
+ctx.fillStyle="#b5d3e7";
+ctx.fillRect(0,380,300,40);
 
-  ctx.fillStyle="#b5d3e7";
-  ctx.fillRect(0,380,300,40);
+// blink random
+if(Math.random()<0.01)current.blink=6;
+if(current.blink>0)current.blink--;
 
-  blocks.forEach(drawBlock);
+blocks.forEach(drawBlock);
 
-  if(current.falling){
-    current.y+=3;
+if(current.falling){
+current.y+=3;
+current.face="surprise";
 
-    if(current.y+current.size/2>=380){
-      current.y=380-current.size/2;
-      blocks.push({...current});
-      reset();
-    }
-
-    blocks.forEach(b=>{
-      if(Math.abs(current.x-b.x)<current.size &&
-         Math.abs(current.y-b.y)<current.size){
-          current.y=b.y-current.size;
-          blocks.push({...current});
-          reset();
-      }
-    });
-  }
-
-  drawBlock(current);
-  requestAnimationFrame(loop);
+if(current.y+current.size/2>=380){
+current.y=380-current.size/2;
+blocks.push({...current});
+pop(300+current.level*40);
+reset();
 }
 
-function reset(){current={x:150,y:40,size:28,falling:false};}
+blocks.forEach(b=>{
+if(Math.abs(current.x-b.x)<current.size &&
+Math.abs(current.y-b.y)<current.size){
+current.y=b.y-current.size;
+blocks.push({...current});
+pop(300+current.level*40);
+reset();
+}
+});
+}
+
+drawBlock(current);
+requestAnimationFrame(loop);
+}
+
+/* ---------- CONTROL ---------- */
+function reset(){
+current={x:150,y:40,size:28,level:1,falling:false,blink:0,face:"normal"};
+}
 
 canvas.addEventListener("mousemove",e=>{
-  if(current.falling)return;
-  const r=canvas.getBoundingClientRect();
-  current.x=(e.clientX-r.left)*(300/r.width);
+if(current.falling)return;
+const r=canvas.getBoundingClientRect();
+current.x=(e.clientX-r.left)*(300/r.width);
 });
 
 canvas.addEventListener("touchmove",e=>{
-  if(current.falling)return;
-  const r=canvas.getBoundingClientRect();
-  current.x=(e.touches[0].clientX-r.left)*(300/r.width);
+if(current.falling)return;
+const r=canvas.getBoundingClientRect();
+current.x=(e.touches[0].clientX-r.left)*(300/r.width);
 });
 
-canvas.addEventListener("click",()=>current.falling=true);
-canvas.addEventListener("touchstart",()=>current.falling=true);
+canvas.addEventListener("click",()=>{audio.resume();current.falling=true;});
+canvas.addEventListener("touchstart",()=>{audio.resume();current.falling=true;});
 
 loop();
 </script>
