@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AzDi Merge</title>
+
+<style>
+body{
+  margin:0;
+  background:#1e2f38;
+  font-family:Arial;
+  color:white;
+  text-align:center;
+}
+
+.header{
+  background:#142028;
+  padding:14px;
+  font-weight:bold;
+  letter-spacing:2px;
+  font-size:22px;
+}
+
+canvas{
+  background:#e8f4ff;
+  margin-top:20px;
+  border-radius:14px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+  width:min(95vw,420px);
+  height:calc(min(95vw,420px)*1.4);
+}
+
+.info{
+  margin-top:15px;
+  opacity:.7;
+}
+</style>
+</head>
+<body>
+
+<div class="header">AZDI MERGE</div>
+
+<canvas id="game" width="300" height="420"></canvas>
+
+<div class="info">Mueve y toca para soltar</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let current = {x:150,y:40,size:28,falling:false};
+let blocks=[];
+
+function drawBlock(b){
+  ctx.fillStyle="#ffd43b";
+  ctx.fillRect(b.x-b.size/2,b.y-b.size/2,b.size,b.size);
+
+  ctx.fillStyle="#222";
+  ctx.fillRect(b.x-6,b.y-4,4,4);
+  ctx.fillRect(b.x+2,b.y-4,4,4);
+  ctx.beginPath();
+  ctx.arc(b.x,b.y+4,6,0,Math.PI);
+  ctx.stroke();
+}
+
+function loop(){
+  ctx.clearRect(0,0,300,420);
+
+  // suelo
+  ctx.fillStyle="#b5d3e7";
+  ctx.fillRect(0,380,300,40);
+
+  // bloques colocados
+  blocks.forEach(drawBlock);
+
+  // gravedad
+  if(current.falling){
+    current.y+=3;
+
+    // colision suelo
+    if(current.y+current.size/2>=380){
+      current.y=380-current.size/2;
+      blocks.push({...current});
+      resetBlock();
+    }
+
+    // colision bloques
+    blocks.forEach(b=>{
+      if(Math.abs(current.x-b.x)<current.size &&
+         Math.abs(current.y-b.y)<current.size){
+          current.y=b.y-current.size;
+          blocks.push({...current});
+          resetBlock();
+      }
+    });
+  }
+
+  drawBlock(current);
+
+  requestAnimationFrame(loop);
+}
+
+function resetBlock(){
+  current={x:150,y:40,size:28,falling:false};
+}
+
+canvas.addEventListener("mousemove",e=>{
+  if(current.falling) return;
+  const rect=canvas.getBoundingClientRect();
+  current.x=(e.clientX-rect.left)*(300/rect.width);
+});
+
+canvas.addEventListener("touchmove",e=>{
+  if(current.falling) return;
+  const rect=canvas.getBoundingClientRect();
+  current.x=(e.touches[0].clientX-rect.left)*(300/rect.width);
+});
+
+canvas.addEventListener("click",()=>current.falling=true);
+canvas.addEventListener("touchstart",()=>current.falling=true);
+
+loop();
+</script>
+
+</body>
+</html>
