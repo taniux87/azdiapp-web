@@ -13,25 +13,35 @@ body{
   color:white;
 }
 
-/* CABECERA */
-.header{
-  text-align:center;
-  padding:40px 10px 10px;
+/* HERO (PORTADA) */
+.hero{
+  position:relative;
+  height:220px;
+  background:
+    linear-gradient(rgba(10,20,25,.85), rgba(10,20,25,.95)),
+    url("css/logo.png") center/contain no-repeat,
+    #08161b;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  padding-top:20px;
 }
 
-.logo img{
-  width:160px;
-  max-width:70vw;
-  margin-bottom:10px;
-  filter:drop-shadow(0 8px 25px rgba(0,0,0,.6));
+/* TEXTO ARRIBA */
+.brand{
+  font-size:34px;
+  font-weight:bold;
+  letter-spacing:3px;
 }
 
 .subtitle{
-  opacity:.7;
-  font-size:16px;
+  opacity:.8;
+  margin-top:6px;
+  font-size:15px;
 }
 
-/* GRID */
+/* GRID JUEGOS */
 .games{
   max-width:1000px;
   margin:30px auto;
@@ -41,7 +51,7 @@ body{
   padding:20px;
 }
 
-/* TARJETA */
+/* TARJETAS */
 .card{
   background:#132a33;
   border-radius:20px;
@@ -68,18 +78,15 @@ body{
 .merge{background:linear-gradient(#e8f4ff,#b5d3e7);}
 
 .info{padding:16px;}
-
 .title{font-weight:bold;font-size:18px;}
 .desc{opacity:.7;font-size:14px;margin-top:6px;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">
-    <img src="css/logo.png" alt="AzDi Juegos Web">
-  </div>
-  <div class="subtitle">Juegos rápidos para pasar el rato</div>
+<div class="hero">
+  <div class="brand">AZDI</div>
+  <div class="subtitle">Juegos web rápidos y adictivos</div>
 </div>
 
 <div class="games">
