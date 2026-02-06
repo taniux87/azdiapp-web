@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AzDi Paint | Color by Number</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #00f7ff;
+            --bg: #050a0f;
+            --card: #101a24;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-size: 22px; margin: 20px 0; }
+
+        /* Selector de Plantillas */
+        .templates { display: flex; gap: 10px; margin-bottom: 20px; }
+        .temp-btn { 
+            background: var(--card); border: 1px solid var(--neon); color: white;
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 10px;
+        }
+        .temp-btn:hover { background: var(--neon); color: black; }
+
+        /* Contenedor del Juego */
+        #paint-container {
+            background: #fff; /* Fondo blanco para que resalten los números */
+            padding: 10px;
+            border-radius: 8px;
+            display: grid;
+            gap: 1px;
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.2);
+        }
+
+        .pixel {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #ccc;
+            cursor: pointer;
+            user-select: none;
+            background: #f9f9f9;
+            transition: 0.2s;
+        }
+
+        .pixel:hover { background: #eee; }
+
+        /* Paleta de Colores */
+        .palette {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid #333;
+        }
+
+        .color-tool {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            border: 3px solid transparent;
+            color: white;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .color-tool.active { border-color: var(--neon); transform: scale(1.2); box-shadow: 0 0 15px var(--neon); }
+
+        .back-btn { margin-top: 30px; color: var(--neon); text-decoration: none; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <h1>AZDI PIXEL PAINT</h1>
+
+    <div class="templates">
+        <button class="temp-btn" onclick="loadTemplate('heart')">CORAZÓN</button>
+        <button class="temp-btn" onclick="loadTemplate('face')">SMILE</button>
+        <button class="temp-btn" onclick="loadTemplate('sword')">ESPADA</button>
+    </div>
+
+    <div id="paint-container"></div>
+
+    <div class="palette" id="palette"></div>
+
+    <a href="index.html" class="back-btn">← VOLVER AL ARCADE</a>
+
+<script>
+    // 0: Blanco, 1: Rojo, 2: Negro, 3: Amarillo, 4: Marrón, 5: Cian, 6: Naranja
+    const colorMap = {
+        0: "#ffffff", 1: "#ff4d4d", 2: "#2d2d2d", 3: "#fffa65", 4: "#7d5233", 5: "#18dcff", 6: "#ff9f1a"
+    };
+
+    const templates = {
+        heart: [
+            [0,0,1,1,0,0,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,1,1,1,0],
+            [0,0,1,1,1,1,1,1,0,0],
+            [0,0,0,1,1,1,1,0,0,0],
+            [0,0,0,0,1,1,0,0,0,0]
+        ],
+        face: [
+            [0,0,3,3,3,3,3,3,0,0],
+            [0,3,3,3,3,3,3,3,3,0],
+            [3,3,2,3,3,3,3,2,3,3],
+            [3,3,2,3,3,3,3,2,3,3],
+            [3,3,3,3,3,3,3,3,3,3],
+            [3,2,3,3,3,3,3,3,2,3],
+            [0,3,2,2,2,2,2,2,3,0],
+            [0,0,3,3,3,3,3,3,0,0]
+        ],
+        sword: [
+            [0,0,0,0,0,0,0,5,5,0],
+            [0,0,0,0,0,0,5,5,5,0],
+            [0,0,0,0,0,5,5,5,0,0],
+            [0,0,0,0,5,5,5,0,0,0],
+            [0,6,6,5,5,5,0,0,0,0],
+            [0,6,6,6,0,0,0,0,0,0],
+            [4,4,6,6,6,0,0,0,0,0],
+            [4,4,0,0,0,0,0,0,0,0]
+        ]
+    };
+
+    let selectedColor = 1;
+    let currentData = [];
+
+    function initPalette() {
+        const palEl = document.getElementById('palette');
+        palEl.innerHTML = '';
+        // Sacamos los números únicos del dibujo actual (excepto el 0)
+        const uniqueColors = [...new Set(currentData.flat())].filter(n => n !== 0);
+        
+        uniqueColors.forEach(num => {
+            const btn = document.createElement('div');
+            btn.className = `color-tool ${num === selectedColor ? 'active' : ''}`;
+            btn.style.backgroundColor = colorMap[num];
+            btn.innerText = num;
+            btn.onclick = () => {
+                selectedColor = num;
+                document.querySelectorAll('.color-tool').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            palEl.appendChild(btn);
+        });
+    }
+
+    function loadTemplate(name) {
+        currentData = templates[name];
+        const container = document.getElementById('paint-container');
+        container.style.gridTemplateColumns = `repeat(${currentData[0].length}, 30px)`;
+        container.innerHTML = '';
+
+        currentData.forEach((row, r) => {
+            row.forEach((num, c) => {
+                const pixel = document.createElement('div');
+                pixel.className = 'pixel';
+                // Si es 0 (fondo), lo pintamos ya de blanco
+                if(num === 0) {
+                    pixel.style.backgroundColor = "#fff";
+                    pixel.innerText = "";
+                } else {
+                    pixel.innerText = num;
+                    pixel.onclick = () => paintPixel(pixel, num);
+                }
+                container.appendChild(pixel);
+            });
+        });
+        selectedColor = [...new Set(currentData.flat())].find(n => n !== 0);
+        initPalette();
+    }
+
+    function paintPixel(el, num) {
+        if (num === selectedColor) {
+            el.style.backgroundColor = colorMap[num];
+            el.style.color = colorMap[num]; // Escondemos el número
+            el.style.border = "none";
+            checkWin();
+        } else {
+            // Efecto de error simple
+            el.style.backgroundColor = "#ffcccc";
+            setTimeout(() => { el.style.backgroundColor = "#f9f9f9"; }, 200);
+        }
+    }
+
+    function checkWin() {
+        const pixels = document.querySelectorAll('.pixel');
+        const allFilled = Array.from(pixels).every(p => {
+            return p.innerText === "" || p.style.backgroundColor !== "rgb(249, 249, 249)";
+        });
+        if(allFilled) {
+            alert("¡Dibujo completado! Eres un artista, Tania.");
+        }
+    }
+
+    // Cargar por defecto
+    loadTemplate('heart');
+
+</script>
+</body>
+</html>
