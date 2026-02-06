@@ -8,7 +8,7 @@
 <style>
 body{
   margin:0;
-  background:#87CEEB;
+  background:linear-gradient(180deg,#5fa8d3,#bde0fe);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -16,55 +16,106 @@ body{
   font-family:Arial;
 }
 
+.game-container{
+  background:#000;
+  padding:14px;
+  border-radius:28px;
+  box-shadow:0 25px 60px rgba(0,0,0,0.5), inset 0 0 0 3px rgba(255,255,255,0.06);
+}
+
 canvas{
-  border-radius:12px;
-  box-shadow:0 0 20px rgba(0,0,0,0.4);
+  display:block;
+  border-radius:18px;
+  background:#87CEEB;
+}
+
+.title{
+  text-align:center;
+  color:white;
+  margin-bottom:10px;
+  font-weight:bold;
+  letter-spacing:1px;
 }
 </style>
 </head>
 <body>
 
-<canvas id="game" width="320" height="480"></canvas>
+<div class="game-container">
+  <div class="title">AZDI RUNNER</div>
+  <canvas id="game" width="320" height="480"></canvas>
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let gameStarted = false;
-let gameOver = false;
+let started=false;
+let gameOver=false;
 
-let playerY = 380;
-let velocityY = 0;
-let jumping = false;
+let y=380, vy=0, jumping=false;
+let obstacleX=320;
+let clouds=[{x:50},{x:200}];
+let groundOffset=0;
+let score=0;
 
-let obstacleX = 320;
-let score = 0;
+function drawCloud(x){
+  ctx.fillStyle="white";
+  ctx.beginPath();
+  ctx.arc(x,80,15,0,Math.PI*2);
+  ctx.arc(x+15,75,18,0,Math.PI*2);
+  ctx.arc(x+30,80,15,0,Math.PI*2);
+  ctx.fill();
+}
 
 function drawBackground(){
-  // cielo
   ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,320,480);
 
-  // suelo
+  clouds.forEach(c=>{
+    drawCloud(c.x);
+    c.x-=0.5;
+    if(c.x<-40)c.x=360;
+  });
+
   ctx.fillStyle="#6b8e23";
   ctx.fillRect(0,420,320,60);
+
+  groundOffset-=4;
+  ctx.strokeStyle="#4e6b18";
+  for(let i=groundOffset;i<320;i+=40){
+    ctx.beginPath();
+    ctx.moveTo(i,420);
+    ctx.lineTo(i+20,480);
+    ctx.stroke();
+  }
 }
 
 function drawPlayer(){
-  ctx.fillStyle="#0077ff";
-  ctx.fillRect(40,playerY,30,30);
+  ctx.fillStyle="#ffcc00";
+  ctx.fillRect(40,y,30,30);
+
+  ctx.fillStyle="black";
+  ctx.fillRect(48,y+8,5,5);
+  ctx.fillRect(62,y+8,5,5);
+
+  ctx.beginPath();
+  ctx.arc(55,y+20,6,0,Math.PI);
+  ctx.stroke();
 }
 
 function drawObstacle(){
-  ctx.fillStyle="#555";
-  ctx.fillRect(obstacleX,390,30,30);
+  ctx.fillStyle="#cc3333";
+  ctx.fillRect(obstacleX,390,26,30);
+
+  ctx.fillStyle="#999";
+  ctx.fillRect(obstacleX,390,26,6);
 }
 
-function drawStartScreen(){
+function startScreen(){
   drawBackground();
   ctx.fillStyle="black";
-  ctx.font="20px Arial";
-  ctx.fillText("AZDI RUNNER",85,200);
+  ctx.font="22px Arial";
+  ctx.fillText("AZDI RUNNER",80,200);
   ctx.font="14px Arial";
   ctx.fillText("Toca para empezar",90,240);
 }
@@ -78,43 +129,24 @@ function drawGameOver(){
 }
 
 function loop(){
-  if(!gameStarted){
-    drawStartScreen();
-    return;
-  }
+  if(!started){startScreen();return;}
 
   drawBackground();
-
   ctx.fillStyle="black";
   ctx.fillText("Puntos: "+score,10,20);
 
-  if(gameOver){
-    drawGameOver();
-    return;
-  }
+  if(gameOver){drawGameOver();return;}
 
-  // salto
   if(jumping){
-    velocityY += 1;
-    playerY += velocityY;
-    if(playerY>=380){
-      playerY=380;
-      velocityY=0;
-      jumping=false;
-    }
+    vy+=1;
+    y+=vy;
+    if(y>=380){y=380;vy=0;jumping=false;}
   }
 
-  // mover obstáculo
-  obstacleX -= 4;
-  if(obstacleX < -30){
-    obstacleX = 320;
-    score++;
-  }
+  obstacleX-=4;
+  if(obstacleX<-30){obstacleX=320;score++;}
 
-  // colisión
-  if(obstacleX<70 && obstacleX>10 && playerY>360){
-    gameOver=true;
-  }
+  if(obstacleX<70&&obstacleX>10&&y>360)gameOver=true;
 
   drawPlayer();
   drawObstacle();
@@ -123,31 +155,15 @@ function loop(){
 }
 
 function tap(){
-  if(!gameStarted){
-    gameStarted=true;
-    loop();
-    return;
-  }
-
-  if(gameOver){
-    obstacleX=320;
-    score=0;
-    gameOver=false;
-    playerY=380;
-    loop();
-    return;
-  }
-
-  if(!jumping){
-    velocityY=-15;
-    jumping=true;
-  }
+  if(!started){started=true;loop();return;}
+  if(gameOver){obstacleX=320;score=0;gameOver=false;y=380;loop();return;}
+  if(!jumping){vy=-15;jumping=true;}
 }
 
 canvas.addEventListener("click",tap);
 canvas.addEventListener("touchstart",tap);
 
-drawStartScreen();
+startScreen();
 </script>
 
 </body>
