@@ -42,12 +42,10 @@ letter-spacing:2px;
 #board{
 background:rgba(20,25,35,.85);
 border-radius:28px;
-box-shadow:
-0 0 80px #00f0ff44,
-inset 0 -120px 150px #000000aa;
+box-shadow:0 0 80px #00f0ff44,inset 0 -120px 150px #000000aa;
 }
 
-/* menu / gameover */
+/* overlay */
 .overlay{
 position:fixed;
 inset:0;
@@ -64,12 +62,6 @@ border-radius:22px;
 text-align:center;
 width:280px;
 box-shadow:0 0 60px #00f0ff66;
-animation:float 4s ease-in-out infinite;
-}
-
-@keyframes float{
-0%,100%{transform:translateY(0)}
-50%{transform:translateY(-12px)}
 }
 
 .title{
@@ -102,10 +94,7 @@ button:hover{transform:scale(1.08)}
 <div id="menu" class="overlay">
 <div class="card">
 <div class="title">AzDi Merge</div>
-<div class="desc">
-Fusiona criaturas iguales para evolucionarlas.<br><br>
-Si la torre toca arriba... pierdes 👀
-</div>
+<div class="desc">Fusiona criaturas iguales y no dejes que la torre llegue arriba 👀</div>
 <button onclick="start()">JUGAR</button>
 </div>
 </div>
@@ -124,19 +113,14 @@ Si la torre toca arriba... pierdes 👀
 </div>
 
 <script>
-/* estrellas */
+/* fondo estrellas */
 const starCanvas=document.getElementById("stars");
 const sctx=starCanvas.getContext("2d");
-
-function resizeStars(){
 starCanvas.width=innerWidth;
 starCanvas.height=innerHeight;
-}
-window.onresize=resizeStars;
-resizeStars();
 
 let stars=[];
-for(let i=0;i<150;i++){
+for(let i=0;i<140;i++){
 stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2,c:`hsl(${Math.random()*360}deg 100% 70%)`});
 }
 
@@ -158,12 +142,8 @@ drawStars();
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
-function resizeBoard(){
 canvas.width=Math.min(innerWidth*0.9,520);
 canvas.height=Math.min(innerHeight*0.75,780);
-}
-resizeBoard();
-window.addEventListener("resize",resizeBoard);
 
 /* juego */
 let blocks=[];
@@ -201,15 +181,9 @@ this.x+size > other.x &&
 this.y+size > other.y &&
 this.y < other.y &&
 this.vy>0){
-
 this.y=other.y-size;
 this.vy=0;
 }
-}
-
-/* GAME OVER detect */
-if(this.y < 10){
-gameOver();
 }
 }
 
@@ -251,6 +225,16 @@ return;
 }
 }
 
+/* GAME OVER correcto */
+function checkGameOver(){
+for(const b of blocks){
+if(Math.abs(b.vy)<0.1 && b.y<30){
+endGame();
+return;
+}
+}
+}
+
 function update(){
 if(!running) return;
 
@@ -258,6 +242,7 @@ ctx.clearRect(0,0,canvas.width,canvas.height);
 
 for(const b of blocks)b.update();
 merge();
+checkGameOver();
 for(const b of blocks)b.draw();
 
 requestAnimationFrame(update);
@@ -279,7 +264,7 @@ running=true;
 update();
 }
 
-function gameOver(){
+function endGame(){
 running=false;
 document.getElementById("finalscore").innerText="Puntuación: "+score;
 document.getElementById("gameover").style.display="flex";
