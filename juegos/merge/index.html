@@ -118,97 +118,65 @@ No llenes la caja hasta arriba 👀
 </div>
 
 <script>
-/* ---------- estrellas ---------- */
-const starCanvas=document.getElementById("stars");
-const sctx=starCanvas.getContext("2d");
 
-function resizeStars(){
-starCanvas.width=innerWidth;
-starCanvas.height=innerHeight;
-}
-resizeStars();
-window.onresize=resizeStars;
+/* ===== VARIABLES ===== */
+const canvas = document.getElementById("board");
+const ctx = canvas.getContext("2d");
 
-let stars=[];
-for(let i=0;i<160;i++){
-stars.push({
-x:Math.random()*starCanvas.width,
-y:Math.random()*starCanvas.height,
-r:Math.random()*2,
-c:`hsl(${Math.random()*360}deg 100% 70%)`
-});
-}
+let blocks = [];
+let score = 0;
+let running = false;
 
-function drawStars(){
-sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
-for(const s of stars){
-sctx.fillStyle=s.c;
-sctx.shadowBlur=10;
-sctx.shadowColor=s.c;
-sctx.beginPath();
-sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-sctx.fill();
-}
-requestAnimationFrame(drawStars);
-}
-drawStars();
+const size = 56;
+const gravity = 0.45;
+const friction = 0.90;
 
-/* ---------- tablero ---------- */
-const canvas=document.getElementById("board");
-const ctx=canvas.getContext("2d");
-
-function resizeBoard(){
-canvas.width=Math.min(innerWidth*0.9,520);
-canvas.height=Math.min(innerHeight*0.75,780);
-}
-resizeBoard();
-window.addEventListener("resize",resizeBoard);
-
-/* ---------- juego ---------- */
-let blocks=[];
-let score=0;
-let running=false;
-
-const size=56;
-const gravity=.5;
-
+/* criaturas */
 const creatures=["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
 const colors=["#ffe082","#ffd54f","#ffca28","#ffc107","#ff9800","#ff5722","#9c27b0","#673ab7","#2196f3","#00f0ff"];
 
+/* ===== BLOQUE ===== */
 class Block{
 constructor(x,n){
 this.x=x;
 this.y=0;
 this.vy=0;
 this.n=n;
-this.grounded=false;
+this.restTime=0;
 }
 
 update(){
+
 this.vy+=gravity;
 this.y+=this.vy;
-this.grounded=false;
 
 /* suelo */
 if(this.y+size>=canvas.height){
 this.y=canvas.height-size;
+this.vy*=-0.15;
+if(Math.abs(this.vy)<0.3){
 this.vy=0;
-this.grounded=true;
+this.restTime++;
+}else this.restTime=0;
 }
 
-/* otros bloques */
-for(const o of blocks){
-if(o===this)continue;
+/* colisiones */
+for(const other of blocks){
+if(other===this)continue;
 
-if(this.x < o.x+size &&
-this.x+size > o.x &&
-this.y+size > o.y &&
-this.y < o.y &&
+if(this.x < other.x+size &&
+this.x+size > other.x &&
+this.y+size > other.y &&
+this.y < other.y &&
 this.vy>0){
 
-this.y=o.y-size;
+this.y=other.y-size;
+this.vy*=-0.15;
+
+if(Math.abs(this.vy)<0.3){
 this.vy=0;
-this.grounded=true;
+this.restTime++;
+}else this.restTime=0;
 }
 }
 }
@@ -216,6 +184,7 @@ this.grounded=true;
 draw(){
 ctx.shadowBlur=25;
 ctx.shadowColor=colors[this.n%colors.length];
+
 ctx.fillStyle=colors[this.n%colors.length];
 ctx.beginPath();
 ctx.roundRect(this.x,this.y,size,size,16);
@@ -229,88 +198,88 @@ ctx.fillText(creatures[this.n%creatures.length],this.x+size/2,this.y+size/2);
 }
 }
 
-function collide(a,b){
-return a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
-}
+/* ===== MERGE REAL ===== */
+function mergeBlocks(){
 
-/* merge */
-function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
 
-let a=blocks[i],b=blocks[j];
+const a=blocks[i];
+const b=blocks[j];
 
-if(a.n===b.n && collide(a,b) && a.grounded && b.grounded){
+const touching =
+a.x < b.x+size &&
+a.x+size > b.x &&
+a.y < b.y+size &&
+a.y+size > b.y;
+
+/* CLAVE: ambos quietos */
+if(touching && a.n===b.n && a.restTime>5 && b.restTime>5){
 
 const nx=(a.x+b.x)/2;
+const ny=Math.min(a.y,b.y);
 
 blocks.splice(j,1);
 blocks.splice(i,1);
-blocks.push(new Block(nx,a.n+1));
+
+const newBlock=new Block(nx,a.n+1);
+newBlock.y=ny;
+
+blocks.push(newBlock);
 
 score+=10;
 document.getElementById("score").innerText="Puntos: "+score;
+
 return;
 }
 }
 }
 }
 
-/* game over */
+/* ===== GAME OVER REAL ===== */
 function checkGameOver(){
 for(const b of blocks){
-if(b.grounded && b.y<10){
-endGame();
-return;
-}
-}
-}
-
-function endGame(){
+if(b.y<10 && b.restTime>10){
 running=false;
-document.getElementById("finalScore").innerText="Puntuación: "+score;
-document.getElementById("gameover").style.display="flex";
+setTimeout(()=>alert("Game Over\nPuntos: "+score),100);
+}
+}
 }
 
+/* ===== LOOP ===== */
 function update(){
+
 if(!running)return;
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
 for(const b of blocks)b.update();
-merge();
+mergeBlocks();
 checkGameOver();
 for(const b of blocks)b.draw();
 
 requestAnimationFrame(update);
 }
 
-/* spawn */
+/* ===== SPAWN ===== */
 canvas.addEventListener("click",e=>{
 if(!running)return;
 
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
 const level=Math.random()<0.8?0:1;
+
 blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),level));
 });
 
-/* controles */
-function startGame(){
+/* ===== START ===== */
+function start(){
 document.getElementById("menu").style.display="none";
 document.getElementById("game").style.display="flex";
 running=true;
 update();
 }
 
-function restart(){
-blocks=[];
-score=0;
-document.getElementById("score").innerText="Puntos: 0";
-document.getElementById("gameover").style.display="none";
-running=true;
-update();
-}
 </script>
 
 </body>
