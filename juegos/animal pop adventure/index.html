@@ -240,18 +240,6 @@
         .cell.popping { animation: pop 0.3s forwards ease-out; }
         .cell.falling { transition: transform 0.3s ease-out; }
 
-        @keyframes hintPulse {
-    0% { transform: scale(1); filter: brightness(1); }
-    50% { transform: scale(1.1); filter: brightness(1.4); }
-    100% { transform: scale(1); filter: brightness(1); }
-}
-
-.hint-animation {
-    animation: hintPulse 1s infinite ease-in-out;
-    z-index: 20;
-    box-shadow: 0 0 15px gold !important;
-    background: rgba(255, 255, 255, 0.5) !important;
-}
     </style>
 </head>
 
@@ -365,7 +353,7 @@
         targetScore = lvl * 1000; // La meta aumenta por nivel
         movesLeft = 50 - (lvl * 2); // Menos movimientos en niveles avanzados
         if (movesLeft < 10) movesLeft = 10; // Mínimo de 10 movimientos
-        resetHintTimer();
+
         levelDisplay.textContent = currentLevel;
         scoreDisplay.textContent = currentScore;
         targetDisplay.textContent = targetScore;
@@ -419,50 +407,9 @@
             }
         }
     }
-function findPossibleMatch() {
-    // Escanea todo el tablero buscando un movimiento que genere match
-    for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
-            // Probar hacia la derecha
-            if (c < SIZE - 1) {
-                swap(r, c, r, c + 1);
-                if (findMatches().length > 0) {
-                    swap(r, c, r, c + 1); // Deshacer
-                    return { r1: r, c1: c, r2: r, c2: c + 1 };
-                }
-                swap(r, c, r, c + 1); // Deshacer
-            }
-            // Probar hacia abajo
-            if (r < SIZE - 1) {
-                swap(r, c, r + 1, c);
-                if (findMatches().length > 0) {
-                    swap(r, c, r + 1, c); // Deshacer
-                    return { r1: r, c1: c, r2: r + 1, c2: c };
-                }
-                swap(r, c, r + 1, c); // Deshacer
-            }
-        }
-    }
-    return null;
-}
 
-let hintTimer;
-function resetHintTimer() {
-    clearTimeout(hintTimer);
-    // Limpiamos rastros de pistas anteriores
-    document.querySelectorAll('.cell').forEach(c => c.classList.remove('hint-animation'));
-    // Si pasan 7 segundos sin tocar, aparece la pista
-    hintTimer = setTimeout(() => {
-        if (isProcessing) return;
-        const move = findPossibleMatch();
-        if (move) {
-            document.getElementById(`cell-${move.r1}-${move.c1}`).classList.add('hint-animation');
-            document.getElementById(`cell-${move.r2}-${move.c2}`).classList.add('hint-animation');
-        }
-    }, 7000); 
-}
     /* --- GESTIÓN DE CLICS Y SWAPS --- */
-    async function clickCell(r, c) resetHintTimer();{
+    async function clickCell(r, c) {
         if (isGameAnimating) return; // Bloquear clics durante animaciones
 
         const clickedElement = document.getElementById(`cell-${r}-${c}`);
