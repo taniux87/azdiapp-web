@@ -3,39 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! - Full Game</title>
+    <title>AzDi Animal Pop! - Store Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root { --pink: #ff99cc; --blue: #4facfe; --font: 'Luckiest Guy', cursive; }
+        :root { --pink: #ff99cc; --blue: #4facfe; --gold: #ffd700; --font: 'Luckiest Guy', cursive; }
         * { box-sizing: border-box; touch-action: manipulation; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; }
         #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #fff; overflow: hidden; }
 
+        /* --- UI GLOBAL --- */
+        .top-stats { position: absolute; top: 70px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 110; pointer-events: none; }
+        .stat-bubble { background: rgba(0,0,0,0.6); color: white; padding: 5px 15px; border-radius: 20px; font-family: var(--font); font-size: 14px; border: 2px solid white; pointer-events: auto; }
+
         /* --- MAPA --- */
         #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #00f2fe, #a8e063, #56ab2f); z-index: 10; }
-        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: white; font-family: var(--font); z-index: 100; backdrop-filter: blur(5px); border-bottom: 2px solid rgba(255,255,255,0.2); }
+        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-family: var(--font); z-index: 100; backdrop-filter: blur(5px); }
         .map-nodes { position: relative; width: 100%; height: 7500px; padding-bottom: 100px; }
         .level-node { position: absolute; width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font); color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(-50%); cursor: pointer; z-index: 20; }
-        .level-node.locked { background: #888; filter: grayscale(1); cursor: not-allowed; opacity: 0.8; }
-        .level-node::after { content: "⭐"; position: absolute; bottom: -10px; font-size: 14px; display: none; }
-        .level-node.unlocked::after { display: block; }
+        .level-node.locked { background: #888; filter: grayscale(1); cursor: not-allowed; }
 
         /* --- JUEGO --- */
         #game-screen { display: none; position: absolute; inset: 0; background: #6ddaff; z-index: 50; flex-direction: column; }
         .game-header { background: var(--pink); padding: 15px; display: flex; justify-content: space-around; color: white; font-family: var(--font); font-size: 16px; border-bottom: 3px solid rgba(0,0,0,0.1); }
         #grid-container { margin: 15px auto; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 95%; aspect-ratio: 1/1; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 12px; }
-        .cell { background: rgba(255,255,255,0.3); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer; transition: 0.2s; }
-        .cell.selected { transform: scale(1.15); background: white; box-shadow: 0 0 15px white; z-index: 5; }
+        .cell { background: rgba(255,255,255,0.3); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer; }
+        .cell.selected { transform: scale(1.15); background: white; box-shadow: 0 0 15px white; }
         .game-footer { margin-top: auto; background: var(--pink); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .btn { padding: 12px 25px; border-radius: 30px; border: none; font-family: var(--font); font-size: 18px; cursor: pointer; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
-        .btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn { padding: 12px 25px; border-radius: 30px; border: none; font-family: var(--font); font-size: 18px; cursor: pointer; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
+    <div class="top-stats" id="ui-stats">
+        <div class="stat-bubble">❤️ <span id="val-lives">5</span></div>
+        <div class="stat-bubble">💰 <span id="val-coins">0</span></div>
+    </div>
+
     <div id="map-screen">
-        <div id="map-topbar"><span>AZDI ANIMAL POP!</span><span id="map-lvl-info">Lvl 1</span></div>
+        <div id="map-topbar"><span>AZDI ANIMAL POP!</span></div>
         <div class="map-nodes" id="nodes-container"></div>
         <button style="position:fixed; bottom:20px; left:20px; background:white; color:#ff2ea6; z-index:1000;" class="btn" onclick="location.reload()">🏠 INICIO</button>
     </div>
@@ -48,46 +54,66 @@
         </div>
         <div id="grid-container"></div>
         <div class="game-footer">
-            <div style="font-family: var(--font); color: white; font-size: 22px;">MOVIMIENTOS: <span id="moves">30</span></div>
-            <button class="btn" style="background: #ff4d4d;" onclick="closeGame()">SALIR</button>
+            <div style="font-family: var(--font); color: white; font-size: 22px;">MOVES: <span id="moves">30</span></div>
+            <button class="btn" style="background: #ff4d4d;" onclick="closeGame()">RENDIRSE</button>
         </div>
     </div>
 </div>
 
 <script>
     const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
+    // Cargar datos de memoria
     let unlocked = parseInt(localStorage.getItem('azdi_unlocked')) || 1;
+    let coins = parseInt(localStorage.getItem('azdi_coins')) || 0;
+    let lives = parseInt(localStorage.getItem('azdi_lives')) || 5;
+
     let selected = null;
     let score = 0, moves = 30, goal = 500, currentLvl = 1;
 
+    function updateUI() {
+        document.getElementById('val-lives').textContent = lives;
+        document.getElementById('val-coins').textContent = coins;
+        localStorage.setItem('azdi_unlocked', unlocked);
+        localStorage.setItem('azdi_coins', coins);
+        localStorage.setItem('azdi_lives', lives);
+    }
+
     function drawMap() {
+        updateUI();
         const container = document.getElementById('nodes-container');
         container.innerHTML = '';
-        document.getElementById('map-lvl-info').textContent = `Lvl Max: ${unlocked}`;
         const w = document.getElementById('game-wrapper').clientWidth;
 
         for (let i = 1; i <= 50; i++) {
             const div = document.createElement('div');
-            div.className = `level-node ${i > unlocked ? 'locked' : 'unlocked'}`;
+            div.className = `level-node ${i > unlocked ? 'locked' : ''}`;
             div.textContent = i;
             div.style.top = (7200 - (i * 140)) + 'px';
             div.style.left = (w/2 + Math.sin(i * 0.8) * (w * 0.3)) + 'px';
-            if (i <= unlocked) div.onclick = () => launchLevel(i);
+            if (i <= unlocked) div.onclick = () => tryLaunchLevel(i);
             container.appendChild(div);
         }
         document.getElementById('map-screen').scrollTop = 7200 - (unlocked * 140) - 350;
     }
 
+    function tryLaunchLevel(lvl) {
+        if (lives <= 0) {
+            alert("¡No te quedan vidas! Espera o compra más (próximamente)");
+            return;
+        }
+        launchLevel(lvl);
+    }
+
     function launchLevel(lvl) {
-        currentLvl = lvl;
-        score = 0;
-        moves = 30 + Math.floor(lvl / 2);
-        goal = 400 + (lvl * 150);
+        currentLvl = lvl; score = 0;
+        moves = 25 + Math.floor(lvl / 2);
+        goal = 500 + (lvl * 200);
         document.getElementById('cur-lvl').textContent = lvl;
         document.getElementById('score').textContent = score;
         document.getElementById('target').textContent = goal;
         document.getElementById('moves').textContent = moves;
         document.getElementById('map-screen').style.display = 'none';
+        document.getElementById('ui-stats').style.display = 'none'; // Ocultar stats durante juego
         document.getElementById('game-screen').style.display = 'flex';
         initGrid();
     }
@@ -147,7 +173,7 @@
         }
 
         if (matched.size > 0) {
-            score += matched.size * 15;
+            score += matched.size * 20;
             document.getElementById('score').textContent = score;
             matched.forEach(i => cells[i].textContent = '');
             setTimeout(drop, 300);
@@ -158,14 +184,14 @@
 
     function checkGameState() {
         if (score >= goal) {
-            alert(`¡NIVEL COMPLETADO! 🎉\nPuntos: ${score}`);
-            if (currentLvl === unlocked) {
-                unlocked++;
-                localStorage.setItem('azdi_unlocked', unlocked);
-            }
+            let winCoins = 10 + Math.floor(score / 100);
+            coins += winCoins;
+            alert(`¡NIVEL SUPERADO! 🎉\nHas ganado ${winCoins} monedas.`);
+            if (currentLvl === unlocked) unlocked++;
             closeGame();
         } else if (moves <= 0) {
-            alert("Te has quedado sin movimientos... 😢");
+            lives--;
+            alert("¡Derrota! Te has quedado sin movimientos. Pierdes 1 vida ❤️.");
             closeGame();
         }
     }
@@ -192,6 +218,7 @@
 
     function closeGame() {
         document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('ui-stats').style.display = 'flex';
         document.getElementById('map-screen').style.display = 'block';
         drawMap();
     }
