@@ -1,211 +1,315 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AzDi Arcade</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AzDi Arcade | Animal Pop Adventure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon: #00f7ff;
+            --accent: #f72585;
+            --safari: #a2d149;
+            --bg: #02070a;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+        body {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            background: radial-gradient(circle at 20% 10%, #003f46 0%, transparent 50%),
+                        radial-gradient(circle at 90% 90%, #001c20 0%, transparent 50%),
+                        var(--bg);
+            overflow-x: hidden;
+            height: 100vh;
+        }
 
-<style>
+        /* ===== DISEÑO ARCADE PRINCIPAL ===== */
+        .hero { height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .logo-img { width: 100px; filter: drop-shadow(0 0 15px var(--neon)); margin-bottom: 10px; }
+        
+        .section { padding: 0 20px; }
+        .section h2 { font-size: 14px; letter-spacing: 2px; color: var(--neon); text-transform: uppercase; }
 
-/* ===== FONDO ===== */
-body{
-margin:0;
-font-family:'Orbitron',sans-serif;
-color:white;
-background:
-radial-gradient(circle at 20% 10%, #003f46 0%, transparent 50%),
-radial-gradient(circle at 90% 90%, #001c20 0%, transparent 50%),
-#02070a;
-}
+        .grid-home { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; margin-top: 10px; }
+        
+        .game-card {
+            background: rgba(7, 23, 29, 0.8);
+            border-radius: 16px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid rgba(0, 247, 255, 0.1);
+            transition: 0.3s;
+        }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 0 20px var(--neon); border-color: var(--neon); }
+        .game-card .icon { font-size: 45px; display: block; margin-bottom: 10px; }
+        .game-card span { font-size: 10px; font-weight: 800; color: #fff; }
 
-/* ===== HERO ===== */
+        /* ===== OVERLAY DEL JUEGO ===== */
+        #game-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center; align-items: center;
+        }
 
-.hero{
-height:230px;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-position:relative;
-overflow:hidden;
-}
+        #game-window {
+            width: 95%; max-width: 420px;
+            background: #050f13;
+            border: 2px solid var(--safari);
+            border-radius: 24px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(162, 209, 73, 0.2);
+            overflow: hidden;
+        }
 
-.hero::before{
-content:"";
-position:absolute;
-width:120%;
-height:120%;
-background:radial-gradient(circle,#00f7ff22,transparent 60%);
-animation:float 6s infinite alternate ease-in-out;
-}
+        .close-btn {
+            position: absolute; top: 15px; right: 15px; background: var(--accent);
+            border: none; color: white; padding: 8px 12px; border-radius: 50%; 
+            cursor: pointer; z-index: 1100; font-weight: bold;
+        }
 
-@keyframes float{
-from{transform:translateY(-10px)}
-to{transform:translateY(15px)}
-}
+        /* PANTALLA MAPA */
+        #map-screen { padding: 30px; height: 450px; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .level-node {
+            aspect-ratio: 1/1; background: #112a2e; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; cursor: pointer; border: 2px solid var(--safari);
+            transition: 0.2s; color: var(--safari);
+        }
+        .level-node:hover:not(.locked) { background: var(--safari); color: #000; transform: scale(1.1); }
+        .level-node.locked { opacity: 0.2; border-color: #333; cursor: not-allowed; }
 
-.logo{
-width:140px;
-z-index:2;
-filter:drop-shadow(0 0 15px #00f7ff);
-}
+        /* PANTALLA DE JUEGO */
+        #play-area { display: none; flex-direction: column; align-items: center; }
+        .game-header {
+            width: 100%; background: var(--safari); color: #050f13;
+            display: flex; justify-content: space-around; padding: 12px 0;
+            font-size: 11px; font-weight: 900;
+        }
 
-.tag{
-opacity:.7;
-margin-top:10px;
-font-size:13px;
-}
+        #grid {
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
+            padding: 10px; background: rgba(255,255,255,0.05); margin: 20px 0;
+            border-radius: 12px;
+        }
+        .cell {
+            width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+            font-size: 26px; cursor: pointer; border-radius: 6px; transition: transform 0.1s;
+        }
+        .cell.selected { background: rgba(247, 37, 133, 0.4); box-shadow: 0 0 15px var(--accent); transform: scale(1.1); }
 
-/* ===== TITULOS ===== */
-
-.section{
-padding:18px 14px;
-}
-
-.section h2{
-font-size:15px;
-letter-spacing:2px;
-color:#7efaff;
-margin-bottom:12px;
-}
-
-/* ===== CARRUSEL ===== */
-
-.carousel{
-display:flex;
-gap:14px;
-overflow-x:auto;
-padding-bottom:10px;
-}
-
-.game-big{
-min-width:260px;
-height:150px;
-border-radius:20px;
-overflow:hidden;
-position:relative;
-text-decoration:none;
-color:white;
-}
-
-.game-big img{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-.game-big span{
-position:absolute;
-bottom:0;
-left:0;
-right:0;
-padding:12px;
-background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
-font-size:18px;
-}
-
-/* ===== GRID ===== */
-
-.grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:12px;
-}
-
-.game{
-background:#07171d;
-border-radius:16px;
-padding:14px 8px;
-text-align:center;
-text-decoration:none;
-color:white;
-border:1px solid #00ffff22;
-transition:.25s;
-}
-
-.game:hover{
-transform:translateY(-4px);
-box-shadow:0 0 15px #00ffff66;
-border:1px solid #00ffff;
-}
-
-.game img{
-width:60px;
-margin-bottom:8px;
-}
-
-.game span{
-font-size:12px;
-}
-
-/* ===== FOOTER ===== */
-
-footer{
-text-align:center;
-opacity:.4;
-padding:30px;
-font-size:12px;
-}
-
-</style>
+        footer { text-align: center; opacity: .3; padding: 20px; font-size: 10px; margin-top: 20px; }
+    </style>
 </head>
 <body>
 
-<!-- HERO -->
 <div class="hero">
-<img src="css/logo.png" class="logo">
-<div class="tag">juegos web rápidos y adictivos</div>
+    <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AzDi" class="logo-img">
+    <div style="color: var(--neon); font-size: 18px; font-weight: 800;">AzDi ARCADE</div>
 </div>
 
-<!-- DESTACADOS -->
 <div class="section">
-<h2>🔥 JUEGA AHORA</h2>
+    <h2>🔥 TUS JUEGOS</h2>
+    <div class="grid-home">
+        <div class="game-card" onclick="openGame()">
+            <span class="icon">🐾</span>
+            <span>ANIMAL POP ADVENTURE</span>
+        </div>
 
-<div class="carousel">
-
-<a class="game-big" href="juegos/runner/">
-<img src="css/runner.png">
-<span>AzDi Runner</span>
-</a>
-
-<a class="game-big" href="juegos/merge/">
-<img src="css/merge.png">
-<span>AzDi Merge</span>
-</a>
-
-</div>
+        <div class="game-card" style="opacity:0.4">
+            <span class="icon">🛡️</span>
+            <span>QUEST II</span>
+        </div>
+    </div>
 </div>
 
-<!-- RAPIDOS -->
-<div class="section">
-<h2>⚡ RÁPIDOS</h2>
+<div id="game-overlay">
+    <div id="game-window">
+        <button class="close-btn" onclick="closeGame()">×</button>
+        
+        <div id="map-screen"></div>
 
-<div class="grid">
-
-<a class="game" href="juegos/runner/">
-<img src="css/runner.png">
-<span>Runner</span>
-</a>
-
-<a class="game" href="juegos/merge/">
-<img src="css/merge.png">
-<span>Merge</span>
-</a>
-
-<div class="game">
-<img src="css/logo.png">
-<span>Próximamente</span>
+        <div id="play-area">
+            <div class="game-header">
+                <span id="lvl-txt">NIVEL: 1</span>
+                <span id="score-txt">PTS: 0 / 400</span>
+                <span id="moves-txt" style="color: #d00;">MOVES: 20</span>
+            </div>
+            <div id="grid"></div>
+            <div style="margin-bottom: 20px;">
+                <button onclick="showMap()" style="background:none; border: 1px solid #555; color:#555; padding:5px 15px; border-radius:20px; cursor:pointer;">Abandonar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-</div>
-</div>
+<footer>AzDi Arcade · 2026 · Built for Tania</footer>
 
-<footer>
-AzDi Arcade · nuevos juegos cada semana
-</footer>
+<script>
+    const animals = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻'];
+    let unlocked = 1;
+    let currentLvl = 1;
+    let score = 0;
+    let moves = 20;
+    let gridData = [];
+    let selected = null;
 
+    function openGame() {
+        document.getElementById('game-overlay').style.display = 'flex';
+        showMap();
+    }
+
+    function closeGame() {
+        document.getElementById('game-overlay').style.display = 'none';
+    }
+
+    function showMap() {
+        const map = document.getElementById('map-screen');
+        const play = document.getElementById('play-area');
+        map.style.display = 'grid';
+        play.style.display = 'none';
+        map.innerHTML = '';
+
+        for (let i = 1; i <= 20; i++) {
+            const node = document.createElement('div');
+            node.className = `level-node ${i > unlocked ? 'locked' : ''}`;
+            node.innerText = i;
+            node.onclick = () => { if(i <= unlocked) startLevel(i); };
+            map.appendChild(node);
+        }
+    }
+
+    function startLevel(n) {
+        currentLvl = n;
+        score = 0;
+        moves = 25 - Math.min(n, 10); // Menos movimientos según subes nivel
+        document.getElementById('map-screen').style.display = 'none';
+        document.getElementById('play-area').style.display = 'flex';
+        updateUI();
+        initGrid();
+    }
+
+    function initGrid() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        gridData = [];
+        for(let r=0; r<8; r++) {
+            gridData[r] = [];
+            for(let c=0; c<8; c++) {
+                gridData[r][c] = animals[Math.floor(Math.random()*animals.length)];
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = gridData[r][c];
+                cell.onclick = () => clickCell(r, c, cell);
+                gridEl.appendChild(cell);
+            }
+        }
+    }
+
+    function clickCell(r, c, el) {
+        if(moves <= 0) return;
+        if(!selected) {
+            selected = {r, c, el};
+            el.classList.add('selected');
+        } else {
+            let d = Math.abs(selected.r - r) + Math.abs(selected.c - c);
+            if(d === 1) {
+                swap(r, c, selected.r, selected.c);
+                moves--;
+                updateUI();
+                selected.el.classList.remove('selected');
+                selected = null;
+                setTimeout(checkMatches, 300);
+            } else {
+                selected.el.classList.remove('selected');
+                selected = {r, c, el};
+                el.classList.add('selected');
+            }
+        }
+    }
+
+    function swap(r1, c1, r2, c2) {
+        let temp = gridData[r1][c1];
+        gridData[r1][c1] = gridData[r2][c2];
+        gridData[r2][c2] = temp;
+        render();
+    }
+
+    function render() {
+        const cells = document.querySelectorAll('.cell');
+        let i = 0;
+        for(let r=0; r<8; r++) {
+            for(let c=0; c<8; c++) {
+                cells[i].innerText = gridData[r][c] || "";
+                i++;
+            }
+        }
+    }
+
+    function checkMatches() {
+        let matches = [];
+        for(let r=0; r<8; r++) {
+            for(let c=0; c<6; c++) {
+                if(gridData[r][c] && gridData[r][c]===gridData[r][c+1] && gridData[r][c]===gridData[r][c+2])
+                    matches.push({r,c},{r,c+1},{r,c+2});
+            }
+        }
+        for(let c=0; c<8; c++) {
+            for(let r=0; r<6; r++) {
+                if(gridData[r][c] && gridData[r][c]===gridData[r+1][c] && gridData[r][c]===gridData[r+2][c])
+                    matches.push({r,c},{r+1,c},{r+2,c});
+            }
+        }
+
+        if(matches.length > 0) {
+            score += matches.length * 15;
+            updateUI();
+            matches.forEach(m => gridData[m.r][m.c] = null);
+            setTimeout(() => { fill(); checkMatches(); }, 400);
+        } else {
+            checkEnd();
+        }
+    }
+
+    function fill() {
+        for(let c=0; c<8; c++) {
+            for(let r=7; r>=0; r--) {
+                if(!gridData[r][c]) {
+                    for(let kr=r-1; kr>=0; kr--) {
+                        if(gridData[kr][c]) {
+                            gridData[r][c] = gridData[kr][c];
+                            gridData[kr][c] = null;
+                            break;
+                        }
+                    }
+                }
+                if(!gridData[r][c]) gridData[r][c] = animals[Math.floor(Math.random()*animals.length)];
+            }
+        }
+        render();
+    }
+
+    function updateUI() {
+        document.getElementById('lvl-txt').innerText = "NIVEL: " + currentLvl;
+        document.getElementById('score-txt').innerText = `PTS: ${score} / ${currentLvl * 400}`;
+        document.getElementById('moves-txt').innerText = "MOVES: " + moves;
+    }
+
+    function checkEnd() {
+        let target = currentLvl * 400;
+        if(score >= target) {
+            alert("¡INCREÍBLE! Nivel superado.");
+            if(currentLvl === unlocked) unlocked++;
+            showMap();
+        } else if(moves <= 0) {
+            alert("TE HAS QUEDADO SIN MOVIMIENTOS. Inténtalo de nuevo.");
+            showMap();
+        }
+    }
+</script>
 </body>
 </html>
