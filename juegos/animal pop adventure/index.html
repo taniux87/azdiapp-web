@@ -50,17 +50,7 @@
         }
 
         /* --- MAPA DE NIVELES (Pantalla 1) --- */
-        #map-screen {
-            display: block; /* Por defecto visible */
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--map-bg-sky) 0%, var(--map-bg-grass) 100%);
-            position: absolute;
-            top: 0; left: 0;
-            padding-top: 50px; /* Espacio para el top bar */
-            overflow-y: scroll; /* Scroll para los niveles */
-            -webkit-overflow-scrolling: touch;
-        }
+        
 
         .map-path {
             position: absolute;
@@ -71,7 +61,21 @@
             z-index: 1;
         }
         
-        .map-nodes {
+ #map-screen {
+    position: relative;
+    width: 100%; /* Se adapta al ancho del móvil o PC */
+    height: 100vh; /* Ocupa toda la altura visible */
+    overflow-y: auto; /* Permite hacer scroll vertical */
+    overflow-x: hidden; /* Evita que se mueva hacia los lados */
+    background: linear-gradient(to bottom, #4facfe, #00f2fe);
+}
+
+#map-content {
+    position: relative;
+    width: 100%;
+    height: 3000px; /* La longitud total del camino */
+}
+       .map-nodes {
             position: relative;
             width: 80%;
             margin: 0 auto;
@@ -79,24 +83,21 @@
         }
 
         .level-node {
-            position: absolute;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background-color: var(--level-node-color);
-            border: 4px solid var(--text-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--font-main);
-            font-size: 24px;
-            color: var(--text-color);
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: transform 0.2s, background-color 0.2s;
-            z-index: 2;
-        }
-
+    position: absolute;
+    width: 15vw; /* Tamaño relativo al ancho de pantalla */
+    height: 15vw;
+    max-width: 70px; /* Pero que no pase de 70px en PC */
+    max-height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Luckiest Guy', cursive;
+    background: radial-gradient(circle, #f7a52e, #d47a00);
+    border: 3px solid white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transform: translateX(-50%); /* Centra el nodo en su coordenada X */
+}
         .level-node:hover:not(.locked) {
             transform: scale(1.1);
             background-color: #ffc107;
@@ -301,18 +302,51 @@
 
     /* --- MAPA DE NIVELES --- */
     function initMap() {
-        mapScreen.style.display = "block";
-        gameScreen.style.display = "none";
-        document.querySelector('.map-nodes').innerHTML = '';
-        mapLevelDisplay.textContent = `Lvl ${unlockedLevels}`;
+    mapScreen.style.display = "block";
+    gameScreen.style.display = "none";
+    
+    // 1. Buscamos el contenedor de los nodos
+    const nodesContainer = document.querySelector('.map-nodes');
+    nodesContainer.innerHTML = '';
+    
+    mapLevelDisplay.textContent = `Lvl ${unlockedLevels}`;
 
-        const levelPositions = [ // Coordenadas para que los niveles se vean como un camino
-            { x: 30, y: 50 }, { x: 100, y: 20 }, { x: 200, y: 70 }, { x: 300, y: 40 },
-            { x: 350, y: 120 }, { x: 280, y: 180 }, { x: 180, y: 150 }, { x: 80, y: 220 },
-            { x: 150, y: 300 }, { x: 250, y: 280 }, { x: 320, y: 350 }, { x: 250, y: 420 },
-            { x: 150, y: 450 }, { x: 80, y: 530 }, { x: 180, y: 580 }, { x: 280, y: 620 },
-            { x: 350, y: 550 }, { x: 300, y: 480 }, { x: 200, y: 500 }, { x: 100, y: 400 }
-        ];
+    // 2. Detectamos el ancho real de tu pantalla para que no se salga
+    const anchoPantalla = mapScreen.clientWidth;
+    const centroX = anchoPantalla / 2;
+
+    // 3. En lugar de 20 coordenadas fijas, creamos 50 niveles dinámicos
+    for (let i = 1; i <= 50; i++) {
+        const n = document.createElement("div");
+        // Comprobamos si el nivel está desbloqueado
+        n.className = "level-node " + (i > unlockedLevels ? "locked" : "");
+        n.textContent = i;
+
+        // --- CÁLCULO RESPONSIVO ---
+        // 'y' sube cada 140px. Empezamos abajo (4000px) y subimos.
+        const yPos = 3800 - (i * 140); 
+        
+        // 'x' se calcula según el ancho de tu pantalla actual
+        // El 0.35 hace que el zigzag ocupe el 35% del ancho a cada lado
+        const zigzag = Math.sin(i * 0.8) * (anchoPantalla * 0.35);
+        const xPos = centroX + zigzag;
+
+        // Aplicamos la posición
+        n.style.position = "absolute";
+        n.style.top = yPos + "px";
+        n.style.left = xPos + "px";
+        n.style.transform = "translateX(-50%)"; // Para que el centro del círculo sea el punto exacto
+
+        n.onclick = () => { if (i <= unlockedLevels) startLevel(i); };
+        nodesContainer.appendChild(n);
+    }
+
+    // 4. Hacemos que el mapa se deslice hasta tu nivel actual
+    setTimeout(() => {
+        mapScreen.scrollTop = 3800 - (unlockedLevels * 140) - 300;
+    }, 100);
+}
+
 
         for (let i = 1; i <= 20; i++) {
             const node = document.createElement("div");
