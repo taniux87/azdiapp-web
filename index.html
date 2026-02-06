@@ -16,18 +16,32 @@ body{
 /* CABECERA */
 .header{
   text-align:center;
-  padding:30px 10px 10px;
+  padding:40px 10px 10px;
 }
 
+/* LOGO */
 .logo{
-  font-size:38px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.logo svg{
+  width:90px;
+  height:90px;
+}
+
+.brand{
+  font-size:34px;
   font-weight:bold;
-  letter-spacing:3px;
+  letter-spacing:2px;
 }
 
 .subtitle{
   opacity:.7;
-  margin-top:8px;
+  margin-top:6px;
+  font-size:16px;
 }
 
 /* GRID DE JUEGOS */
@@ -35,7 +49,7 @@ body{
   max-width:900px;
   margin:30px auto;
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
   gap:25px;
   padding:20px;
 }
@@ -43,31 +57,29 @@ body{
 /* TARJETA */
 .card{
   background:#132a33;
-  border-radius:18px;
+  border-radius:20px;
   overflow:hidden;
   cursor:pointer;
-  transition:0.25s;
-  box-shadow:0 10px 25px rgba(0,0,0,0.4);
+  transition:.25s;
+  box-shadow:0 10px 25px rgba(0,0,0,.4);
 }
 
 .card:hover{
   transform:translateY(-6px) scale(1.02);
-  box-shadow:0 20px 40px rgba(0,0,0,0.6);
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
 }
 
-/* MINIATURA */
 .thumb{
-  height:140px;
+  height:150px;
   background:linear-gradient(#87CEEB,#6b8e23);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:40px;
+  font-size:50px;
 }
 
-/* TEXTO */
 .info{
-  padding:14px;
+  padding:16px;
 }
 
 .title{
@@ -85,13 +97,23 @@ body{
 <body>
 
 <div class="header">
-  <div class="logo">AzDi</div>
-  <div class="subtitle">Juegos rápidos para pasar el rato</div>
+  <div class="logo">
+
+    <!-- LOGO VECTORIAL -->
+    <svg viewBox="0 0 100 100">
+      <rect x="15" y="15" width="70" height="70" rx="18" fill="#ffd43b"/>
+      <circle cx="40" cy="45" r="6" fill="#222"/>
+      <circle cx="60" cy="45" r="6" fill="#222"/>
+      <path d="M35 65 Q50 80 65 65" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </svg>
+
+    <div class="brand">AzDi</div>
+    <div class="subtitle">Juegos rápidos para pasar el rato</div>
+  </div>
 </div>
 
 <div class="games">
 
-  <!-- JUEGO 1 -->
   <a href="juegos/runner/" style="text-decoration:none;color:inherit;">
     <div class="card">
       <div class="thumb">🟨</div>
@@ -102,7 +124,6 @@ body{
     </div>
   </a>
 
-  <!-- espacio para futuros juegos -->
   <div class="card" style="opacity:.4;cursor:default;">
     <div class="thumb">🎮</div>
     <div class="info">
