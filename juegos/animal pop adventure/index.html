@@ -1,303 +1,590 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AzDi Animal Pop | Edición Definitiva</title>
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-<style>
-    :root {
-        --bg: #06141b;
-        --panel: #0d2230;
-        --accent: #00e5ff;
-        --pink: #ff2ea6;
-        --candy-blue: #4facfe;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AzDi Animal Pop | Candy Crush Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
-    body {
-        margin: 0;
-        background: radial-gradient(circle at 30% 10%, #0b2a38, #02070a 70%);
-        font-family: 'Segoe UI', sans-serif;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        overflow: hidden;
-    }
+    <style>
+        :root {
+            --map-bg-sky: #87ceeb;
+            --map-bg-grass: #a0d85a;
+            --level-node-color: #f7a52e; /* Naranja caramelo */
+            --level-locked-color: #8c8c8c;
+            --game-bg-sky: #6ddaff;
+            --game-bg-grass: #88c049;
+            --panel-color: #ff99cc; /* Rosa chicle */
+            --text-color: #fff;
+            --font-main: 'Luckiest Guy', cursive;
+            --font-secondary: 'Roboto', sans-serif;
+            --candy-red: #ff4d4d;
+            --candy-blue: #4d4dff;
+            --candy-green: #4dff4d;
+            --candy-yellow: #ffff4d;
+            --candy-purple: #ff4dff;
+            --candy-orange: #ff994d;
+        }
 
-    #game-container {
-        width: 450px;
-        height: 800px;
-        background: var(--panel);
-        border-radius: 20px;
-        box-shadow: 0 0 50px rgba(0, 229, 255, 0.3);
-        overflow: hidden;
-        position: relative;
-        border: 3px solid var(--accent);
-    }
+        body {
+            margin: 0;
+            font-family: var(--font-secondary);
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #222; /* Fondo general gris oscuro */
+        }
 
-    /* --- MAPA --- */
-    #map-screen {
-        padding: 20px;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        overflow-y: auto;
-        height: 100%;
-        background: linear-gradient(to bottom, #1a4a6e, #06141b);
-    }
+        /* --- CONTENEDOR PRINCIPAL DEL JUEGO --- */
+        #game-wrapper {
+            width: 450px; /* Ancho fijo para el juego, como Candy Crush */
+            height: 750px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #7bb0e3 0%, #3a75c1 100%); /* Fondo azul degradado */
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
 
-    .level-node {
-        width: 70px; height: 70px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        background: #123648;
-        border: 4px solid var(--accent);
-        cursor: pointer;
-        font-family: 'Luckiest Guy', cursive;
-        font-size: 26px;
-        transition: 0.3s;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    }
+        /* --- MAPA DE NIVELES (Pantalla 1) --- */
+        #map-screen {
+            display: block; /* Por defecto visible */
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--map-bg-sky) 0%, var(--map-bg-grass) 100%);
+            position: absolute;
+            top: 0; left: 0;
+            padding-top: 50px; /* Espacio para el top bar */
+            overflow-y: scroll; /* Scroll para los niveles */
+            -webkit-overflow-scrolling: touch;
+        }
 
-    .level-node:hover:not(.locked) { transform: scale(1.1); background: var(--accent); color: #000; }
-    .locked { opacity: .3; cursor: not-allowed; border-color: #555; filter: grayscale(1); }
+        .map-path {
+            position: absolute;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0 10 Q 25 0, 50 10 T 100 10' stroke='%23ffed8a' stroke-width='4' fill='none' /%3E%3C/svg%3E");
+            background-repeat: repeat-x;
+            height: 20px;
+            width: 100%;
+            z-index: 1;
+        }
+        
+        .map-nodes {
+            position: relative;
+            width: 80%;
+            margin: 0 auto;
+            padding-top: 50px; /* Empieza más abajo en el mapa */
+        }
 
-    /* --- PANTALLA DE JUEGO --- */
-    #game-screen { 
-        display: none; 
-        flex-direction: column; 
-        height: 100%; 
-        background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%); 
-    }
+        .level-node {
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background-color: var(--level-node-color);
+            border: 4px solid var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-main);
+            font-size: 24px;
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s, background-color 0.2s;
+            z-index: 2;
+        }
 
-    .header {
-        display: flex;
-        justify-content: space-around;
-        padding: 20px;
-        background: rgba(0,0,0,0.5);
-        font-family: 'Luckiest Guy', cursive;
-        font-size: 20px;
-        border-bottom: 3px solid white;
-    }
+        .level-node:hover:not(.locked) {
+            transform: scale(1.1);
+            background-color: #ffc107;
+        }
 
-    #grid {
-        display: grid;
-        grid-template-columns: repeat(8, 52px);
-        grid-template-rows: repeat(8, 52px);
-        gap: 5px;
-        margin: auto;
-        background: rgba(255,255,255,0.2);
-        padding: 12px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
+        .level-node.locked {
+            background-color: var(--level-locked-color);
+            border-color: #555;
+            cursor: not-allowed;
+            filter: grayscale(80%);
+        }
 
-    .cell {
-        width: 52px; height: 52px;
-        background: rgba(255,255,255,0.3);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 34px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: transform 0.1s;
-        user-select: none;
-    }
+        /* --- TOP BAR DEL MAPA --- */
+        #map-topbar {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, #5d8ecf 0%, #3a75c1 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            font-size: 20px;
+            justify-content: space-between;
+            color: var(--text-color);
+            z-index: 10;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
 
-    .cell.selected { outline: 4px solid var(--pink); background: rgba(255,46,166,0.4); transform: scale(1.1); z-index: 5; }
+        /* --- PANTALLA DE JUEGO (Pantalla 2) --- */
+        #game-screen {
+            display: none; /* Por defecto oculto */
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--game-bg-sky) 0%, var(--game-bg-grass) 100%);
+            position: absolute;
+            top: 0; left: 0;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    .footer-ui {
-        padding: 25px;
-        text-align: center;
-        background: rgba(0,0,0,0.3);
-    }
+        .game-top-panel {
+            width: 100%;
+            height: 60px;
+            background-color: var(--panel-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 3px solid rgba(0,0,0,0.2);
+            font-family: var(--font-main);
+            font-size: 18px;
+            color: var(--text-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
 
-    .btn {
-        padding: 15px 40px;
-        background: linear-gradient(90deg, #00e5ff, #ff2ea6);
-        border: none;
-        border-radius: 30px;
-        color: white;
-        font-family: 'Luckiest Guy', cursive;
-        cursor: pointer;
-        font-size: 20px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-</style>
+        .game-top-panel div span {
+            font-size: 22px;
+            margin-left: 5px;
+        }
+
+        #grid-container {
+            position: relative;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+            width: 90%; /* Ajustar ancho para dejar espacio */
+            height: auto;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr); /* 8 columnas flexibles */
+            grid-template-rows: repeat(8, 1fr);   /* 8 filas flexibles */
+            gap: 5px;
+            aspect-ratio: 1 / 1; /* Asegura que sea cuadrado */
+            max-width: 400px; /* Limite de tamaño */
+        }
+
+        .cell {
+            background-color: rgba(255,255,255,0.1); /* Fondo translúcido */
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px; /* Tamaño de los animales */
+            cursor: pointer;
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out, background-color 0.2s ease-out;
+            user-select: none;
+            position: relative; /* Para animaciones */
+            overflow: hidden;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .cell.selected {
+            transform: scale(1.08);
+            outline: 3px solid #ffff00; /* Borde amarillo para seleccionado */
+            box-shadow: 0 0 15px #ffff00;
+        }
+
+        .game-bottom-panel {
+            width: 100%;
+            height: 80px;
+            background-color: var(--panel-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-sizing: border-box;
+            border-top: 3px solid rgba(0,0,0,0.2);
+            font-family: var(--font-main);
+            font-size: 20px;
+            color: var(--text-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .game-button {
+            background: linear-gradient(45deg, #ff4d4d, #ff99cc);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* --- ANIMACIONES --- */
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .cell.popping { animation: pop 0.3s forwards ease-out; }
+        .cell.falling { transition: transform 0.3s ease-out; }
+
+    </style>
 </head>
+
 <body>
 
-<div id="game-container">
-    <div id="map-screen"></div>
+    <div id="game-wrapper">
 
-    <div id="game-screen">
-        <div class="header">
-            <div id="level-txt">NIVEL 1</div>
-            <div id="score-txt">PUNTOS: 0</div>
-            <div id="target-txt">META: 500</div>
+        <div id="map-screen">
+            <div id="map-topbar">
+                <span>AzDi Animal Pop!</span>
+                <span id="map-level-display">Lvl 1</span>
+            </div>
+            <div class="map-nodes">
+                </div>
         </div>
 
-        <div id="grid"></div>
+        <div id="game-screen">
+            <div class="game-top-panel">
+                <div>NIVEL:<span id="level-display">1</span></div>
+                <div>META:<span id="target-display">1000</span></div>
+            </div>
 
-        <div class="footer-ui">
-            <div id="moves-txt" style="margin-bottom: 15px; font-family: 'Luckiest Guy'; font-size: 22px;">MOVES: 30</div>
-            <button class="btn" onclick="goToMap()">SALIR</button>
+            <div id="grid-container">
+                </div>
+
+            <div class="game-bottom-panel">
+                <div>MOVIMIENTOS:<span id="moves-display">50</span></div>
+                <div>PUNTOS:<span id="score-display">0</span></div>
+            </div>
+            <button class="game-button" onclick="goToMap()">SALIR DEL NIVEL</button>
         </div>
+
     </div>
-</div>
 
 <script>
-const animals = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"];
-const SIZE = 8;
-let level = 1, score = 0, target = 0, moves = 30;
-let unlocked = parseInt(localStorage.getItem("animal_pop_save") || 1);
-let grid = [], selected = null, isProcessing = false;
+    const animals = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]; // Tus animales
+    const SIZE = 8; // Grid de 8x8
 
-const mapEl = document.getElementById("map-screen");
-const gameEl = document.getElementById("game-screen");
-const gridEl = document.getElementById("grid");
+    let currentLevel = 1;
+    let currentScore = 0;
+    let targetScore = 0;
+    let movesLeft = 0;
+    let unlockedLevels = parseInt(localStorage.getItem("animalpop_unlocked") || 1);
 
-function initMap() {
-    mapEl.innerHTML = "";
-    mapEl.style.display = "grid";
-    gameEl.style.display = "none";
-    for (let i = 1; i <= 20; i++) {
-        const n = document.createElement("div");
-        n.className = "level-node " + (i > unlocked ? "locked" : "");
-        n.textContent = i;
-        n.onclick = () => { if (i <= unlocked) startLevel(i); };
-        mapEl.appendChild(n);
-    }
-}
+    let gameGrid = [];
+    let selectedCell = null;
+    let isGameAnimating = false; // Bloquea clics durante animaciones
 
-function startLevel(lvl) {
-    level = lvl; score = 0; target = lvl * 600; moves = 35;
-    document.getElementById("level-txt").textContent = "NIVEL " + lvl;
-    document.getElementById("score-txt").textContent = "PUNTOS: 0";
-    document.getElementById("target-txt").textContent = "META: " + target;
-    document.getElementById("moves-txt").textContent = "MOVES: " + moves;
-    
-    mapEl.style.display = "none";
-    gameEl.style.display = "flex";
-    
-    do { generateGrid(); } while (findMatches().length > 0);
-    render();
-}
+    const mapScreen = document.getElementById("map-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const gridContainer = document.getElementById("grid-container");
 
-function generateGrid() {
-    grid = [];
-    for (let r = 0; r < SIZE; r++) {
-        grid[r] = [];
-        for (let c = 0; c < SIZE; c++) {
-            grid[r][c] = animals[Math.floor(Math.random() * animals.length)];
-        }
-    }
-}
+    const levelDisplay = document.getElementById("level-display");
+    const targetDisplay = document.getElementById("target-display");
+    const movesDisplay = document.getElementById("moves-display");
+    const scoreDisplay = document.getElementById("score-display");
+    const mapLevelDisplay = document.getElementById("map-level-display");
 
-function render() {
-    gridEl.innerHTML = "";
-    for (let r = 0; r < SIZE; r++) {
-        for (let c = 0; c < SIZE; c++) {
-            const d = document.createElement("div");
-            d.className = "cell";
-            d.id = `cell-${r}-${c}`;
-            d.textContent = grid[r][c] || "";
-            d.onclick = () => clickCell(r, c);
-            gridEl.appendChild(d);
-        }
-    }
-}
 
-async function clickCell(r, c) {
-    if (isProcessing || moves <= 0) return;
-    const el = document.getElementById(`cell-${r}-${c}`);
+    /* --- MAPA DE NIVELES --- */
+    function initMap() {
+        mapScreen.style.display = "block";
+        gameScreen.style.display = "none";
+        document.querySelector('.map-nodes').innerHTML = '';
+        mapLevelDisplay.textContent = `Lvl ${unlockedLevels}`;
 
-    if (!selected) {
-        selected = { r, c, el };
-        el.classList.add("selected");
-    } else {
-        const dist = Math.abs(selected.r - r) + Math.abs(selected.c - c);
-        if (dist === 1) {
-            isProcessing = true;
-            selected.el.classList.remove("selected");
-            swap(selected.r, selected.c, r, c);
+        const levelPositions = [ // Coordenadas para que los niveles se vean como un camino
+            { x: 30, y: 50 }, { x: 100, y: 20 }, { x: 200, y: 70 }, { x: 300, y: 40 },
+            { x: 350, y: 120 }, { x: 280, y: 180 }, { x: 180, y: 150 }, { x: 80, y: 220 },
+            { x: 150, y: 300 }, { x: 250, y: 280 }, { x: 320, y: 350 }, { x: 250, y: 420 },
+            { x: 150, y: 450 }, { x: 80, y: 530 }, { x: 180, y: 580 }, { x: 280, y: 620 },
+            { x: 350, y: 550 }, { x: 300, y: 480 }, { x: 200, y: 500 }, { x: 100, y: 400 }
+        ];
+
+        for (let i = 1; i <= 20; i++) {
+            const node = document.createElement("div");
+            node.className = "level-node " + (i > unlockedLevels ? "locked" : "");
+            node.textContent = i;
             
-            if (findMatches().length > 0) {
-                moves--;
-                document.getElementById("moves-txt").textContent = "MOVES: " + moves;
-                selected = null;
-                await handleSequence();
-            } else {
-                await new Promise(r => setTimeout(r, 200));
-                swap(selected.r, selected.c, r, c);
-                selected = null;
-                render();
+            const pos = levelPositions[i - 1];
+            if (pos) { // Asegurarse de que hay una posición definida
+                node.style.left = `${pos.x}px`;
+                node.style.top = `${pos.y + (i * 30)}px`; // Ajuste para que se vea bien con scroll
             }
-            isProcessing = false;
-        } else {
-            selected.el.classList.remove("selected");
-            selected = { r, c, el };
-            el.classList.add("selected");
+
+            node.onclick = () => {
+                if (i <= unlockedLevels && !isGameAnimating) {
+                    startLevel(i);
+                }
+            };
+            document.querySelector('.map-nodes').appendChild(node);
+            
+            // Añadir el camino (simple, se puede mejorar con SVG dinámico)
+            if (i < 20 && pos && levelPositions[i]) {
+                const pathEl = document.createElement("div");
+                pathEl.className = "map-path";
+                // Posición entre nodos (aproximada)
+                pathEl.style.left = `${pos.x}px`;
+                pathEl.style.top = `${pos.y + (i * 30) + 30}px`;
+                pathEl.style.width = `${Math.abs(levelPositions[i].x - pos.x) + 100}px`;
+                document.querySelector('.map-nodes').appendChild(pathEl);
+            }
         }
     }
-}
 
-function swap(r1, c1, r2, c2) {
-    let t = grid[r1][c1];
-    grid[r1][c1] = grid[r2][c2];
-    grid[r2][c2] = t;
-    render();
-}
 
-function findMatches() {
-    let m = [];
-    for (let r = 0; r < SIZE; r++) {
+    /* --- INICIAR NIVEL --- */
+    function startLevel(lvl) {
+        currentLevel = lvl;
+        currentScore = 0;
+        targetScore = lvl * 1000; // La meta aumenta por nivel
+        movesLeft = 50 - (lvl * 2); // Menos movimientos en niveles avanzados
+        if (movesLeft < 10) movesLeft = 10; // Mínimo de 10 movimientos
+
+        levelDisplay.textContent = currentLevel;
+        scoreDisplay.textContent = currentScore;
+        targetDisplay.textContent = targetScore;
+        movesDisplay.textContent = movesLeft;
+
+        mapScreen.style.display = "none";
+        gameScreen.style.display = "flex";
+
+        generateCleanGrid();
+        renderGrid();
+    }
+
+    /* Genera una cuadrícula sin combinaciones iniciales */
+    function generateCleanGrid() {
+        gameGrid = [];
+        for (let r = 0; r < SIZE; r++) {
+            gameGrid[r] = [];
+            for (let c = 0; c < SIZE; c++) {
+                let val;
+                do {
+                    val = randomAnimal();
+                    gameGrid[r][c] = val;
+                } while (checkInitialMatch(r, c, val));
+            }
+        }
+    }
+
+    /* Comprueba si al colocar un animal se forma un match de 3 */
+    function checkInitialMatch(r, c, val) {
+        if (c > 1 && gameGrid[r][c - 1] === val && gameGrid[r][c - 2] === val) return true;
+        if (r > 1 && gameGrid[r - 1][c] === val && gameGrid[r - 2][c] === val) return true;
+        return false;
+    }
+
+    /* Devuelve un animal aleatorio */
+    function randomAnimal() {
+        return animals[Math.floor(Math.random() * animals.length)];
+    }
+
+    /* --- RENDERIZADO DEL TABLERO --- */
+    function renderGrid() {
+        gridContainer.innerHTML = '';
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                const cellDiv = document.createElement("div");
+                cellDiv.className = "cell";
+                cellDiv.id = `cell-${r}-${c}`;
+                cellDiv.textContent = gameGrid[r][c] || "";
+                cellDiv.onclick = () => clickCell(r, c);
+                gridContainer.appendChild(cellDiv);
+            }
+        }
+    }
+
+    /* --- GESTIÓN DE CLICS Y SWAPS --- */
+    async function clickCell(r, c) {
+        if (isGameAnimating) return; // Bloquear clics durante animaciones
+
+        const clickedElement = document.getElementById(`cell-${r}-${c}`);
+
+        if (!selectedCell) { // Primera selección
+            selectedCell = { r, c, element: clickedElement };
+            clickedElement.classList.add("selected");
+        } else { // Segunda selección (intento de swap)
+            const dist = Math.abs(selectedCell.r - r) + Math.abs(selectedCell.c - c);
+
+            if (dist === 1) { // Son adyacentes, intentar swap
+                isGameAnimating = true; // Bloquear clicks
+                selectedCell.element.classList.remove("selected");
+
+                // Animación visual del swap
+                await animateSwap(selectedCell.r, selectedCell.c, r, c);
+                swapGridValues(selectedCell.r, selectedCell.c, r, c);
+
+                if (findMatches().length > 0) { // Hay matches, procesar
+                    await handleMatches();
+                } else { // No hay match, deshacer la animación y el swap
+                    await animateSwap(r, c, selectedCell.r, selectedCell.c); // Deshacer visualmente
+                    swapGridValues(selectedCell.r, selectedCell.c, r, c); // Deshacer en la grid
+                }
+                
+                selectedCell = null;
+                isGameAnimating = false; // Desbloquear clicks
+                checkGameEnd();
+
+            } else { // Segunda selección no adyacente, cambia la selección
+                selectedCell.element.classList.remove("selected");
+                selectedCell = { r, c, element: clickedElement };
+                clickedElement.classList.add("selected");
+            }
+        }
+    }
+
+    /* Intercambia los valores en la cuadrícula */
+    function swapGridValues(r1, c1, r2, c2) {
+        let temp = gameGrid[r1][c1];
+        gameGrid[r1][c1] = gameGrid[r2][c2];
+        gameGrid[r2][c2] = temp;
+    }
+
+    /* Anima el intercambio de dos celdas */
+    async function animateSwap(r1, c1, r2, c2) {
+        const el1 = document.getElementById(`cell-${r1}-${c1}`);
+        const el2 = document.getElementById(`cell-${r2}-${c2}`);
+
+        // Calcula desplazamiento visual
+        const rect1 = el1.getBoundingClientRect();
+        const rect2 = el2.getBoundingClientRect();
+        const dx = rect1.left - rect2.left;
+        const dy = rect1.top - rect2.top;
+
+        // Aplica transform para la animación
+        el1.style.transition = `transform 0.2s ease-in-out`;
+        el2.style.transition = `transform 0.2s ease-in-out`;
+        el1.style.transform = `translate(${-dx}px, ${-dy}px)`;
+        el2.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        await new Promise(resolve => setTimeout(resolve, 200)); // Espera la animación
+
+        el1.style.transform = ''; // Quita transform para que vuelvan a su posición CSS
+        el2.style.transform = '';
+        el1.style.transition = ''; // Limpia transiciones para evitar conflictos
+        el2.style.transition = '';
+
+        renderGrid(); // Vuelve a dibujar para que los elementos estén en sus nuevas posiciones
+    }
+
+
+    /* --- LÓGICA DE MATCHES Y CASCADA --- */
+    function findMatches() {
+        let matches = new Set(); // Usamos un Set para evitar duplicados
+
+        // Horizontal
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE - 2; c++) {
+                let val = gameGrid[r][c];
+                if (val && val === gameGrid[r][c + 1] && val === gameGrid[r][c + 2]) {
+                    matches.add(`${r}-${c}`);
+                    matches.add(`${r}-${c + 1}`);
+                    matches.add(`${r}-${c + 2}`);
+                }
+            }
+        }
+        // Vertical
         for (let c = 0; c < SIZE; c++) {
-            let v = grid[r][c];
-            if (!v) continue;
-            if (c < SIZE - 2 && v === grid[r][c+1] && v === grid[r][c+2]) m.push({r,c},{r,c+1},{r,c+2});
-            if (r < SIZE - 2 && v === grid[r+1][c] && v === grid[r+2][c]) m.push({r,c},{r+1,c},{r+2,c});
+            for (let r = 0; r < SIZE - 2; r++) {
+                let val = gameGrid[r][c];
+                if (val && val === gameGrid[r + 1][c] && val === gameGrid[r + 2][c]) {
+                    matches.add(`${r}-${c}`);
+                    matches.add(`${r + 1}-${c}`);
+                    matches.add(`${r + 2}-${c}`);
+                }
+            }
+        }
+        return Array.from(matches).map(s => { // Convierte el Set de nuevo en array de objetos
+            const [r, c] = s.split('-').map(Number);
+            return {r, c};
+        });
+    }
+
+    async function handleMatches() {
+        let matches = findMatches();
+        if (matches.length === 0) {
+            return;
+        }
+
+        // Animación de "pop" y puntuación
+        matches.forEach(m => {
+            const cellElement = document.getElementById(`cell-${m.r}-${m.c}`);
+            if (cellElement) {
+                cellElement.classList.add("popping");
+            }
+            gameGrid[m.r][m.c] = null; // Eliminar animal
+            currentScore += 10;
+        });
+        scoreDisplay.textContent = currentScore; // Actualizar puntuación
+        await new Promise(resolve => setTimeout(resolve, 300)); // Espera la animación de pop
+
+        // Gravedad (caída de animales)
+        for (let c = 0; c < SIZE; c++) {
+            let emptySpaces = 0;
+            for (let r = SIZE - 1; r >= 0; r--) {
+                if (gameGrid[r][c] === null) {
+                    emptySpaces++;
+                } else if (emptySpaces > 0) {
+                    gameGrid[r + emptySpaces][c] = gameGrid[r][c];
+                    gameGrid[r][c] = null;
+                }
+            }
+            // Rellenar nuevos animales desde arriba
+            for (let r = 0; r < emptySpaces; r++) {
+                gameGrid[r][c] = randomAnimal();
+            }
+        }
+        renderGrid(); // Vuelve a dibujar con los animales caídos y nuevos
+
+        await new Promise(resolve => setTimeout(resolve, 300)); // Espera la caída
+
+        // Recursividad: buscar más matches después de la caída
+        if (findMatches().length > 0) {
+            await handleMatches(); // Si hay más matches, sigue procesando
         }
     }
-    return m;
-}
 
-async function handleSequence() {
-    let matches = findMatches();
-    if (matches.length === 0) { checkStatus(); return; }
+    /* --- FIN DEL JUEGO --- */
+    function checkGameEnd() {
+        movesLeft--;
+        movesDisplay.textContent = movesLeft;
 
-    matches.forEach(pos => { if(grid[pos.r][pos.c]) { grid[pos.r][pos.c] = null; score += 15; } });
-    document.getElementById("score-txt").textContent = "PUNTOS: " + score;
-    render();
-    await new Promise(res => setTimeout(res, 300));
-
-    for (let c = 0; c < SIZE; c++) {
-        let empty = 0;
-        for (let r = SIZE - 1; r >= 0; r--) {
-            if (!grid[r][c]) empty++;
-            else if (empty > 0) { grid[r + empty][c] = grid[r][c]; grid[r][c] = null; }
+        if (currentScore >= targetScore) {
+            alert(`¡Nivel ${currentLevel} Superado!`);
+            if (currentLevel === unlockedLevels && unlockedLevels < 20) {
+                unlockedLevels++;
+                localStorage.setItem("animalpop_unlocked", unlockedLevels);
+            }
+            goToMap();
+        } else if (movesLeft <= 0) {
+            alert(`¡GAME OVER! No quedan movimientos. Puntuación: ${currentScore}`);
+            goToMap();
         }
-        for (let r = 0; r < empty; r++) grid[r][c] = animals[Math.floor(Math.random() * animals.length)];
     }
-    render();
-    await new Promise(res => setTimeout(res, 300));
-    await handleSequence();
-}
 
-function checkStatus() {
-    if (score >= target) {
-        alert("¡Nivel superado!");
-        if (level === unlocked) { unlocked++; localStorage.setItem("animal_pop_save", unlocked); }
-        goToMap();
-    } else if (moves <= 0) {
-        alert("Te has quedado sin movimientos.");
-        goToMap();
+    function goToMap() {
+        selectedCell = null;
+        isGameAnimating = false;
+        initMap();
     }
-}
 
-function goToMap() { initMap(); }
-initMap();
+    /* --- INICIO DEL JUEGO AL CARGAR LA PÁGINA --- */
+    initMap();
 </script>
+
 </body>
 </html>
