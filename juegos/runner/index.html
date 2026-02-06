@@ -6,14 +6,22 @@
 <title>AzDi Runner</title>
 
 <style>
-body{
+html,body{
   margin:0;
+  height:100%;
   background:linear-gradient(180deg,#5fa8d3,#bde0fe);
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
   font-family:Arial;
+}
+
+.wrapper{
+  width:100vw;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
 .game-container{
@@ -27,6 +35,8 @@ canvas{
   display:block;
   border-radius:18px;
   background:#87CEEB;
+  width:min(92vw,420px);
+  height:calc(min(92vw,420px)*1.5);
 }
 
 .title{
@@ -40,9 +50,11 @@ canvas{
 </head>
 <body>
 
-<div class="game-container">
-  <div class="title">AZDI RUNNER</div>
-  <canvas id="game" width="320" height="480"></canvas>
+<div class="wrapper">
+  <div class="game-container">
+    <div class="title">AZDI RUNNER</div>
+    <canvas id="game" width="320" height="480"></canvas>
+  </div>
 </div>
 
 <script>
@@ -56,7 +68,10 @@ let y=380, vy=0, jumping=false;
 let obstacleX=320;
 let clouds=[{x:50},{x:200}];
 let groundOffset=0;
+
 let score=0;
+let level=1;
+let speed=4;
 
 function drawCloud(x){
   ctx.fillStyle="white";
@@ -80,7 +95,7 @@ function drawBackground(){
   ctx.fillStyle="#6b8e23";
   ctx.fillRect(0,420,320,60);
 
-  groundOffset-=4;
+  groundOffset-=speed;
   ctx.strokeStyle="#4e6b18";
   for(let i=groundOffset;i<320;i+=40){
     ctx.beginPath();
@@ -106,7 +121,6 @@ function drawPlayer(){
 function drawObstacle(){
   ctx.fillStyle="#cc3333";
   ctx.fillRect(obstacleX,390,26,30);
-
   ctx.fillStyle="#999";
   ctx.fillRect(obstacleX,390,26,6);
 }
@@ -132,8 +146,11 @@ function loop(){
   if(!started){startScreen();return;}
 
   drawBackground();
+
   ctx.fillStyle="black";
+  ctx.font="14px Arial";
   ctx.fillText("Puntos: "+score,10,20);
+  ctx.fillText("Nivel: "+level,230,20);
 
   if(gameOver){drawGameOver();return;}
 
@@ -143,10 +160,19 @@ function loop(){
     if(y>=380){y=380;vy=0;jumping=false;}
   }
 
-  obstacleX-=4;
-  if(obstacleX<-30){obstacleX=320;score++;}
+  obstacleX-=speed;
 
-  if(obstacleX<70&&obstacleX>10&&y>360)gameOver=true;
+  if(obstacleX<-30){
+    obstacleX=320;
+    score++;
+
+    if(score%5===0){
+      level++;
+      speed+=0.5;
+    }
+  }
+
+  if(obstacleX<70 && obstacleX>10 && y>360) gameOver=true;
 
   drawPlayer();
   drawObstacle();
@@ -156,8 +182,22 @@ function loop(){
 
 function tap(){
   if(!started){started=true;loop();return;}
-  if(gameOver){obstacleX=320;score=0;gameOver=false;y=380;loop();return;}
-  if(!jumping){vy=-15;jumping=true;}
+
+  if(gameOver){
+    obstacleX=320;
+    score=0;
+    level=1;
+    speed=4;
+    gameOver=false;
+    y=380;
+    loop();
+    return;
+  }
+
+  if(!jumping){
+    vy=-15;
+    jumping=true;
+  }
 }
 
 canvas.addEventListener("click",tap);
