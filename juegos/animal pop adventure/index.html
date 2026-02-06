@@ -61,26 +61,44 @@
             z-index: 1;
         }
         
- #map-screen {
-    position: relative;
-    width: 100%; /* Se adapta al ancho del móvil o PC */
-    height: 100vh; /* Ocupa toda la altura visible */
-    overflow-y: auto; /* Permite hacer scroll vertical */
-    overflow-x: hidden; /* Evita que se mueva hacia los lados */
-    background: linear-gradient(to bottom, #4facfe, #00f2fe);
+ /* 1. El contenedor principal que permite el scroll */
+#map-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* IMPORTANTE: Esto permite bajar y subir */
+    overflow-x: hidden;
+    background: linear-gradient(to bottom, #4facfe, #00f2fe, #a8e063, #56ab2f);
 }
 
-#map-content {
+/* 2. El lienzo real donde se dibujan los 50 niveles */
+.map-nodes {
     position: relative;
     width: 100%;
-    height: 3000px; /* La longitud total del camino */
+    height: 7500px; /* Suficiente espacio para que no se amontonen */
+    pointer-events: auto;
 }
-       .map-nodes {
-            position: relative;
-            width: 80%;
-            margin: 0 auto;
-            padding-top: 50px; /* Empieza más abajo en el mapa */
-        }
+
+/* 3. Asegúrate de que el nivel tenga posición absoluta */
+.level-node {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Luckiest Guy', cursive;
+    background: radial-gradient(circle, #f7a52e, #d47a00);
+    border: 4px solid white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 5;
+    transform: translateX(-50%); /* Esto los centra en su coordenada X */
+    cursor: pointer;
+}
+
 
         .level-node {
     position: absolute;
