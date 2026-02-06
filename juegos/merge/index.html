@@ -39,17 +39,16 @@ font-size:26px;
 letter-spacing:2px;
 }
 
-/* TABLERO GRANDE */
 #board{
-background:rgba(20,25,35,.8);
+background:rgba(20,25,35,.85);
 border-radius:28px;
 box-shadow:
-0 0 60px #00f0ff33,
-inset 0 -80px 120px #00000088;
+0 0 80px #00f0ff44,
+inset 0 -120px 150px #000000aa;
 }
 
-/* menu */
-#menu{
+/* menu / gameover */
+.overlay{
 position:fixed;
 inset:0;
 display:flex;
@@ -64,7 +63,7 @@ padding:34px;
 border-radius:22px;
 text-align:center;
 width:280px;
-box-shadow:0 0 50px #00f0ff44;
+box-shadow:0 0 60px #00f0ff66;
 animation:float 4s ease-in-out infinite;
 }
 
@@ -76,7 +75,7 @@ animation:float 4s ease-in-out infinite;
 .title{
 font-size:28px;
 color:#00f0ff;
-text-shadow:0 0 15px #00f0ff;
+text-shadow:0 0 18px #00f0ff;
 margin-bottom:15px;
 }
 
@@ -100,14 +99,22 @@ button:hover{transform:scale(1.08)}
 
 <canvas id="stars"></canvas>
 
-<div id="menu">
+<div id="menu" class="overlay">
 <div class="card">
 <div class="title">AzDi Merge</div>
 <div class="desc">
 Fusiona criaturas iguales para evolucionarlas.<br><br>
-No dejes que la torre llegue arriba 👀
+Si la torre toca arriba... pierdes 👀
 </div>
 <button onclick="start()">JUGAR</button>
+</div>
+</div>
+
+<div id="gameover" class="overlay" style="display:none">
+<div class="card">
+<div class="title">GAME OVER</div>
+<div id="finalscore" class="desc"></div>
+<button onclick="restart()">REINTENTAR</button>
 </div>
 </div>
 
@@ -117,7 +124,7 @@ No dejes que la torre llegue arriba 👀
 </div>
 
 <script>
-/* ---------- estrellas ---------- */
+/* estrellas */
 const starCanvas=document.getElementById("stars");
 const sctx=starCanvas.getContext("2d");
 
@@ -130,12 +137,7 @@ resizeStars();
 
 let stars=[];
 for(let i=0;i<150;i++){
-stars.push({
-x:Math.random()*starCanvas.width,
-y:Math.random()*starCanvas.height,
-r:Math.random()*2,
-c:`hsl(${Math.random()*360}deg 100% 70%)`
-});
+stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2,c:`hsl(${Math.random()*360}deg 100% 70%)`});
 }
 
 function drawStars(){
@@ -152,7 +154,7 @@ requestAnimationFrame(drawStars);
 }
 drawStars();
 
-/* ---------- tablero ---------- */
+/* tablero */
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
@@ -163,9 +165,11 @@ canvas.height=Math.min(innerHeight*0.75,780);
 resizeBoard();
 window.addEventListener("resize",resizeBoard);
 
-/* ---------- juego ---------- */
+/* juego */
 let blocks=[];
 let score=0;
+let running=false;
+
 const size=56;
 const gravity=.45;
 
@@ -201,6 +205,11 @@ this.vy>0){
 this.y=other.y-size;
 this.vy=0;
 }
+}
+
+/* GAME OVER detect */
+if(this.y < 10){
+gameOver();
 }
 }
 
@@ -243,26 +252,41 @@ return;
 }
 
 function update(){
+if(!running) return;
+
 ctx.clearRect(0,0,canvas.width,canvas.height);
+
 for(const b of blocks)b.update();
 merge();
 for(const b of blocks)b.draw();
+
 requestAnimationFrame(update);
 }
 
-/* spawn */
 canvas.addEventListener("click",e=>{
+if(!running)return;
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
-const startLevel = Math.random()<0.8 ? 0 : 1;
+const startLevel=Math.random()<0.8?0:1;
 blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),startLevel));
 });
 
-/* START GAME */
+/* control */
 function start(){
 document.getElementById("menu").style.display="none";
 document.getElementById("game").style.display="flex";
+running=true;
 update();
+}
+
+function gameOver(){
+running=false;
+document.getElementById("finalscore").innerText="Puntuación: "+score;
+document.getElementById("gameover").style.display="flex";
+}
+
+function restart(){
+location.reload();
 }
 </script>
 
