@@ -15,16 +15,15 @@ color:white;
 }
 
 /* estrellas */
-canvas#stars{
+#stars{
 position:fixed;
-top:0;
-left:0;
+inset:0;
 z-index:-1;
 }
 
 /* juego */
 #game{
-display:flex;
+display:none;
 flex-direction:column;
 align-items:center;
 justify-content:center;
@@ -39,14 +38,15 @@ font-size:26px;
 letter-spacing:2px;
 }
 
+/* tablero */
 #board{
-background:rgba(20,25,35,.85);
+background:rgba(20,25,35,.8);
 border-radius:28px;
-box-shadow:0 0 80px #00f0ff55;
+box-shadow:0 0 60px #00f0ff33,inset 0 -80px 120px #00000088;
 }
 
 /* menu */
-#menu,#gameover{
+#menu{
 position:fixed;
 inset:0;
 display:flex;
@@ -83,9 +83,6 @@ font-weight:bold;
 cursor:pointer;
 box-shadow:0 0 25px #00f0ff;
 }
-button:hover{transform:scale(1.08)}
-
-#gameover{display:none}
 </style>
 </head>
 
@@ -97,86 +94,99 @@ button:hover{transform:scale(1.08)}
 <div class="card">
 <div class="title">AzDi Merge</div>
 <div class="desc">
-Fusiona criaturas iguales para evolucionarlas.<br><br>
-No llenes la caja hasta arriba 👀
+Fusiona criaturas iguales para evolucionarlas.<br>
+Si llegan arriba… pierdes 👀
 </div>
 <button onclick="startGame()">JUGAR</button>
 </div>
 </div>
 
-<div id="game" style="display:none">
+<div id="game">
 <div id="score">Puntos: 0</div>
 <canvas id="board"></canvas>
 </div>
 
-<div id="gameover">
-<div class="card">
-<div class="title">GAME OVER</div>
-<div id="finalScore"></div><br>
-<button onclick="restart()">REINTENTAR</button>
-</div>
-</div>
-
 <script>
 
-/* ===== VARIABLES ===== */
-const canvas = document.getElementById("board");
-const ctx = canvas.getContext("2d");
+/* ===== estrellas fondo ===== */
+const starCanvas=document.getElementById("stars");
+const sctx=starCanvas.getContext("2d");
 
-let blocks = [];
-let score = 0;
-let running = false;
+function resizeStars(){
+starCanvas.width=innerWidth;
+starCanvas.height=innerHeight;
+}
+resizeStars();
+window.onresize=resizeStars;
 
-const size = 56;
-const gravity = 0.45;
-const friction = 0.90;
+let stars=[];
+for(let i=0;i<140;i++){
+stars.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*2,c:`hsl(${Math.random()*360}deg 100% 70%)`});
+}
+function drawStars(){
+sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
+for(const s of stars){
+sctx.fillStyle=s.c;
+sctx.shadowBlur=10;
+sctx.shadowColor=s.c;
+sctx.beginPath();
+sctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+sctx.fill();
+}
+requestAnimationFrame(drawStars);
+}
+drawStars();
 
-/* criaturas */
+/* ===== tablero ===== */
+const canvas=document.getElementById("board");
+const ctx=canvas.getContext("2d");
+
+function resizeBoard(){
+canvas.width=Math.min(innerWidth*0.9,520);
+canvas.height=Math.min(innerHeight*0.75,780);
+}
+resizeBoard();
+window.addEventListener("resize",resizeBoard);
+
+/* ===== juego ===== */
+let blocks=[];
+let score=0;
+let running=false;
+
+const size=56;
+const gravity=.45;
+
 const creatures=["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
 const colors=["#ffe082","#ffd54f","#ffca28","#ffc107","#ff9800","#ff5722","#9c27b0","#673ab7","#2196f3","#00f0ff"];
 
-/* ===== BLOQUE ===== */
 class Block{
 constructor(x,n){
 this.x=x;
 this.y=0;
 this.vy=0;
 this.n=n;
-this.restTime=0;
+this.rest=0;
 }
 
 update(){
-
 this.vy+=gravity;
 this.y+=this.vy;
 
 /* suelo */
 if(this.y+size>=canvas.height){
 this.y=canvas.height-size;
-this.vy*=-0.15;
-if(Math.abs(this.vy)<0.3){
 this.vy=0;
-this.restTime++;
-}else this.restTime=0;
+this.rest++;
 }
 
 /* colisiones */
-for(const other of blocks){
-if(other===this)continue;
+for(const o of blocks){
+if(o===this)continue;
 
-if(this.x < other.x+size &&
-this.x+size > other.x &&
-this.y+size > other.y &&
-this.y < other.y &&
-this.vy>0){
-
-this.y=other.y-size;
-this.vy*=-0.15;
-
-if(Math.abs(this.vy)<0.3){
+if(this.x<o.x+size && this.x+size>o.x && this.y+size>o.y && this.y<o.y && this.vy>=0){
+this.y=o.y-size;
 this.vy=0;
-this.restTime++;
-}else this.restTime=0;
+this.rest++;
 }
 }
 }
@@ -184,7 +194,6 @@ this.restTime++;
 draw(){
 ctx.shadowBlur=25;
 ctx.shadowColor=colors[this.n%colors.length];
-
 ctx.fillStyle=colors[this.n%colors.length];
 ctx.beginPath();
 ctx.roundRect(this.x,this.y,size,size,16);
@@ -198,70 +207,59 @@ ctx.fillText(creatures[this.n%creatures.length],this.x+size/2,this.y+size/2);
 }
 }
 
-/* ===== MERGE REAL ===== */
-function mergeBlocks(){
-
+/* merge correcto */
+function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
 
-const a=blocks[i];
-const b=blocks[j];
+const a=blocks[i],b=blocks[j];
 
-const touching =
-a.x < b.x+size &&
-a.x+size > b.x &&
-a.y < b.y+size &&
-a.y+size > b.y;
+const touching=a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
 
-/* CLAVE: ambos quietos */
-if(touching && a.n===b.n && a.restTime>5 && b.restTime>5){
-
+if(touching && a.n===b.n && a.rest>5 && b.rest>5){
 const nx=(a.x+b.x)/2;
 const ny=Math.min(a.y,b.y);
 
 blocks.splice(j,1);
 blocks.splice(i,1);
 
-const newBlock=new Block(nx,a.n+1);
-newBlock.y=ny;
-
-blocks.push(newBlock);
+const nb=new Block(nx,a.n+1);
+nb.y=ny;
+blocks.push(nb);
 
 score+=10;
 document.getElementById("score").innerText="Puntos: "+score;
-
 return;
 }
 }
 }
 }
 
-/* ===== GAME OVER REAL ===== */
-function checkGameOver(){
+/* game over */
+function checkLose(){
 for(const b of blocks){
-if(b.y<10 && b.restTime>10){
+if(b.y<8 && b.rest>20){
 running=false;
 setTimeout(()=>alert("Game Over\nPuntos: "+score),100);
 }
 }
 }
 
-/* ===== LOOP ===== */
-function update(){
-
+/* loop */
+function loop(){
 if(!running)return;
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
 for(const b of blocks)b.update();
-mergeBlocks();
-checkGameOver();
+merge();
+checkLose();
 for(const b of blocks)b.draw();
 
-requestAnimationFrame(update);
+requestAnimationFrame(loop);
 }
 
-/* ===== SPAWN ===== */
+/* spawn */
 canvas.addEventListener("click",e=>{
 if(!running)return;
 
@@ -272,15 +270,14 @@ const level=Math.random()<0.8?0:1;
 blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),level));
 });
 
-/* ===== START ===== */
-function start(){
+/* start */
+function startGame(){
 document.getElementById("menu").style.display="none";
 document.getElementById("game").style.display="flex";
 running=true;
-update();
+loop();
 }
 
 </script>
-
 </body>
 </html>
