@@ -3,230 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! - Mapa Bonito</title>
+    <title>AzDi Animal Pop!</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --panel: #ff99cc;
-            --font: 'Luckiest Guy', cursive;
-            --level-locked-color: #8c8c8c;
-        }
+        :root { --pink: #ff99cc; --blue: #4facfe; --font: 'Luckiest Guy', cursive; }
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; font-family: sans-serif; }
+        
+        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #fff; overflow: hidden; }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            background: #222; display: flex; justify-content: center; align-items: center;
+        /* PANTALLA MAPA */
+        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #00f2fe, #a8e063, #56ab2f); z-index: 10; }
+        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; color: white; font-family: var(--font); z-index: 100; backdrop-filter: blur(5px); }
+        .map-nodes { position: relative; width: 100%; height: 7500px; }
+        
+        .level-node { 
+            position: absolute; width: 70px; height: 70px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-family: var(--font); color: white; font-size: 22px;
+            background: radial-gradient(circle, #f7a52e, #d47a00);
+            border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateX(-50%); cursor: pointer; z-index: 20;
         }
+        .level-node.locked { background: #888; filter: grayscale(1); cursor: not-allowed; }
+        .level-node::before { content: attr(data-animal); position: absolute; top: -30px; font-size: 25px; }
 
-        #game-wrapper {
-            width: 100%; max-width: 450px; height: 100%; max-height: 850px;
-            position: relative; background: #fff; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        /* PANTALLA JUEGO */
+        #game-screen { display: none; position: absolute; inset: 0; background: #6ddaff; z-index: 50; flex-direction: column; }
+        .game-header { background: var(--pink); padding: 15px; display: flex; justify-content: space-around; color: white; font-family: var(--font); font-size: 18px; }
+        
+        #grid-container { 
+            margin: 20px auto; display: grid; grid-template-columns: repeat(8, 1fr); 
+            gap: 4px; width: 95%; aspect-ratio: 1/1; background: rgba(0,0,0,0.1); 
+            padding: 8px; border-radius: 10px; 
         }
+        .cell { 
+            background: rgba(255,255,255,0.3); border-radius: 6px; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 32px; cursor: pointer; user-select: none;
+            transition: transform 0.1s;
+        }
+        .cell.selected { transform: scale(1.1); background: white; box-shadow: 0 0 15px gold; }
 
-        /* --- MAPA DE NIVELES CON IMAGEN DE FONDO --- */
-        #map-screen {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            overflow-x: hidden;
-            background-image: url('https://i.imgur.com/kF2dD6m.png'); /* Fondo de mapa estilo Candy Crush */
-            background-size: cover; /* Ajusta la imagen para cubrir todo */
-            background-position: center bottom; /* El fondo se posiciona desde abajo */
-            z-index: 10;
-        }
-
-        #map-topbar {
-            position: sticky; top: 0; width: 100%; height: 60px;
-            background: rgba(58, 117, 193, 0.9); display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; box-sizing: border-box; font-family: var(--font); color: white;
-            z-index: 100; backdrop-filter: blur(5px);
-        }
-
-        .map-nodes {
-            position: relative;
-            width: 100%;
-            height: 7500px; /* Altura total del camino, ajustada al fondo */
-            background-image: url('https://i.imgur.com/i8Gj9Uu.png'); /* Camino serpenteante sobre el fondo principal */
-            background-size: contain; /* Para que el camino se ajuste sin cortarse */
-            background-repeat: no-repeat;
-            background-position: center bottom; /* Posiciona el camino desde abajo */
-        }
-
-        .level-node {
-            position: absolute;
-            width: 80px; /* Un poco más grande para el animal */
-            height: 80px;
-            background: radial-gradient(circle, #f7a52e, #d47a00); /* Fondo del animal */
-            border: 4px solid white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-family: var(--font); color: white; font-size: 20px; /* Tamaño del número dentro del animal */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            cursor: pointer; transform: translateX(-50%); z-index: 20;
-            transition: transform 0.2s, background 0.2s; /* Transición para el hover */
-            overflow: hidden; /* Para que el emoji no se salga */
-        }
-        .level-node span.animal-icon {
-            position: absolute;
-            font-size: 40px; /* Tamaño del emoji de animal */
-            z-index: 1; /* Detrás del número */
-            opacity: 0.8;
-            transform: scale(0.8);
-        }
-        .level-node span.level-number {
-            position: relative;
-            z-index: 2; /* Encima del animal */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .level-node:hover:not(.locked) {
-            transform: translateX(-50%) scale(1.1);
-            background: radial-gradient(circle, #ffc107, #d47a00); /* Resalta al pasar el ratón */
-        }
-        .level-node.locked {
-            background: var(--level-locked-color);
-            filter: grayscale(1);
-            cursor: not-allowed;
-            border-color: #777;
-        }
-
-        /* --- Botón de INICIO del mapa --- */
-        .btn-home {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-            padding: 12px 20px;
-            background: white;
-            border: 3px solid #ff99cc;
-            border-radius: 50px;
-            font-family: var(--font);
-            color: #ff2ea6;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-        }
-        .btn-home:hover {
-            transform: scale(1.05);
-            background: #ff99cc;
-            color: white;
-        }
-
-        /* --- PANTALLA JUEGO --- */
-        #game-screen { display: none; position: absolute; width: 100%; height: 100%; background: linear-gradient(to bottom, #6ddaff, #88c049); z-index: 50; flex-direction: column; align-items: center; }
-        .game-header { width: 100%; background: var(--panel); padding: 15px; display: flex; justify-content: space-around; font-family: var(--font); color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        #grid-container { margin-top: 20px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 90%; aspect-ratio: 1/1; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 10px; }
-        .cell { background: rgba(255,255,255,0.2); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; user-select: none; transition: transform 0.1s; }
-        .cell.selected { transform: scale(1.1); background: rgba(255,255,255,0.5); box-shadow: 0 0 10px white; }
-        .game-footer { margin-top: auto; width: 100%; background: var(--panel); padding: 15px; display: flex; flex-direction: column; align-items: center; font-family: var(--font); color: white; }
-        .btn-exit-game { padding: 10px 20px; border-radius: 20px; border: none; font-family: var(--font); cursor: pointer; margin-top: 10px; background:#ff4d4d; color:white; }
-
+        .game-footer { margin-top: auto; background: var(--pink); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .btn { padding: 12px 25px; border-radius: 25px; border: none; font-family: var(--font); font-size: 18px; cursor: pointer; color: white; text-shadow: 1px 1px 2px black; }
+        
+        #btn-home { position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: white; color: #ff2ea6; border: 3px solid var(--pink); }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
     <div id="map-screen">
-        <div id="map-topbar"><span>AZDI ANIMAL POP!</span><span id="map-lvl-text">LVL 1</span></div>
+        <div id="map-topbar"><span>ANIMAL POP!</span><span id="map-lvl-info">Lvl 1</span></div>
         <div class="map-nodes" id="nodes-container"></div>
-        <button class="btn-home" onclick="location.reload()">🏠 INICIO</button>
+        <button id="btn-home" class="btn" onclick="location.reload()">🏠 INICIO</button>
     </div>
 
     <div id="game-screen">
         <div class="game-header">
-            <div>LVL: <span id="game-lvl">1</span></div>
-            <div>META: <span id="game-target">1000</span></div>
+            <div>LVL: <span id="cur-lvl">1</span></div>
+            <div>PUNTOS: <span id="score">0</span></div>
+            <div>META: <span id="target">500</span></div>
         </div>
         <div id="grid-container"></div>
         <div class="game-footer">
-            <div>PUNTOS: <span id="game-score">0</span> | MOVES: <span id="game-moves">30</span></div>
-            <button class="btn-exit-game" onclick="exitGame()">SALIR AL MAPA</button>
+            <div style="font-family: var(--font); color: white; font-size: 20px;">MOVIMIENTOS: <span id="moves">30</span></div>
+            <button class="btn" style="background: #ff4d4d;" onclick="closeGame()">RENDIRSE</button>
         </div>
     </div>
 </div>
 
 <script>
-    let unlockedLevels = parseInt(localStorage.getItem('unlockedLevels')) || 1;
-    let score = 0, moves = 30, currentLvl = 1;
-    let selectedCell = null;
-    const animals = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐵', '🐷']; // Más animales para los niveles
-    const gameAnimals = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻']; // Animales para la rejilla del juego
-    const grid = [];
+    const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
+    const mapEmojis = ['🦁', '🐯', '🐸', '🐵', '🐼', '🐨'];
+    let unlocked = parseInt(localStorage.getItem('unlockedLevels')) || 1;
+    let selected = null;
+    let score = 0, moves = 30;
 
-    // --- FUNCIÓN DEL MAPA ---
-    function initMap() {
+    function drawMap() {
         const container = document.getElementById('nodes-container');
         container.innerHTML = '';
-        document.getElementById('map-lvl-text').textContent = `LVL ${unlockedLevels}`;
-        const width = document.getElementById('map-screen').clientWidth;
-        
+        document.getElementById('map-lvl-info').textContent = `Lvl ${unlocked}`;
+        const w = document.getElementById('game-wrapper').clientWidth;
+
         for (let i = 1; i <= 50; i++) {
-            const node = document.createElement('div');
-            node.className = `level-node ${i > unlockedLevels ? 'locked' : ''}`;
-            
-            // Emoji de animal y número dentro del mismo nodo
-            const animalIcon = document.createElement('span');
-            animalIcon.className = 'animal-icon';
-            animalIcon.textContent = animals[Math.floor(Math.random() * animals.length)]; // Animal aleatorio
-            node.appendChild(animalIcon);
-
-            const levelNumber = document.createElement('span');
-            levelNumber.className = 'level-number';
-            levelNumber.textContent = i;
-            node.appendChild(levelNumber);
-
-            // Posicionamiento zigzag
-            const yPos = 7200 - (i * 140); 
-            const xPos = width/2 + Math.sin(i * 0.8) * (width * 0.3);
-
-            node.style.top = yPos + 'px';
-            node.style.left = xPos + 'px';
-
-            if (i <= unlockedLevels) {
-                node.onclick = () => startGame(i);
-            }
-            container.appendChild(node);
+            const div = document.createElement('div');
+            div.className = `level-node ${i > unlocked ? 'locked' : ''}`;
+            div.dataset.animal = mapEmojis[i % mapEmojis.length];
+            div.textContent = i;
+            div.style.top = (7200 - (i * 140)) + 'px';
+            div.style.left = (w/2 + Math.sin(i * 0.8) * (w * 0.3)) + 'px';
+            if (i <= unlocked) div.onclick = () => launchLevel(i);
+            container.appendChild(div);
         }
-        // Scroll al nivel actual
-        setTimeout(() => document.getElementById('map-screen').scrollTop = 7200 - (unlockedLevels * 140) - 400, 100);
+        document.getElementById('map-screen').scrollTop = 7200 - (unlocked * 140) - 350;
     }
 
-    // --- FUNCIONES DEL JUEGO ---
-    function startGame(lvl) {
-        currentLvl = lvl; score = 0; moves = 30;
+    function launchLevel(lvl) {
+        score = 0; moves = 30;
+        document.getElementById('cur-lvl').textContent = lvl;
+        document.getElementById('score').textContent = score;
+        document.getElementById('moves').textContent = moves;
         document.getElementById('map-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
-        document.getElementById('game-score').textContent = score;
-        document.getElementById('game-moves').textContent = moves;
-        document.getElementById('game-lvl').textContent = currentLvl;
-        // La meta y la dificultad podrían aumentar con el nivel aquí
-        document.getElementById('game-target').textContent = 1000 + (lvl * 100); 
-        createGrid();
+        initGrid();
     }
 
-    function createGrid() {
-        const container = document.getElementById('grid-container');
-        container.innerHTML = '';
-        grid.length = 0; // Limpiar la rejilla lógica
+    function initGrid() {
+        const grid = document.getElementById('grid-container');
+        grid.innerHTML = '';
         for (let i = 0; i < 64; i++) {
-            const animal = gameAnimals[Math.floor(Math.random() * gameAnimals.length)];
             const cell = document.createElement('div');
             cell.className = 'cell';
-            cell.textContent = animal;
             cell.dataset.id = i;
-            cell.onclick = () => handleCellClick(cell);
-            container.appendChild(cell);
-            grid.push(cell);
+            cell.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            cell.onclick = () => onCellClick(cell);
+            grid.appendChild(cell);
         }
-        checkMatches(); // Limpiar combinaciones iniciales para que el juego no empiece con matches
     }
 
-    function handleCellClick(cell) {
-        if (!selectedCell) {
-            selectedCell = cell;
+    function onCellClick(cell) {
+        if (!selected) {
+            selected = cell;
             cell.classList.add('selected');
         } else {
-            const id1 = parseInt(selectedCell.dataset.id);
-            const id2 = parseInt(cell.
-                                 
+            const id1 = parseInt(selected.dataset.id);
+            const id2 = parseInt(cell.dataset.id);
+            if (isAdjacent(id1, id2)) {
+                swap(selected, cell);
+                moves--;
+                document.getElementById('moves').textContent = moves;
+                setTimeout(processMatches, 300);
+            }
+            selected.classList.remove('selected');
+            selected = null;
+        }
+    }
+
+    function isAdjacent(a, b) {
+        const diff = Math.abs(a - b);
+        return (diff === 1 && Math.floor(a/8) === Math.floor(b/8)) || diff === 8;
+    }
+
+    function swap(a, b) {
+        const t = a.textContent;
+        a.textContent = b.textContent;
+        b.textContent = t;
+    }
+
+    function processMatches() {
+        const cells = document.querySelectorAll('.cell');
+        let matched = new Set();
+
+        for (let i = 0; i < 64; i++) {
+            // Horizontal
+            if (i % 8 < 6 && cells[i].textContent === cells[i+1].textContent && cells[i].textContent === cells[i+2].textContent) {
+                matched.add(i); matched.add(i+1); matched.add(i+2);
+            }
+            // Vertical
+            if (i < 48 && cells[i].textContent === cells[i+8].textContent && cells[i].textContent === cells[i+16].textContent) {
+                matched.add(i); matched.add(i+8); matched.add(i+16);
+            }
+        }
+
+        if (matched.size > 0) {
+            score += matched.size * 10;
+            document.getElementById('score').textContent = score;
+            matched.forEach(i => cells[i].textContent = '');
+            setTimeout(drop, 300);
+        } else if (moves <= 0) {
+            alert("¡Fin de movimientos!");
+            closeGame();
+        }
+    }
+
+    function drop() {
+        const cells = document.querySelectorAll('.cell');
+        for (let c = 0; c < 8; c++) {
+            for (let r = 7; r >= 0; r--) {
+                const i = r * 8 + c;
+                if (cells[i].textContent === '') {
+                    let top = r - 1;
+                    while (top >= 0 && cells[top * 8 + c].textContent === '') top--;
+                    if (top >= 0) {
+                        cells[i].textContent = cells[top * 8 + c].textContent;
+                        cells[top * 8 + c].textContent = '';
+                    } else {
+                        cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    }
+                }
+            }
+        }
+        setTimeout(processMatches, 300);
+    }
+
+    function closeGame() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('map-screen').style.display = 'block';
+        drawMap();
+    }
+
+    window.onload = drawMap;
+</script>
+</body>
+</html>
