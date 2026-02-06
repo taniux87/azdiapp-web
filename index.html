@@ -7,8 +7,6 @@
 
 <style>
 
-/* ---------- BASE ---------- */
-
 body{
   margin:0;
   font-family:'Segoe UI',Arial,sans-serif;
@@ -17,18 +15,7 @@ body{
   color:white;
 }
 
-/* brillo ambiente global */
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at 80% 20%, rgba(0,255,255,.08), transparent 40%),
-    radial-gradient(circle at 20% 80%, rgba(255,0,255,.07), transparent 40%);
-  pointer-events:none;
-}
-
-/* ---------- HERO PORTADA ---------- */
+/* HERO LOGO */
 
 .hero{
   width:100%;
@@ -40,38 +27,18 @@ body::after{
     radial-gradient(circle at center, rgba(0,255,255,.15), transparent 70%),
     linear-gradient(to bottom, #041014, #02080b);
   border-bottom:1px solid rgba(0,255,255,.15);
-  position:relative;
-  overflow:hidden;
 }
 
-/* brillo animado */
-.hero::before{
-  content:"";
-  position:absolute;
-  width:400px;
-  height:400px;
-  background:radial-gradient(circle, rgba(0,255,255,.25), transparent 70%);
-  filter:blur(40px);
-  animation:pulse 4s infinite alternate;
-}
-
-@keyframes pulse{
-  from{ transform:scale(.9); opacity:.6; }
-  to{ transform:scale(1.2); opacity:1; }
-}
-
-/* LOGO GRANDE */
 .hero-logo{
   width:180px;
   max-width:70%;
   border-radius:35px;
-  z-index:1;
   box-shadow:
     0 0 35px rgba(0,255,255,.7),
     0 0 80px rgba(0,150,255,.5);
 }
 
-/* ---------- SECCIONES ---------- */
+/* SECCIONES */
 
 .section{
   padding:22px 18px;
@@ -84,7 +51,7 @@ body::after{
   text-shadow:0 0 10px rgba(0,255,255,.4);
 }
 
-/* ---------- DESTACADOS ---------- */
+/* DESTACADOS */
 
 .featured{
   display:flex;
@@ -95,42 +62,39 @@ body::after{
 
 .big-card{
   min-width:260px;
-  height:150px;
-  border-radius:20px;
-  padding:16px;
+  height:160px;
+  border-radius:22px;
   display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
+  align-items:flex-end;
+  padding:14px;
   text-decoration:none;
   color:white;
   position:relative;
   overflow:hidden;
+  background-size:cover;
+  background-position:center;
 }
 
-/* borde neón */
-.big-card::before{
+/* overlay oscuro */
+.big-card::after{
   content:"";
   position:absolute;
   inset:0;
-  border-radius:20px;
-  padding:2px;
-  background:linear-gradient(120deg,#00ffff,#ff00ff,#00ffff);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-          mask-composite:exclude;
+  background:linear-gradient(to top, rgba(0,0,0,.7), transparent 60%);
 }
-
-.runner{background:linear-gradient(#203a43,#2c5364);}
-.merge{background:linear-gradient(#232526,#414345);}
 
 .big-card span{
+  position:relative;
+  z-index:2;
   font-size:20px;
   font-weight:bold;
+  text-shadow:0 0 10px black;
 }
 
-/* ---------- GRID ---------- */
+.runner{ background-image:url("css/runner.png"); }
+.merge{ background-image:url("css/merge.png"); }
+
+/* GRID */
 
 .grid{
   display:grid;
@@ -141,12 +105,10 @@ body::after{
 .card{
   background:#0c2027;
   border-radius:18px;
-  padding:18px;
+  padding:12px;
   text-align:center;
   text-decoration:none;
   color:white;
-  position:relative;
-  overflow:hidden;
   transition:.25s;
 }
 
@@ -155,13 +117,13 @@ body::after{
   box-shadow:0 0 18px rgba(0,255,255,.4);
 }
 
-.icon{
-  font-size:38px;
+.card img{
+  width:70px;
   margin-bottom:10px;
-  display:block;
+  filter:drop-shadow(0 0 10px rgba(0,255,255,.6));
 }
 
-/* ---------- FOOTER ---------- */
+/* FOOTER */
 
 footer{
   text-align:center;
@@ -174,7 +136,6 @@ footer{
 </head>
 <body>
 
-<!-- HERO LOGO GRANDE -->
 <header class="hero">
   <img class="hero-logo" src="css/logo.png">
 </header>
@@ -185,11 +146,11 @@ footer{
 
 <div class="featured">
   <a class="big-card runner" href="juegos/runner/">
-    <span>🏃 AzDi Runner</span>
+    <span>AzDi Runner</span>
   </a>
 
   <a class="big-card merge" href="juegos/merge/">
-    <span>🟨 AzDi Merge</span>
+    <span>AzDi Merge</span>
   </a>
 </div>
 </div>
@@ -200,18 +161,17 @@ footer{
 
 <div class="grid">
   <a class="card" href="juegos/runner/">
-    <span class="icon">🏃</span>
+    <img src="css/runner.png">
     Runner
   </a>
 
   <a class="card" href="juegos/merge/">
-    <span class="icon">🟨</span>
+    <img src="css/merge.png">
     Merge
   </a>
 
   <div class="card">
-    <span class="icon">🚧</span>
-    Próximamente
+    🚧<br>Próximamente
   </div>
 </div>
 </div>
