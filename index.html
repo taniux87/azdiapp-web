@@ -19,7 +19,6 @@ body{
   padding:40px 10px 10px;
 }
 
-/* LOGO */
 .logo{
   display:flex;
   flex-direction:column;
@@ -44,9 +43,9 @@ body{
   font-size:16px;
 }
 
-/* GRID DE JUEGOS */
+/* GRID */
 .games{
-  max-width:900px;
+  max-width:1000px;
   margin:30px auto;
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
@@ -71,27 +70,20 @@ body{
 
 .thumb{
   height:150px;
-  background:linear-gradient(#87CEEB,#6b8e23);
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:50px;
 }
 
-.info{
-  padding:16px;
-}
+.runner{background:linear-gradient(#87CEEB,#6b8e23);}
+.merge{background:linear-gradient(#e8f4ff,#b5d3e7);}
 
-.title{
-  font-weight:bold;
-  font-size:18px;
-}
+.info{padding:16px;}
 
-.desc{
-  opacity:.7;
-  font-size:14px;
-  margin-top:6px;
-}
+.title{font-weight:bold;font-size:18px;}
+
+.desc{opacity:.7;font-size:14px;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -99,7 +91,6 @@ body{
 <div class="header">
   <div class="logo">
 
-    <!-- LOGO VECTORIAL -->
     <svg viewBox="0 0 100 100">
       <rect x="15" y="15" width="70" height="70" rx="18" fill="#ffd43b"/>
       <circle cx="40" cy="45" r="6" fill="#222"/>
@@ -114,16 +105,29 @@ body{
 
 <div class="games">
 
+  <!-- RUNNER -->
   <a href="juegos/runner/" style="text-decoration:none;color:inherit;">
     <div class="card">
-      <div class="thumb">🟨</div>
+      <div class="thumb runner">🏃</div>
       <div class="info">
         <div class="title">AzDi Runner</div>
-        <div class="desc">Salta y sobrevive el máximo tiempo posible</div>
+        <div class="desc">Esquiva obstáculos cada vez más rápidos</div>
       </div>
     </div>
   </a>
 
+  <!-- MERGE -->
+  <a href="juegos/merge/" style="text-decoration:none;color:inherit;">
+    <div class="card">
+      <div class="thumb merge">🟨</div>
+      <div class="info">
+        <div class="title">AzDi Merge</div>
+        <div class="desc">Combina cubos y evita llenar la pantalla</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- FUTUROS -->
   <div class="card" style="opacity:.4;cursor:default;">
     <div class="thumb">🎮</div>
     <div class="info">
