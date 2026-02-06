@@ -120,6 +120,7 @@ No dejes que la torre llegue arriba 👀
 /* ---------- estrellas ---------- */
 const starCanvas=document.getElementById("stars");
 const sctx=starCanvas.getContext("2d");
+
 function resizeStars(){
 starCanvas.width=innerWidth;
 starCanvas.height=innerHeight;
@@ -136,6 +137,7 @@ r:Math.random()*2,
 c:`hsl(${Math.random()*360}deg 100% 70%)`
 });
 }
+
 function drawStars(){
 sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
 for(const s of stars){
@@ -150,7 +152,7 @@ requestAnimationFrame(drawStars);
 }
 drawStars();
 
-/* ---------- tablero grande dinámico ---------- */
+/* ---------- tablero ---------- */
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
@@ -167,34 +169,8 @@ let score=0;
 const size=56;
 const gravity=.45;
 
-/* evolución clara y adictiva */
-const creatures=[
-"🥚",
-"🐣",
-"🐤",
-"🐥",
-"🐔",
-"🐓",
-"🦅",
-"🐲",
-"🐉",
-"👑"
-];
-
-/* colores progresivos */
-const colors=[
-"#ffe082",
-"#ffd54f",
-"#ffca28",
-"#ffc107",
-"#ff9800",
-"#ff5722",
-"#9c27b0",
-"#673ab7",
-"#2196f3",
-"#00f0ff"
-];
-
+const creatures=["🥚","🐣","🐤","🐥","🐔","🐓","🦅","🐲","🐉","👑"];
+const colors=["#ffe082","#ffd54f","#ffca28","#ffc107","#ff9800","#ff5722","#9c27b0","#673ab7","#2196f3","#00f0ff"];
 
 class Block{
 constructor(x,n){
@@ -208,13 +184,11 @@ update(){
 this.vy+=gravity;
 this.y+=this.vy;
 
-/* suelo */
 if(this.y+size>canvas.height){
 this.y=canvas.height-size;
 this.vy=0;
 }
 
-/* colisiones entre bloques */
 for(const other of blocks){
 if(other===this)continue;
 
@@ -251,7 +225,6 @@ function collide(a,b){
 return a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
 }
 
-/* merge */
 function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
@@ -271,11 +244,9 @@ return;
 
 function update(){
 ctx.clearRect(0,0,canvas.width,canvas.height);
-
 for(const b of blocks)b.update();
 merge();
 for(const b of blocks)b.draw();
-
 requestAnimationFrame(update);
 }
 
@@ -283,11 +254,11 @@ requestAnimationFrame(update);
 canvas.addEventListener("click",e=>{
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
-// 80% huevo, 20% nivel 1 (para que el juego arranque)
 const startLevel = Math.random()<0.8 ? 0 : 1;
 blocks.push(new Block(Math.max(0,Math.min(canvas.width-size,x)),startLevel));
+});
 
-
+/* START GAME */
 function start(){
 document.getElementById("menu").style.display="none";
 document.getElementById("game").style.display="flex";
