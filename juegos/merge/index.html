@@ -22,7 +22,7 @@ left:0;
 z-index:-1;
 }
 
-/* zona juego */
+/* juego */
 #game{
 display:flex;
 flex-direction:column;
@@ -33,19 +33,22 @@ height:100vh;
 
 #score{
 color:#00f0ff;
-text-shadow:0 0 10px #00f0ff;
-margin-bottom:10px;
-font-size:22px;
+text-shadow:0 0 12px #00f0ff;
+margin-bottom:14px;
+font-size:26px;
 letter-spacing:2px;
 }
 
+/* TABLERO GRANDE */
 #board{
 background:rgba(20,25,35,.8);
-border-radius:20px;
-box-shadow:0 0 30px #00f0ff33;
+border-radius:28px;
+box-shadow:
+0 0 60px #00f0ff33,
+inset 0 -80px 120px #00000088;
 }
 
-/* menu inicio */
+/* menu */
 #menu{
 position:fixed;
 inset:0;
@@ -57,47 +60,39 @@ backdrop-filter:blur(6px);
 
 .card{
 background:linear-gradient(180deg,#0b0f18,#121826);
-padding:30px;
-border-radius:20px;
+padding:34px;
+border-radius:22px;
 text-align:center;
-width:260px;
-box-shadow:0 0 40px #00f0ff44;
+width:280px;
+box-shadow:0 0 50px #00f0ff44;
 animation:float 4s ease-in-out infinite;
 }
 
 @keyframes float{
 0%,100%{transform:translateY(0)}
-50%{transform:translateY(-10px)}
+50%{transform:translateY(-12px)}
 }
 
 .title{
-font-size:26px;
+font-size:28px;
 color:#00f0ff;
 text-shadow:0 0 15px #00f0ff;
 margin-bottom:15px;
 }
 
-.desc{
-opacity:.85;
-margin-bottom:20px;
-line-height:1.4;
-}
+.desc{opacity:.9;margin-bottom:20px;line-height:1.4}
 
 button{
 background:linear-gradient(90deg,#00f0ff,#ff00d4);
 border:none;
-padding:12px 26px;
-border-radius:12px;
+padding:14px 28px;
+border-radius:14px;
 color:white;
 font-weight:bold;
 cursor:pointer;
-box-shadow:0 0 20px #00f0ff;
-transition:.2s;
+box-shadow:0 0 25px #00f0ff;
 }
-button:hover{
-transform:scale(1.08);
-box-shadow:0 0 35px #ff00d4;
-}
+button:hover{transform:scale(1.08)}
 </style>
 </head>
 
@@ -118,15 +113,13 @@ No dejes que la torre llegue arriba 👀
 
 <div id="game" style="display:none">
 <div id="score">Puntos: 0</div>
-<canvas id="board" width="320" height="480"></canvas>
+<canvas id="board"></canvas>
 </div>
 
 <script>
 /* ---------- estrellas ---------- */
 const starCanvas=document.getElementById("stars");
 const sctx=starCanvas.getContext("2d");
-let stars=[];
-
 function resizeStars(){
 starCanvas.width=innerWidth;
 starCanvas.height=innerHeight;
@@ -134,7 +127,8 @@ starCanvas.height=innerHeight;
 window.onresize=resizeStars;
 resizeStars();
 
-for(let i=0;i<120;i++){
+let stars=[];
+for(let i=0;i<150;i++){
 stars.push({
 x:Math.random()*starCanvas.width,
 y:Math.random()*starCanvas.height,
@@ -142,7 +136,6 @@ r:Math.random()*2,
 c:`hsl(${Math.random()*360}deg 100% 70%)`
 });
 }
-
 function drawStars(){
 sctx.clearRect(0,0,starCanvas.width,starCanvas.height);
 for(const s of stars){
@@ -157,14 +150,22 @@ requestAnimationFrame(drawStars);
 }
 drawStars();
 
-/* ---------- juego ---------- */
+/* ---------- tablero grande dinámico ---------- */
 const canvas=document.getElementById("board");
 const ctx=canvas.getContext("2d");
 
+function resizeBoard(){
+canvas.width=Math.min(innerWidth*0.9,520);
+canvas.height=Math.min(innerHeight*0.75,780);
+}
+resizeBoard();
+window.addEventListener("resize",resizeBoard);
+
+/* ---------- juego ---------- */
 let blocks=[];
 let score=0;
-const size=48;
-const gravity=.35;
+const size=56;
+const gravity=.45;
 
 const creatures=["🥚","🟢","🐱","🤖","👽","😈","🐉","🌌","🧠","👑"];
 const colors=["#ffd166","#ef476f","#06d6a0","#118ab2","#8338ec","#ff006e","#fb5607","#3a86ff","#00f0ff","#ff00d4"];
@@ -175,16 +176,31 @@ this.x=x;
 this.y=0;
 this.vy=0;
 this.n=n;
-this.merged=false;
 }
 
 update(){
 this.vy+=gravity;
 this.y+=this.vy;
 
+/* suelo */
 if(this.y+size>canvas.height){
 this.y=canvas.height-size;
 this.vy=0;
+}
+
+/* colisiones entre bloques */
+for(const other of blocks){
+if(other===this)continue;
+
+if(this.x < other.x+size &&
+this.x+size > other.x &&
+this.y+size > other.y &&
+this.y < other.y &&
+this.vy>0){
+
+this.y=other.y-size;
+this.vy=0;
+}
 }
 }
 
@@ -194,11 +210,11 @@ ctx.shadowColor=colors[this.n%colors.length];
 
 ctx.fillStyle=colors[this.n%colors.length];
 ctx.beginPath();
-ctx.roundRect(this.x,this.y,size,size,14);
+ctx.roundRect(this.x,this.y,size,size,16);
 ctx.fill();
 
 ctx.shadowBlur=0;
-ctx.font="26px serif";
+ctx.font="28px serif";
 ctx.textAlign="center";
 ctx.textBaseline="middle";
 ctx.fillText(creatures[this.n%creatures.length],this.x+size/2,this.y+size/2);
@@ -209,12 +225,13 @@ function collide(a,b){
 return a.x<b.x+size&&a.x+size>b.x&&a.y<b.y+size&&a.y+size>b.y;
 }
 
+/* merge */
 function merge(){
 for(let i=0;i<blocks.length;i++){
 for(let j=i+1;j<blocks.length;j++){
 let a=blocks[i],b=blocks[j];
-if(!a.merged&&!b.merged&&a.n===b.n&&collide(a,b)&&Math.abs(a.vy)<1&&Math.abs(b.vy)<1){
-a.merged=b.merged=true;
+
+if(a.n===b.n && collide(a,b) && Math.abs(a.vy)<1 && Math.abs(b.vy)<1){
 blocks.splice(j,1);
 blocks.splice(i,1);
 blocks.push(new Block(a.x,a.n+1));
@@ -236,6 +253,7 @@ for(const b of blocks)b.draw();
 requestAnimationFrame(update);
 }
 
+/* spawn */
 canvas.addEventListener("click",e=>{
 const rect=canvas.getBoundingClientRect();
 const x=e.clientX-rect.left-size/2;
