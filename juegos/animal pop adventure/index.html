@@ -301,9 +301,8 @@
     const scoreDisplay = document.getElementById("score-display");
     const mapLevelDisplay = document.getElementById("map-level-display");
 
-
     /* --- MAPA DE NIVELES --- */
-    function initMap() {
+function initMap() {
     mapScreen.style.display = "block";
     gameScreen.style.display = "none";
     
@@ -313,41 +312,36 @@
     
     mapLevelDisplay.textContent = `Lvl ${unlockedLevels}`;
 
-    // 2. Detectamos el ancho real de tu pantalla para que no se salga
+    // 2. Detectamos el ancho real de tu pantalla
     const anchoPantalla = mapScreen.clientWidth;
     const centroX = anchoPantalla / 2;
 
-    // 3. En lugar de 20 coordenadas fijas, creamos 50 niveles dinámicos
+    // 3. Creamos los niveles dinámicos
     for (let i = 1; i <= 50; i++) {
         const n = document.createElement("div");
-        // Comprobamos si el nivel está desbloqueado
         n.className = "level-node " + (i > unlockedLevels ? "locked" : "");
         n.textContent = i;
 
-        // --- CÁLCULO RESPONSIVO ---
-        // 'y' sube cada 140px. Empezamos abajo (4000px) y subimos.
-        const yPos = 3800 - (i * 140); 
-        
-        // 'x' se calcula según el ancho de tu pantalla actual
-        // El 0.35 hace que el zigzag ocupe el 35% del ancho a cada lado
-        const zigzag = Math.sin(i * 0.8) * (anchoPantalla * 0.35);
+        // CÁLCULO RESPONSIVO LIMPIO
+        const yPos = (i * 140); // Espacio vertical entre niveles
+        const zigzag = Math.sin(i * 0.8) * (anchoPantalla * 0.3);
         const xPos = centroX + zigzag;
 
-        // Aplicamos la posición
         n.style.position = "absolute";
         n.style.top = yPos + "px";
         n.style.left = xPos + "px";
-        n.style.transform = "translateX(-50%)"; // Para que el centro del círculo sea el punto exacto
+        n.style.transform = "translateX(-50%)";
 
         n.onclick = () => { if (i <= unlockedLevels) startLevel(i); };
         nodesContainer.appendChild(n);
     }
 
-    // 4. Hacemos que el mapa se deslice hasta tu nivel actual
+    // 4. Scroll automático: te lleva a donde está tu nivel actual
     setTimeout(() => {
-        mapScreen.scrollTop = 3800 - (unlockedLevels * 140) - 300;
+        mapScreen.scrollTop = (unlockedLevels * 140) - 200;
     }, 100);
 }
+
 
 
         for (let i = 1; i <= 20; i++) {
