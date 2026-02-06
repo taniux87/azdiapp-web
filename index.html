@@ -5,177 +5,203 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AzDi Arcade</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
 
-/* ========= BASE ========= */
-
+/* ===== FONDO ===== */
 body{
- margin:0;
- font-family:'Orbitron',sans-serif;
- background:
- radial-gradient(circle at 30% -20%, #00343a, transparent 60%),
- radial-gradient(circle at 80% 120%, #001015, transparent 60%),
- #02070a;
- color:white;
+margin:0;
+font-family:'Orbitron',sans-serif;
+color:white;
+background:
+radial-gradient(circle at 20% 10%, #003f46 0%, transparent 50%),
+radial-gradient(circle at 90% 90%, #001c20 0%, transparent 50%),
+#02070a;
 }
 
-/* ========= HEADER ========= */
+/* ===== HERO ===== */
 
-header{
- text-align:center;
- padding:25px 10px 10px;
+.hero{
+height:230px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+position:relative;
+overflow:hidden;
+}
+
+.hero::before{
+content:"";
+position:absolute;
+width:120%;
+height:120%;
+background:radial-gradient(circle,#00f7ff22,transparent 60%);
+animation:float 6s infinite alternate ease-in-out;
+}
+
+@keyframes float{
+from{transform:translateY(-10px)}
+to{transform:translateY(15px)}
 }
 
 .logo{
- width:140px;
- filter:
- drop-shadow(0 0 12px #00f7ff)
- drop-shadow(0 0 25px #00aaff);
+width:140px;
+z-index:2;
+filter:drop-shadow(0 0 15px #00f7ff);
 }
 
-.subtitle{
- margin-top:8px;
- font-size:13px;
- opacity:.7;
+.tag{
+opacity:.7;
+margin-top:10px;
+font-size:13px;
 }
 
-/* ========= SECCIONES ========= */
+/* ===== TITULOS ===== */
 
 .section{
- padding:20px 16px;
+padding:18px 14px;
 }
 
 .section h2{
- font-size:16px;
- margin:0 0 15px;
- color:#7efaff;
- letter-spacing:2px;
+font-size:15px;
+letter-spacing:2px;
+color:#7efaff;
+margin-bottom:12px;
 }
 
-/* ========= DESTACADOS ========= */
+/* ===== CARRUSEL ===== */
 
-.featured{
- display:flex;
- gap:14px;
- overflow-x:auto;
+.carousel{
+display:flex;
+gap:14px;
+overflow-x:auto;
+padding-bottom:10px;
 }
 
-.featured-card{
- min-width:260px;
- height:150px;
- border-radius:20px;
- position:relative;
- overflow:hidden;
- text-decoration:none;
+.game-big{
+min-width:260px;
+height:150px;
+border-radius:20px;
+overflow:hidden;
+position:relative;
+text-decoration:none;
+color:white;
 }
 
-.featured-card img{
- width:100%;
- height:100%;
- object-fit:cover;
+.game-big img{
+width:100%;
+height:100%;
+object-fit:cover;
 }
 
-.featured-card span{
- position:absolute;
- bottom:0;
- left:0;
- right:0;
- padding:12px;
- background:linear-gradient(to top, rgba(0,0,0,.85), transparent);
- font-size:18px;
+.game-big span{
+position:absolute;
+bottom:0;
+left:0;
+right:0;
+padding:12px;
+background:linear-gradient(to top,rgba(0,0,0,.8),transparent);
+font-size:18px;
 }
 
-/* ========= GRID ========= */
+/* ===== GRID ===== */
 
 .grid{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:14px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
 }
 
-.game-card{
- background:#07171d;
- border-radius:18px;
- padding:18px 10px;
- text-align:center;
- text-decoration:none;
- color:white;
- border:1px solid rgba(0,255,255,.15);
- transition:.25s;
+.game{
+background:#07171d;
+border-radius:16px;
+padding:14px 8px;
+text-align:center;
+text-decoration:none;
+color:white;
+border:1px solid #00ffff22;
+transition:.25s;
 }
 
-.game-card:hover{
- transform:translateY(-4px);
- box-shadow:0 0 18px rgba(0,255,255,.5);
- border:1px solid #00f7ff;
+.game:hover{
+transform:translateY(-4px);
+box-shadow:0 0 15px #00ffff66;
+border:1px solid #00ffff;
 }
 
-.game-card img{
- width:72px;
- margin-bottom:10px;
+.game img{
+width:60px;
+margin-bottom:8px;
 }
 
-.game-card span{
- display:block;
- font-size:14px;
+.game span{
+font-size:12px;
 }
 
-/* ========= FOOTER ========= */
+/* ===== FOOTER ===== */
 
 footer{
- text-align:center;
- padding:40px 10px;
- opacity:.4;
- font-size:12px;
+text-align:center;
+opacity:.4;
+padding:30px;
+font-size:12px;
 }
 
 </style>
 </head>
 <body>
 
-<header>
- <img class="logo" src="css/logo.png">
- <div class="subtitle">juegos rápidos y adictivos</div>
-</header>
-
-<section class="section">
-<h2>DESTACADOS</h2>
-<div class="featured">
- <a class="featured-card" href="juegos/runner/">
-   <img src="css/runner.png">
-   <span>AzDi Runner</span>
- </a>
-
- <a class="featured-card" href="juegos/merge/">
-   <img src="css/merge.png">
-   <span>AzDi Merge</span>
- </a>
+<!-- HERO -->
+<div class="hero">
+<img src="css/logo.png" class="logo">
+<div class="tag">juegos web rápidos y adictivos</div>
 </div>
-</section>
 
-<section class="section">
-<h2>CATÁLOGO</h2>
+<!-- DESTACADOS -->
+<div class="section">
+<h2>🔥 JUEGA AHORA</h2>
+
+<div class="carousel">
+
+<a class="game-big" href="juegos/runner/">
+<img src="css/runner.png">
+<span>AzDi Runner</span>
+</a>
+
+<a class="game-big" href="juegos/merge/">
+<img src="css/merge.png">
+<span>AzDi Merge</span>
+</a>
+
+</div>
+</div>
+
+<!-- RAPIDOS -->
+<div class="section">
+<h2>⚡ RÁPIDOS</h2>
+
 <div class="grid">
 
- <a class="game-card" href="juegos/runner/">
-   <img src="css/runner.png">
-   <span>Runner</span>
- </a>
+<a class="game" href="juegos/runner/">
+<img src="css/runner.png">
+<span>Runner</span>
+</a>
 
- <a class="game-card" href="juegos/merge/">
-   <img src="css/merge.png">
-   <span>Merge</span>
- </a>
+<a class="game" href="juegos/merge/">
+<img src="css/merge.png">
+<span>Merge</span>
+</a>
 
- <div class="game-card">
-   <img src="css/logo.png">
-   <span>Próximamente</span>
- </div>
+<div class="game">
+<img src="css/logo.png">
+<span>Próximamente</span>
+</div>
 
 </div>
-</section>
+</div>
 
 <footer>
 AzDi Arcade · nuevos juegos cada semana
