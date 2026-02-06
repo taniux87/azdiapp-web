@@ -43,7 +43,6 @@ canvas{
   font-weight:bold;
   letter-spacing:2px;
   font-size:22px;
-  text-shadow:0 2px 8px rgba(0,0,0,0.5);
 }
 </style>
 </head>
@@ -62,42 +61,32 @@ let started=false;
 let gameOver=false;
 
 let y=380, vy=0, jumping=false;
-let obstacleX=320;
-let clouds=[{x:50},{x:200}];
-let groundOffset=0;
 
-let score=0;
-let level=1;
+let obstacles=[];
+let spawnTimer=0;
+
 let speed=4;
+let gravity=0.9;
+let score=0;
+let time=0;
 
-function drawCloud(x){
-  ctx.fillStyle="white";
-  ctx.beginPath();
-  ctx.arc(x,80,15,0,Math.PI*2);
-  ctx.arc(x+15,75,18,0,Math.PI*2);
-  ctx.arc(x+30,80,15,0,Math.PI*2);
-  ctx.fill();
+function spawnObstacle(){
+  let size=Math.random()<0.3?20:30;
+  obstacles.push({x:340,w:size,h:30});
 }
 
 function drawBackground(){
   ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,320,480);
 
-  clouds.forEach(c=>{
-    drawCloud(c.x);
-    c.x-=0.5;
-    if(c.x<-40)c.x=360;
-  });
-
   ctx.fillStyle="#6b8e23";
   ctx.fillRect(0,420,320,60);
 
-  groundOffset-=speed;
   ctx.strokeStyle="#4e6b18";
-  for(let i=groundOffset;i<320;i+=40){
+  for(let i=0;i<320;i+=40){
     ctx.beginPath();
-    ctx.moveTo(i,420);
-    ctx.lineTo(i+20,480);
+    ctx.moveTo(i-(time*speed%40),420);
+    ctx.lineTo(i+20-(time*speed%40),480);
     ctx.stroke();
   }
 }
@@ -115,11 +104,23 @@ function drawPlayer(){
   ctx.stroke();
 }
 
-function drawObstacle(){
+function drawObstacles(){
   ctx.fillStyle="#cc3333";
-  ctx.fillRect(obstacleX,390,26,30);
-  ctx.fillStyle="#999";
-  ctx.fillRect(obstacleX,390,26,6);
+  obstacles.forEach(o=>{
+    o.x-=speed;
+    ctx.fillRect(o.x,420-o.h,o.w,o.h);
+
+    if(o.x+o.w<0) score++;
+  });
+
+  obstacles=obstacles.filter(o=>o.x>-40);
+}
+
+function collision(){
+  for(let o of obstacles){
+    if(40<o.x+o.w && 70>o.x && y+30>420-o.h) return true;
+  }
+  return false;
 }
 
 function startScreen(){
@@ -136,7 +137,8 @@ function drawGameOver(){
   ctx.font="20px Arial";
   ctx.fillText("GAME OVER",95,220);
   ctx.font="14px Arial";
-  ctx.fillText("Toca para reiniciar",85,250);
+  ctx.fillText("Puntos: "+score,120,250);
+  ctx.fillText("Toca para reiniciar",85,280);
 }
 
 function loop(){
@@ -145,34 +147,28 @@ function loop(){
   drawBackground();
 
   ctx.fillStyle="black";
-  ctx.font="14px Arial";
   ctx.fillText("Puntos: "+score,10,20);
-  ctx.fillText("Nivel: "+level,230,20);
 
   if(gameOver){drawGameOver();return;}
 
-  if(jumping){
-    vy+=1;
-    y+=vy;
-    if(y>=380){y=380;vy=0;jumping=false;}
+  time+=0.016;
+  speed=4+time*0.3;
+
+  spawnTimer++;
+  if(spawnTimer>60-Math.min(speed*5,45)){
+    spawnObstacle();
+    spawnTimer=0;
   }
 
-  obstacleX-=speed;
+  vy+=gravity;
+  y+=vy;
 
-  if(obstacleX<-30){
-    obstacleX=320;
-    score++;
-
-    if(score%5===0){
-      level++;
-      speed+=0.5;
-    }
-  }
-
-  if(obstacleX<70 && obstacleX>10 && y>360) gameOver=true;
+  if(y>380){y=380;vy=0;jumping=false;}
 
   drawPlayer();
-  drawObstacle();
+  drawObstacles();
+
+  if(collision()) gameOver=true;
 
   requestAnimationFrame(loop);
 }
@@ -181,12 +177,13 @@ function tap(){
   if(!started){started=true;loop();return;}
 
   if(gameOver){
-    obstacleX=320;
+    obstacles=[];
     score=0;
-    level=1;
     speed=4;
-    gameOver=false;
+    time=0;
     y=380;
+    vy=0;
+    gameOver=false;
     loop();
     return;
   }
