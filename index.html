@@ -1,21 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AzDi App</title>
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AzDi App</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#0f2027;
+  color:white;
+}
+
+/* CABECERA */
+.header{
+  text-align:center;
+  padding:30px 10px 10px;
+}
+
+.logo{
+  font-size:38px;
+  font-weight:bold;
+  letter-spacing:3px;
+}
+
+.subtitle{
+  opacity:.7;
+  margin-top:8px;
+}
+
+/* GRID DE JUEGOS */
+.games{
+  max-width:900px;
+  margin:30px auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:25px;
+  padding:20px;
+}
+
+/* TARJETA */
+.card{
+  background:#132a33;
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:0.25s;
+  box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+.card:hover{
+  transform:translateY(-6px) scale(1.02);
+  box-shadow:0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* MINIATURA */
+.thumb{
+  height:140px;
+  background:linear-gradient(#87CEEB,#6b8e23);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:40px;
+}
+
+/* TEXTO */
+.info{
+  padding:14px;
+}
+
+.title{
+  font-weight:bold;
+  font-size:18px;
+}
+
+.desc{
+  opacity:.7;
+  font-size:14px;
+  margin-top:6px;
+}
+</style>
 </head>
 <body>
 
-  <main class="container">
-    <h1>AzDi App</h1>
-    <p>Juegos online para aprender y divertirse</p>
+<div class="header">
+  <div class="logo">AzDi</div>
+  <div class="subtitle">Juegos rápidos para pasar el rato</div>
+</div>
 
-    <a href="juegos/">
-      <button>🎮 Jugar</button>
-    </a>
-  </main>
+<div class="games">
+
+  <!-- JUEGO 1 -->
+  <a href="juegos/runner/" style="text-decoration:none;color:inherit;">
+    <div class="card">
+      <div class="thumb">🟨</div>
+      <div class="info">
+        <div class="title">AzDi Runner</div>
+        <div class="desc">Salta y sobrevive el máximo tiempo posible</div>
+      </div>
+    </div>
+  </a>
+
+  <!-- espacio para futuros juegos -->
+  <div class="card" style="opacity:.4;cursor:default;">
+    <div class="thumb">🎮</div>
+    <div class="info">
+      <div class="title">Próximamente</div>
+      <div class="desc">Más juegos en camino...</div>
+    </div>
+  </div>
+
+</div>
 
 </body>
 </html>
