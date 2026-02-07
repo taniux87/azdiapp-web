@@ -3,340 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! - Deluxe</title>
+    <title>AzDi Animal Pop! Deluxe</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-    
     <style>
-        :root { --pink: #ff66b2; --blue: #4facfe; --gold: #ffd700; --font: 'Luckiest Guy', cursive; }
-        * { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; font-family: var(--font); }
-        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #fff; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        :root { --pink: #ff66b2; --blue: #4facfe; --font: 'Luckiest Guy', cursive; }
+        * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; font-family: var(--font); }
+        
+        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #111; overflow: hidden; }
 
         /* --- UI TOP --- */
-        .top-stats { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 110; pointer-events: none; }
-        .stat-bubble { background: rgba(0,0,0,0.6); color: white; padding: 8px 15px; border-radius: 25px; font-size: 16px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 8px; pointer-events: all; transition: transform 0.2s; }
-        .stat-bubble:active { transform: scale(0.9); }
-        .btn-ads { background: #4caf50; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulse 2s infinite; pointer-events: all; cursor: pointer; color: white; border-radius: 20px; padding: 5px 10px; }
+        .header-ui { position: absolute; top: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.5); z-index: 100; border-bottom: 3px solid var(--pink); }
+        .stat-box { color: white; text-align: center; }
+        .stat-label { font-size: 12px; color: var(--pink); display: block; }
+        .stat-value { font-size: 20px; }
 
         /* --- MAPA --- */
-        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #a8e063, #f7bb97); z-index: 10; scroll-behavior: smooth; }
-        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(255, 102, 178, 0.9); display: flex; align-items: center; justify-content: center; color: white; z-index: 100; backdrop-filter: blur(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .map-nodes { position: relative; width: 100%; height: 5000px; padding-bottom: 100px; }
-        .level-node { position: absolute; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(-50%); cursor: pointer; z-index: 20; transition: 0.2s; }
-        .level-node:active { transform: translateX(-50%) scale(0.9); }
-        .level-node.locked { background: #666; filter: grayscale(1); cursor: default; }
+        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #00f2fe, #a8e063, #56ab2f); z-index: 10; padding-top: 80px; }
+        .map-nodes { position: relative; width: 100%; height: 5000px; }
+        .level-node { position: absolute; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); transform: translateX(-50%); cursor: pointer; transition: 0.2s; }
+        .level-node.locked { background: #666; filter: grayscale(1); opacity: 0.7; }
 
         /* --- JUEGO --- */
-        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#6ddaff, #2193b0); z-index: 150; flex-direction: column; }
-        .game-header { background: rgba(0,0,0,0.2); padding: 50px 10px 10px; display: flex; justify-content: space-around; color: white; font-size: 18px; }
-        #grid-container { margin: auto; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; width: 95%; aspect-ratio: 1/1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 15px; border: 3px solid rgba(255,255,255,0.4); }
+        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#6ddaff, #2193b0); z-index: 50; flex-direction: column; justify-content: center; align-items: center; }
+        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 95vw; max-width: 400px; aspect-ratio: 1/1; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 15px; border: 4px solid rgba(255,255,255,0.2); }
         
-        .cell { background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer; transition: transform 0.1s, background 0.2s; position: relative; }
-        .cell:active { transform: scale(0.9); }
-        .cell.selected { background: white; transform: scale(1.1); box-shadow: 0 0 15px white; z-index: 5; }
-        .cell.special-line { background: #fff380; border: 2px solid gold; box-shadow: inset 0 0 10px orange; }
-        .cell.special-bomb { background: #000; border: 2px solid #ff00ea; box-shadow: 0 0 15px #ff00ea; }
+        .cell { background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer; position: relative; transition: transform 0.2s, background 0.2s; }
+        .cell.selected { background: white; transform: scale(1.1); z-index: 10; box-shadow: 0 0 15px white; }
+        
+        /* Efectos de Bombas */
+        .cell.v-line::after { content: ''; position: absolute; width: 4px; height: 100%; background: white; box-shadow: 0 0 10px white; }
+        .cell.h-line::after { content: ''; position: absolute; width: 100%; height: 4px; background: white; box-shadow: 0 0 10px white; }
+        .cell.bomb-area { background: rgba(0,0,0,0.4); border: 2px solid #ff00ea; border-radius: 50%; }
 
-        /* --- PARTICULAS --- */
-        .pop-effect { position: absolute; pointer-events: none; animation: popAnim 0.4s ease-out forwards; }
-        @keyframes popAnim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
-
-        #ad-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .footer-game { width: 100%; padding: 20px; display: flex; justify-content: space-around; align-items: center; }
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; font-family: var(--font); cursor: pointer; color: white; }
+        
+        /* Modal Retos */
+        #challenge-modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; align-items: center; justify-content: center; }
+        .challenge-card { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 80%; border: 5px solid var(--pink); }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div class="top-stats" id="ui-stats">
-        <div class="stat-bubble" onclick="buyLife()">❤️ <span id="val-lives">5</span> <small style="font-size:10px; background:green; padding:2px; border-radius:5px">COMPRAR</small></div>
-        <div class="stat-bubble">💰 <span id="val-coins">0</span></div>
-        <button class="btn-ads" onclick="showRewardAd()">📺+❤️</button>
-    </div>
-
-    <div id="ad-overlay">
-        <h2 style="color:var(--gold)">VIDEO RECOMPENSA</h2>
-        <div id="ad-timer" style="font-size: 60px; margin: 20px;">5</div>
-        <p>Espera para recibir tus premios...</p>
+    <div class="header-ui">
+        <div class="stat-box">
+            <span class="stat-label">VIDAS</span>
+            <span class="stat-value">❤️ <span id="val-lives">5</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">MONEDAS</span>
+            <span class="stat-value">💰 <span id="val-coins">100</span></span>
+        </div>
+        <button class="btn" style="background: #4caf50;" onclick="showAd()">📺 GRATIS</button>
     </div>
 
     <div id="map-screen">
-        <div id="map-topbar">AZDI ANIMAL POP!</div>
         <div class="map-nodes" id="nodes-container"></div>
     </div>
 
     <div id="game-screen">
-        <div class="game-header">
-            <div>LVL <span id="cur-lvl">1</span></div>
-            <div style="color:var(--gold)">OBJETIVO: <span id="target">500</span></div>
+        <div style="margin-bottom: 20px; text-align: center; color: white;">
+            <div style="font-size: 14px;">OBJETIVO: <span id="target-score">0</span></div>
+            <div style="font-size: 32px;">PUNTOS: <span id="current-score">0</span></div>
         </div>
         
-        <div style="text-align: center; color: white; padding: 10px;">
-            <div style="font-size: 24px;">PUNTOS: <span id="score">0</span></div>
+        <div id="grid"></div>
+
+        <div class="footer-game">
+            <div style="color: white; font-size: 24px;">MOV: <span id="val-moves">0</span></div>
+            <button class="btn" style="background: #ff4d4d;" onclick="quitGame()">RENDIRSE</button>
         </div>
+    </div>
 
-        <div id="grid-container"></div>
-
-        <div style="margin-top:auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
-            <div style="color: white; font-size: 30px;">🎈 <span id="moves">25</span></div>
-            <button onclick="closeGame()" style="background:#ff4d4d; border:none; padding:10px 20px; border-radius:15px; color:white; font-family:var(--font);">SALIR</button>
+    <div id="challenge-modal">
+        <div class="challenge-card">
+            <h2 id="ch-title" style="color: #333;">RETO</h2>
+            <p id="ch-desc" style="color: #666;"></p>
+            <button class="btn" style="background: var(--pink); font-size: 18px;" onclick="startChallenge()">¡VAMOS!</button>
         </div>
     </div>
 </div>
 
 <script>
     const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
-    const SPECIALS = { LINE: '🧨', BOMB: '💣' };
-    
-    let unlocked = parseInt(localStorage.getItem('azdi_unlocked')) || 1;
-    let coins = parseInt(localStorage.getItem('azdi_coins')) || 100;
-    let lives = parseInt(localStorage.getItem('azdi_lives')) || 5;
+    let unlocked = parseInt(localStorage.getItem('azdi_unl')) || 1;
+    let coins = parseInt(localStorage.getItem('azdi_coi')) || 100;
+    let lives = parseInt(localStorage.getItem('azdi_liv')) || 5;
 
-    let selected = null, score = 0, moves = 30, goal = 500, currentLvl = 1, isProcessing = false;
+    let gridData = [];
+    let selectedCell = null;
+    let isWaiting = false;
+    let gameMoves = 0, gameScore = 0, gameTarget = 0, currentLevel = 0;
 
-    function updateUI() {
-        document.getElementById('val-lives').textContent = lives;
-        document.getElementById('val-coins').textContent = coins;
-        localStorage.setItem('azdi_unlocked', unlocked);
-        localStorage.setItem('azdi_coins', coins);
-        localStorage.setItem('azdi_lives', lives);
-    }
-
-    function buyLife() {
-        if (coins >= 50) {
-            coins -= 50;
-            lives++;
-            alert("¡Has comprado 1 Vida! ❤️");
-            updateUI();
-        } else {
-            alert("No tienes suficientes monedas (50💰)");
-        }
-    }
-
-    function showRewardAd() {
-        const overlay = document.getElementById('ad-overlay');
-        overlay.style.display = 'flex';
-        let count = 5;
-        const interval = setInterval(() => {
-            count--;
-            document.getElementById('ad-timer').textContent = count;
-            if (count <= 0) {
-                clearInterval(interval);
-                overlay.style.display = 'none';
-                lives += 2; coins += 25;
-                updateUI();
-                alert("¡Recompensa recibida! +2❤️ +25💰");
-            }
-        }, 1000);
-    }
-
-    function drawMap() {
-        updateUI();
+    // --- SISTEMA DE MAPA ---
+    function initMap() {
         const container = document.getElementById('nodes-container');
         container.innerHTML = '';
-        const w = document.getElementById('game-wrapper').clientWidth;
+        const width = document.getElementById('game-wrapper').clientWidth;
+        
+        document.getElementById('val-lives').innerText = lives;
+        document.getElementById('val-coins').innerText = coins;
 
         for (let i = 1; i <= 50; i++) {
-            const div = document.createElement('div');
-            div.className = `level-node ${i > unlocked ? 'locked' : ''}`;
-            div.innerHTML = i;
-            div.style.top = (4800 - (i * 120)) + 'px';
-            div.style.left = (w/2 + Math.sin(i * 0.7) * (w * 0.25)) + 'px';
-            if (i <= unlocked) div.onclick = () => (lives > 0) ? launchLevel(i) : alert("¡Sin vidas!");
-            container.appendChild(div);
+            const node = document.createElement('div');
+            node.className = `level-node ${i > unlocked ? 'locked' : ''}`;
+            node.innerText = i;
+            node.style.top = (4800 - (i * 130)) + 'px';
+            node.style.left = (width/2 + Math.sin(i * 0.8) * (width * 0.25)) + 'px';
+            if (i <= unlocked) node.onclick = () => checkLivesAndStart(i);
+            container.appendChild(node);
         }
-        document.getElementById('map-screen').scrollTop = 4800 - (unlocked * 120) - 300;
+        document.getElementById('map-screen').scrollTop = 4800 - (unlocked * 130) - 300;
     }
 
-    function launchLevel(lvl) {
-        currentLvl = lvl; score = 0; isProcessing = false;
-        moves = Math.max(15, 30 - Math.floor(lvl/3));
-        goal = 500 + (lvl * 300);
-        document.getElementById('cur-lvl').textContent = lvl;
-        document.getElementById('score').textContent = score;
-        document.getElementById('target').textContent = goal;
-        document.getElementById('moves').textContent = moves;
+    function checkLivesAndStart(lvl) {
+        if (lives <= 0) return alert("¡Sin vidas! Mira un video 📺");
+        
+        // Probabilidad de Reto (25%)
+        if (Math.random() < 0.25) {
+            currentLevel = lvl;
+            showChallengeScreen();
+        } else {
+            startGame(lvl);
+        }
+    }
+
+    // --- LÓGICA DE JUEGO ---
+    function startGame(lvl) {
+        currentLevel = lvl;
+        gameScore = 0;
+        gameMoves = Math.max(12, 25 - Math.floor(lvl / 2));
+        gameTarget = 500 + (lvl * 400);
+        
+        document.getElementById('current-score').innerText = gameScore;
+        document.getElementById('target-score').innerText = gameTarget;
+        document.getElementById('val-moves').innerText = gameMoves;
+        
         document.getElementById('map-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
-        initGrid();
+        
+        createGrid();
     }
 
-    function initGrid() {
-        const grid = document.getElementById('grid-container');
-        grid.innerHTML = '';
+    function createGrid() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        gridData = [];
         for (let i = 0; i < 64; i++) {
+            const animal = emojis[Math.floor(Math.random() * emojis.length)];
             const cell = document.createElement('div');
             cell.className = 'cell';
-            cell.dataset.id = i;
-            cell.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-            cell.onclick = () => onCellClick(cell);
-            grid.appendChild(cell);
+            cell.dataset.idx = i;
+            cell.innerText = animal;
+            cell.onclick = () => handleCellClick(cell);
+            gridEl.appendChild(cell);
+            gridData.push(animal);
         }
-        // Limpiar matches iniciales sin gastar movimientos
-        checkMatchesSilently();
+        // Limpiar matches iniciales
+        while (instantCheck()) { /* Limpia en silencio */ }
     }
 
-    function onCellClick(cell) {
-        if (isProcessing || moves <= 0) return;
+    function handleCellClick(cell) {
+        if (isWaiting || gameMoves <= 0) return;
 
-        if (!selected) {
-            selected = cell;
+        if (!selectedCell) {
+            selectedCell = cell;
             cell.classList.add('selected');
         } else {
-            const id1 = parseInt(selected.dataset.id);
-            const id2 = parseInt(cell.dataset.id);
+            const idx1 = parseInt(selectedCell.dataset.idx);
+            const idx2 = parseInt(cell.dataset.idx);
 
-            if (isAdjacent(id1, id2)) {
-                swap(selected, cell);
-                moves--;
-                document.getElementById('moves').textContent = moves;
-                isProcessing = true;
+            if (isAdjacent(idx1, idx2)) {
+                swapCells(idx1, idx2);
+                isWaiting = true;
+                
                 setTimeout(() => {
-                    if (!processMatches()) {
-                        swap(selected, cell); // Deshacer si no hay match
-                        isProcessing = false;
+                    if (!checkAndProcess()) {
+                        // Si no hay match, deshacer (Igual que Candy Crush)
+                        swapCells(idx1, idx2);
+                        isWaiting = false;
+                    } else {
+                        gameMoves--;
+                        document.getElementById('val-moves').innerText = gameMoves;
                     }
                 }, 300);
             }
-            selected.classList.remove('selected');
-            selected = null;
+            selectedCell.classList.remove('selected');
+            selectedCell = null;
         }
     }
 
     function isAdjacent(a, b) {
         const diff = Math.abs(a - b);
-        return (diff === 1 && Math.floor(a/8) === Math.floor(b/8)) || diff === 8;
+        const rowA = Math.floor(a / 8), rowB = Math.floor(b / 8);
+        return (diff === 1 && rowA === rowB) || diff === 8;
     }
 
-    function swap(a, b) {
-        const t = a.textContent;
-        const tc = a.className;
-        a.textContent = b.textContent;
-        a.className = b.className;
-        b.textContent = t;
-        b.className = tc;
-        a.classList.remove('selected');
-        b.classList.remove('selected');
+    function swapCells(i, j) {
+        const temp = gridData[i];
+        gridData[i] = gridData[j];
+        gridData[j] = temp;
+        updateView();
     }
 
-    function processMatches() {
+    function updateView() {
         const cells = document.querySelectorAll('.cell');
-        let matched = new Set();
-        let specialToCreate = null;
+        gridData.forEach((val, i) => {
+            cells[i].innerText = val;
+            // Limpiar clases de bombas si se vacía
+            if (!val) cells[i].className = 'cell';
+        });
+    }
 
-        // Buscar horizontales
+    function checkAndProcess() {
+        let matched = findMatches();
+        if (matched.length > 0) {
+            processMatched(matched);
+            return true;
+        }
+        return false;
+    }
+
+    function findMatches() {
+        let matchIds = new Set();
+        // Horizontales
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 6; c++) {
-                let idx = r * 8 + c;
-                let char = cells[idx].textContent;
-                if (char && char === cells[idx+1].textContent && char === cells[idx+2].textContent) {
-                    matched.add(idx); matched.add(idx+1); matched.add(idx+2);
-                    if (c < 5 && char === cells[idx+3].textContent) { 
-                        matched.add(idx+3); 
-                        specialToCreate = { id: idx, type: 'special-line', emoji: SPECIALS.LINE };
-                    }
+                let i = r * 8 + c;
+                if (gridData[i] && gridData[i] === gridData[i+1] && gridData[i] === gridData[i+2]) {
+                    matchIds.add(i); matchIds.add(i+1); matchIds.add(i+2);
                 }
             }
         }
-
-        // Buscar verticales
+        // Verticales
         for (let c = 0; c < 8; c++) {
             for (let r = 0; r < 6; r++) {
-                let idx = r * 8 + c;
-                let char = cells[idx].textContent;
-                if (char && char === cells[idx+8].textContent && char === cells[idx+16].textContent) {
-                    matched.add(idx); matched.add(idx+8); matched.add(idx+16);
-                    if (r < 4 && char === cells[idx+24].textContent) {
-                        matched.add(idx+24);
-                        specialToCreate = { id: idx, type: 'special-bomb', emoji: SPECIALS.BOMB };
-                    }
+                let i = r * 8 + c;
+                if (gridData[i] && gridData[i] === gridData[i+8] && gridData[i] === gridData[i+16]) {
+                    matchIds.add(i); matchIds.add(i+8); matchIds.add(i+16);
                 }
             }
         }
-
-        if (matched.size > 0) {
-            score += matched.size * 10;
-            document.getElementById('score').textContent = score;
-
-            matched.forEach(i => {
-                // Si explota una bomba
-                if (cells[i].textContent === SPECIALS.LINE) score += 50; 
-                if (cells[i].textContent === SPECIALS.BOMB) score += 100;
-                
-                cells[i].textContent = '';
-                cells[i].className = 'cell';
-            });
-
-            if (specialToCreate) {
-                cells[specialToCreate.id].textContent = specialToCreate.emoji;
-                cells[specialToCreate.id].classList.add(specialToCreate.type);
-            }
-
-            setTimeout(drop, 300);
-            return true;
-        } else {
-            checkGameOver();
-            isProcessing = false;
-            return false;
-        }
+        return Array.from(matchIds);
     }
 
-    function drop() {
-        const cells = document.querySelectorAll('.cell');
+    function processMatched(matched) {
+        gameScore += matched.length * 15;
+        document.getElementById('current-score').innerText = gameScore;
+        
+        matched.forEach(id => {
+            // Efecto Visual
+            const cells = document.querySelectorAll('.cell');
+            cells[id].style.transform = 'scale(0)';
+            gridData[id] = null;
+        });
+
+        setTimeout(() => {
+            dropItems();
+        }, 300);
+    }
+
+    function dropItems() {
         for (let c = 0; c < 8; c++) {
+            let emptySpaces = 0;
             for (let r = 7; r >= 0; r--) {
-                const i = r * 8 + c;
-                if (cells[i].textContent === '') {
-                    let top = r - 1;
-                    while (top >= 0 && cells[top * 8 + c].textContent === '') top--;
-                    if (top >= 0) {
-                        cells[i].textContent = cells[top * 8 + c].textContent;
-                        cells[i].className = cells[top * 8 + c].className;
-                        cells[top * 8 + c].textContent = '';
-                        cells[top * 8 + c].className = 'cell';
-                    } else {
-                        cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    }
+                let i = r * 8 + c;
+                if (gridData[i] === null) {
+                    emptySpaces++;
+                } else if (emptySpaces > 0) {
+                    gridData[i + (emptySpaces * 8)] = gridData[i];
+                    gridData[i] = null;
                 }
             }
-        }
-        setTimeout(processMatches, 300);
-    }
-
-    function checkGameOver() {
-        if (score >= goal) {
-            coins += (20 + currentLvl);
-            alert("¡EXCELENTE! 🎉 Nivel superado.");
-            if (currentLvl === unlocked) unlocked++;
-            closeGame();
-        } else if (moves <= 0) {
-            lives--;
-            alert("Te has quedado sin movimientos... 😢");
-            closeGame();
-        }
-    }
-
-    function checkMatchesSilently() {
-        // Limpieza rápida inicial
-        const cells = document.querySelectorAll('.cell');
-        let hasMatch = false;
-        for (let i = 0; i < 64; i++) {
-            // Lógica simplificada solo para rellenar huecos iniciales sin repetir
-            if (i % 8 < 6 && cells[i].textContent === cells[i+1].textContent && cells[i].textContent === cells[i+2].textContent) {
-                cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                hasMatch = true;
+            for (let r = 0; r < emptySpaces; r++) {
+                gridData[r * 8 + c] = emojis[Math.floor(Math.random() * emojis.length)];
             }
         }
-        if (hasMatch) checkMatchesSilently();
+        updateView();
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(c => c.style.transform = 'scale(1)');
+
+        setTimeout(() => {
+            if (!checkAndProcess()) {
+                isWaiting = false;
+                checkWinLose();
+            }
+        }, 300);
     }
 
-    function closeGame() {
+    function checkWinLose() {
+        if (gameScore >= gameTarget) {
+            unlocked = Math.max(unlocked, currentLevel + 1);
+            coins += 25;
+            saveData();
+            alert("¡NIVEL COMPLETADO! 🍬 +25💰");
+            quitGame();
+        } else if (gameMoves <= 0) {
+            lives--;
+            saveData();
+            alert("No hay más movimientos. ❌ -1 ❤️");
+            quitGame();
+        }
+    }
+
+    function instantCheck() {
+        let m = findMatches();
+        if (m.length > 0) {
+            m.forEach(id => gridData[id] = emojis[Math.floor(Math.random() * emojis.length)]);
+            return true;
+        }
+        return false;
+    }
+
+    // --- SISTEMA DE RETOS ---
+    function showChallengeScreen() {
+        const modal = document.getElementById('challenge-modal');
+        const title = document.getElementById('ch-title');
+        const desc = document.getElementById('ch-desc');
+        
+        const r = Math.random();
+        if (r < 0.5) {
+            title.innerText = "¡RETO VELOZ!";
+            desc.innerText = "Supera este nivel con 5 movimientos menos para ganar 50 monedas.";
+            gameMoves -= 5;
+        } else {
+            title.innerText = "¡MODO COLECCIONISTA!";
+            desc.innerText = "La meta de puntos es más alta, ¡pero la recompensa es doble!";
+            gameTarget = Math.floor(gameTarget * 1.5);
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    function startChallenge() {
+        document.getElementById('challenge-modal').style.display = 'none';
+        startGame(currentLevel);
+    }
+
+    // --- UTILIDADES ---
+    function quitGame() {
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('map-screen').style.display = 'block';
-        drawMap();
+        initMap();
     }
 
-    window.onload = drawMap;
+    function showAd() {
+        alert("Simulando Anuncio... 📺");
+        setTimeout(() => {
+            lives = 5;
+            coins += 50;
+            saveData();
+            initMap();
+            alert("¡Recompensa recibida! ❤️ a tope y +50💰");
+        }, 1000);
+    }
+
+    function saveData() {
+        localStorage.setItem('azdi_unl', unlocked);
+        localStorage.setItem('azdi_coi', coins);
+        localStorage.setItem('azdi_liv', lives);
+    }
+
+    window.onload = initMap;
 </script>
 </body>
 </html>
