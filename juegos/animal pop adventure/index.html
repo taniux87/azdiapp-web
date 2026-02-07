@@ -3,335 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! Ultra</title>
+    <title>AzDi Animal Pop! - Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root { --pink: #ff66b2; --blue: #4facfe; --gold: #ffd700; --font: 'Luckiest Guy', cursive; }
+        :root { --pink: #ff66b2; --blue: #4facfe; --bg-main: #124e66; --font: 'Luckiest Guy', cursive; }
         * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; font-family: var(--font); }
         
-        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #111; overflow: hidden; }
+        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: var(--bg-main); overflow: hidden; }
 
-        /* --- UI TOP --- */
-        .header-ui { position: absolute; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.6); z-index: 100; border-bottom: 3px solid var(--pink); }
-        .stat-box { color: white; text-align: center; }
-        .stat-value { font-size: 18px; display: flex; align-items: center; gap: 5px; }
+        /* --- HEADER --- */
+        .top-nav { height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.3); border-bottom: 4px solid var(--pink); color: white; }
+        .stat { text-align: center; }
+        .stat-val { font-size: 20px; display: block; color: var(--pink); }
 
         /* --- MAPA --- */
-        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #a8e063, #f7bb97); z-index: 10; padding-top: 70px; scroll-behavior: smooth; }
-        .map-nodes { position: relative; width: 100%; height: 5000px; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
-        .level-node { position: absolute; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); transform: translateX(-50%); cursor: pointer; transition: transform 0.2s; }
+        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #a8e063, #ffd700); z-index: 10; padding-top: 80px; }
+        .level-node { position: absolute; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); transform: translateX(-50%); cursor: pointer; transition: 0.2s; }
         .level-node.locked { background: #666; filter: grayscale(1); opacity: 0.7; }
 
-        /* --- JUEGO --- */
-        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#6ddaff, #2193b0); z-index: 50; flex-direction: column; align-items: center; }
-        .game-top-info { margin-top: 80px; text-align: center; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        /* --- TABLERO --- */
+        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#2193b0, #6ddaff); z-index: 100; flex-direction: column; align-items: center; }
+        .score-panel { margin-top: 40px; text-align: center; color: white; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
         
-        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 95%; max-width: 400px; aspect-ratio: 1/1; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 15px; border: 4px solid rgba(255,255,255,0.3); margin: 20px 0; }
+        #grid-container { 
+            background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(10px);
+            padding: 10px; border-radius: 20px; border: 5px solid rgba(255,255,255,0.4);
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
+            width: 95%; aspect-ratio: 1/1; margin: 20px 0;
+        }
+
+        .cell { 
+            background: rgba(255,255,255,0.1); border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; font-size: 30px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
         
-        .cell { background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 28px; cursor: pointer; position: relative; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .cell.selected { transform: scale(1.1); background: white; z-index: 10; box-shadow: 0 0 20px white; }
+        /* ESPECIALES */
+        .special-striped-h { border: 3px solid white; background: linear-gradient(0deg, rgba(255,255,255,0) 40%, white 50%, rgba(255,255,255,0) 60%); border-radius: 50%; }
+        .special-striped-v { border: 3px solid white; background: linear-gradient(90deg, rgba(255,255,255,0) 40%, white 50%, rgba(255,255,255,0) 60%); border-radius: 50%; }
+        .special-bomb { animation: bombPulse 0.5s infinite alternate; font-size: 38px; filter: drop-shadow(0 0 8px gold); }
         
-        /* TIPOS DE BOMBAS */
-        .special-h { border: 3px solid #fff; box-shadow: inset 0 0 15px #ffeb3b; border-radius: 50%; background: rgba(255,235,59,0.3); } /* Explota Fila */
-        .special-v { border: 3px solid #fff; box-shadow: inset 0 0 15px #03a9f4; border-radius: 20%; background: rgba(3,169,244,0.3); } /* Explota Columna */
-        .special-bomb { animation: pulse 0.8s infinite; filter: drop-shadow(0 0 10px #ff00ea); font-size: 35px; }
+        @keyframes bombPulse { from { transform: scale(1); } to { transform: scale(1.2); } }
 
-        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.15);} 100% {transform: scale(1);} }
+        /* MODAL VICTORIA */
+        #win-modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .win-box { background: white; width: 85%; padding: 40px 20px; border-radius: 40px; text-align: center; border: 10px solid var(--pink); }
+        .win-box h1 { color: var(--pink); font-size: 40px; margin: 0; }
+        .btn-win { background: #4caf50; color: white; padding: 15px 40px; border-radius: 50px; border: none; font-family: var(--font); font-size: 25px; margin-top: 20px; box-shadow: 0 6px 0 #2e7d32; }
 
-        /* --- MODAL DE VICTORIA (ESTILO CANDY) --- */
-        #victory-modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
-        .win-card { background: white; width: 85%; padding: 30px; border-radius: 30px; text-align: center; border: 8px solid var(--pink); box-shadow: 0 0 30px var(--pink); transform: translateY(-20px); }
-        .stars { font-size: 50px; color: var(--gold); margin-bottom: 10px; }
-        .win-title { font-size: 32px; color: var(--pink); margin: 10px 0; }
-        .win-stats { font-size: 20px; color: #444; margin-bottom: 20px; }
-        .btn-next { background: #4caf50; color: white; padding: 15px 40px; border-radius: 30px; border: none; font-family: var(--font); font-size: 24px; cursor: pointer; box-shadow: 0 5px 0 #2e7d32; }
-        .btn-next:active { transform: translateY(3px); box-shadow: none; }
-
-        .btn-header { background: #4caf50; border: none; color: white; padding: 5px 12px; border-radius: 15px; font-family: var(--font); }
+        .moves-box { background: rgba(0,0,0,0.3); padding: 10px 30px; border-radius: 30px; color: white; font-size: 28px; }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div class="header-ui">
-        <div class="stat-box">❤️ <span id="val-lives">5</span></div>
-        <div class="stat-box">💰 <span id="val-coins">100</span></div>
-        <button class="btn-header" onclick="addGift()">🎁 REGALO</button>
+    <div class="top-nav">
+        <div class="stat">VIDAS<span class="stat-val" id="ui-lives">5</span></div>
+        <div class="stat">MONEDAS<span class="stat-val" id="ui-coins">100</span></div>
+        <button onclick="location.reload()" style="background:none; border:2px solid white; color:white; border-radius:10px; font-family:var(--font)">🏠</button>
     </div>
 
     <div id="map-screen">
-        <div class="map-nodes" id="nodes-container"></div>
+        <div id="nodes-container" style="position:relative; width:100%; height:5000px;"></div>
     </div>
 
     <div id="game-screen">
-        <div class="game-top-info">
-            <div style="font-size: 16px; opacity: 0.8;">OBJETIVO: <span id="target-score">0</span></div>
-            <div style="font-size: 40px;">PUNTOS: <span id="current-score">0</span></div>
+        <div class="score-panel">
+            <div style="font-size: 16px;">OBJETIVO: <span id="txt-target">0</span></div>
+            <div style="font-size: 45px;">PUNTOS: <span id="txt-score">0</span></div>
         </div>
-        
-        <div id="grid"></div>
 
-        <div style="width: 100%; display: flex; justify-content: space-around; align-items: center; padding: 20px;">
-            <div style="color: white; font-size: 30px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 20px;">
-                🎈 <span id="val-moves">0</span>
-            </div>
-            <button onclick="quitGame()" style="background:#ff4d4d; border:none; padding:10px 20px; border-radius:15px; color:white; font-family:var(--font);">SALIR</button>
+        <div id="grid-container"></div>
+
+        <div style="display:flex; width:100%; justify-content:space-around; align-items:center;">
+            <div class="moves-box">🎈 <span id="txt-moves">25</span></div>
+            <button onclick="exitGame()" style="background:#ff4d4d; border:none; padding:15px; border-radius:20px; color:white; font-family:var(--font);">SALIR</button>
         </div>
     </div>
 
-    <div id="victory-modal">
-        <div class="win-card">
-            <div class="stars">⭐⭐⭐</div>
-            <h2 class="win-title">¡GENIAL!</h2>
-            <div class="win-stats">
-                HAS GANADO: <br>
-                <span style="font-size: 30px;">💰 +50</span>
-            </div>
-            <button class="btn-next" onclick="nextLevel()">SIGUIENTE</button>
+    <div id="win-modal">
+        <div class="win-box">
+            <h1>¡GENIAL!</h1>
+            <p style="font-size:20px; color:#555">NIVEL COMPLETADO<br>💰 +50 MONEDAS</p>
+            <button class="btn-win" onclick="nextLevel()">CONTINUAR</button>
         </div>
     </div>
 </div>
 
 <script>
-    const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
-    let unlocked = parseInt(localStorage.getItem('azdi_u')) || 1;
-    let coins = parseInt(localStorage.getItem('azdi_c')) || 100;
-    let lives = parseInt(localStorage.getItem('azdi_l')) || 5;
+    const EMOJIS = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
+    let unlocked = parseInt(localStorage.getItem('az_un')) || 1;
+    let coins = parseInt(localStorage.getItem('az_co')) || 100;
+    let lives = parseInt(localStorage.getItem('az_li')) || 5;
 
-    let gridData = [], specialData = []; // specialData guardará si es bomba
-    let selectedCell = null, isWaiting = false;
-    let gameMoves = 0, gameScore = 0, gameTarget = 0, currentLvl = 0;
+    let grid = [], specials = []; 
+    let selected = null, isBlocked = false;
+    let score = 0, moves = 0, target = 0, curLvl = 0;
 
     function initMap() {
         const container = document.getElementById('nodes-container');
         container.innerHTML = '';
-        const w = document.getElementById('game-wrapper').clientWidth;
-        
-        document.getElementById('val-lives').innerText = lives;
-        document.getElementById('val-coins').innerText = coins;
+        const w = document.body.clientWidth;
+        document.getElementById('ui-lives').innerText = lives;
+        document.getElementById('ui-coins').innerText = coins;
 
-        for (let i = 1; i <= 100; i++) {
-            const node = document.createElement('div');
-            node.className = `level-node ${i > unlocked ? 'locked' : ''}`;
-            node.innerText = i;
-            node.style.top = (4800 - (i * 140)) + 'px';
-            node.style.left = (w/2 + Math.sin(i * 0.8) * (w * 0.3)) + 'px';
-            if (i <= unlocked) node.onclick = () => launchGame(i);
-            container.appendChild(node);
+        for (let i = 1; i <= 50; i++) {
+            const btn = document.createElement('div');
+            btn.className = `level-node ${i > unlocked ? 'locked' : ''}`;
+            btn.innerText = i;
+            btn.style.top = (4800 - (i * 140)) + 'px';
+            btn.style.left = (w/2 + Math.sin(i * 0.7) * (w * 0.28)) + 'px';
+            if (i <= unlocked) btn.onclick = () => startLevel(i);
+            container.appendChild(btn);
         }
         document.getElementById('map-screen').scrollTop = 4800 - (unlocked * 140) - 350;
     }
 
-    function launchGame(lvl) {
+    function startLevel(lvl) {
         if (lives <= 0) return alert("¡Sin vidas!");
-        currentLvl = lvl; gameScore = 0;
-        gameMoves = Math.max(15, 30 - Math.floor(lvl/4));
-        gameTarget = 500 + (lvl * 350);
+        curLvl = lvl; score = 0;
+        moves = Math.max(15, 30 - Math.floor(lvl/5));
+        target = 500 + (lvl * 400);
         
-        document.getElementById('current-score').innerText = gameScore;
-        document.getElementById('target-score').innerText = gameTarget;
-        document.getElementById('val-moves').innerText = gameMoves;
+        document.getElementById('txt-score').innerText = score;
+        document.getElementById('txt-target').innerText = target;
+        document.getElementById('txt-moves').innerText = moves;
         document.getElementById('map-screen').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
-        createGrid();
+        
+        buildGrid();
     }
 
-    function createGrid() {
-        const gridEl = document.getElementById('grid');
-        gridEl.innerHTML = '';
-        gridData = []; specialData = [];
+    function buildGrid() {
+        const container = document.getElementById('grid-container');
+        container.innerHTML = '';
+        grid = []; specials = [];
         for (let i = 0; i < 64; i++) {
-            const animal = emojis[Math.floor(Math.random() * emojis.length)];
-            gridData.push(animal);
-            specialData.push(null);
+            const animal = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+            grid.push(animal);
+            specials.push(null);
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.dataset.idx = i;
             cell.innerText = animal;
-            cell.onclick = () => handleSelect(cell);
-            gridEl.appendChild(cell);
+            cell.onclick = () => onCellClick(cell);
+            container.appendChild(cell);
         }
-        while (checkMatches(true).length > 0) { shuffleGrid(); }
-        updateView();
+        while(hasMatches()) { shuffle(); }
+        refreshUI();
     }
 
-    function handleSelect(cell) {
-        if (isWaiting || gameMoves <= 0) return;
+    function onCellClick(cell) {
+        if (isBlocked || moves <= 0) return;
         const idx = parseInt(cell.dataset.idx);
 
-        if (!selectedCell) {
-            selectedCell = cell;
-            cell.classList.add('selected');
+        if (!selected) {
+            selected = cell;
+            cell.style.transform = "scale(1.2)";
+            cell.style.background = "white";
         } else {
-            const idx1 = parseInt(selectedCell.dataset.idx);
+            const idx1 = parseInt(selected.dataset.idx);
             const idx2 = idx;
 
-            if (isAdj(idx1, idx2)) {
+            if (isAdjacent(idx1, idx2)) {
                 swap(idx1, idx2);
-                isWaiting = true;
+                isBlocked = true;
                 setTimeout(() => {
-                    let matches = checkMatches();
-                    if (matches.length > 0) {
-                        gameMoves--;
-                        document.getElementById('val-moves').innerText = gameMoves;
-                        processMatches(matches);
+                    if (!processTurn()) {
+                        swap(idx1, idx2); // Rebote si no hay match
+                        isBlocked = false;
                     } else {
-                        swap(idx1, idx2); // Deshacer
-                        isWaiting = false;
+                        moves--;
+                        document.getElementById('txt-moves').innerText = moves;
                     }
                 }, 300);
             }
-            selectedCell.classList.remove('selected');
-            selectedCell = null;
+            selected.style.transform = "scale(1)";
+            selected.style.background = "rgba(255,255,255,0.1)";
+            selected = null;
         }
     }
 
-    function checkMatches(silent = false) {
-        let toDestroy = new Set();
-        // Horizontales
+    function processTurn() {
+        let matches = getMatches();
+        if (matches.length > 0) {
+            handleSpecials(matches);
+            removeAndFill(matches);
+            return true;
+        }
+        return false;
+    }
+
+    function getMatches() {
+        let matched = new Set();
+        // Horiz
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 6; c++) {
                 let i = r * 8 + c;
-                if (gridData[i] && gridData[i] === gridData[i+1] && gridData[i] === gridData[i+2]) {
-                    toDestroy.add(i); toDestroy.add(i+1); toDestroy.add(i+2);
-                    // Si son 4, crear bomba horizontal en el medio
-                    if (!silent && c < 5 && gridData[i] === gridData[i+3]) {
-                        toDestroy.add(i+3);
-                        specialData[i+1] = 'h'; 
+                if (grid[i] && grid[i] === grid[i+1] && grid[i] === grid[i+2]) {
+                    matched.add(i); matched.add(i+1); matched.add(i+2);
+                    if (c < 5 && grid[i] === grid[i+3]) { // Crear Striped
+                        matched.add(i+3);
+                        specials[i] = 'h-striped';
                     }
                 }
             }
         }
-        // Verticales
+        // Vert
         for (let c = 0; c < 8; c++) {
             for (let r = 0; r < 6; r++) {
                 let i = r * 8 + c;
-                if (gridData[i] && gridData[i] === gridData[i+8] && gridData[i] === gridData[i+16]) {
-                    toDestroy.add(i); toDestroy.add(i+8); toDestroy.add(i+16);
-                    if (!silent && r < 5 && gridData[i] === gridData[i+24]) {
-                        toDestroy.add(i+24);
-                        specialData[i+8] = 'v';
+                if (grid[i] && grid[i] === grid[i+8] && grid[i] === grid[i+16]) {
+                    matched.add(i); matched.add(i+8); matched.add(i+16);
+                    if (r < 5 && grid[i] === grid[i+24]) { // Crear Bomb/Color
+                        matched.add(i+24);
+                        specials[i] = 'bomb';
+                        grid[i] = '🌈';
                     }
                 }
             }
         }
-        return Array.from(toDestroy);
+        return Array.from(matched);
     }
 
-    function processMatches(matches) {
+    function handleSpecials(matches) {
         matches.forEach(id => {
-            // Si la pieza era una bomba, explota extra
-            if (specialData[id] === 'h') { explodeRow(Math.floor(id/8)); }
-            if (specialData[id] === 'v') { explodeCol(id % 8); }
-            
-            gridData[id] = null;
-            if (specialData[id] !== 'h' && specialData[id] !== 'v') specialData[id] = null;
+            if (specials[id] === 'h-striped') {
+                let row = Math.floor(id/8);
+                for(let c=0; c<8; c++) matches.push(row*8+c);
+            }
+            if (specials[id] === 'bomb') {
+                // Simula explosión de área
+                let neighbors = [id-1, id+1, id-8, id+8, id-7, id+7, id-9, id+9];
+                neighbors.forEach(n => { if(n>=0 && n<64) matches.push(n); });
+            }
         });
+    }
 
-        gameScore += matches.length * 20;
-        document.getElementById('current-score').innerText = gameScore;
-        updateView();
+    function removeAndFill(matches) {
+        score += matches.length * 10;
+        document.getElementById('txt-score').innerText = score;
+        matches.forEach(id => { grid[id] = null; specials[id] = null; });
+        refreshUI();
 
         setTimeout(() => {
-            fillGrid();
-        }, 300);
-    }
-
-    function explodeRow(row) {
-        for(let c=0; c<8; c++) { 
-            let id = row * 8 + c;
-            gridData[id] = null;
-        }
-    }
-
-    function explodeCol(col) {
-        for(let r=0; r<8; r++) {
-            let id = r * 8 + col;
-            gridData[id] = null;
-        }
-    }
-
-    function fillGrid() {
-        for (let c = 0; c < 8; c++) {
-            for (let r = 7; r >= 0; r--) {
-                let i = r * 8 + c;
-                if (gridData[i] === null) {
-                    let k = r - 1;
-                    while (k >= 0 && gridData[k * 8 + c] === null) k--;
-                    if (k >= 0) {
-                        gridData[i] = gridData[k * 8 + c];
-                        specialData[i] = specialData[k * 8 + c];
-                        gridData[k * 8 + c] = null;
-                        specialData[k * 8 + c] = null;
-                    } else {
-                        gridData[i] = emojis[Math.floor(Math.random() * emojis.length)];
-                        specialData[i] = null;
+            for (let c = 0; c < 8; c++) {
+                for (let r = 7; r >= 0; r--) {
+                    let i = r * 8 + c;
+                    if (grid[i] === null) {
+                        let k = r - 1;
+                        while (k >= 0 && grid[k*8+c] === null) k--;
+                        if (k >= 0) {
+                            grid[i] = grid[k*8+c];
+                            specials[i] = specials[k*8+c];
+                            grid[k*8+c] = null;
+                            specials[k*8+c] = null;
+                        } else {
+                            grid[i] = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+                        }
                     }
                 }
             }
-        }
-        updateView();
-        setTimeout(() => {
-            let m = checkMatches();
-            if (m.length > 0) processMatches(m);
-            else { isWaiting = false; checkEnd(); }
+            refreshUI();
+            setTimeout(() => {
+                if (!processTurn()) {
+                    isBlocked = false;
+                    checkState();
+                }
+            }, 300);
         }, 300);
     }
 
-    function updateView() {
+    function checkState() {
+        if (score >= target) {
+            document.getElementById('win-modal').style.display = 'flex';
+            coins += 50; unlocked = Math.max(unlocked, curLvl + 1);
+            save();
+        } else if (moves <= 0) {
+            lives--; save();
+            alert("¡Se acabaron los movimientos! 😢");
+            exitGame();
+        }
+    }
+
+    function refreshUI() {
         const cells = document.querySelectorAll('.cell');
-        gridData.forEach((val, i) => {
+        grid.forEach((val, i) => {
             cells[i].innerText = val || '';
             cells[i].className = 'cell';
-            if (specialData[i] === 'h') cells[i].classList.add('special-h');
-            if (specialData[i] === 'v') cells[i].classList.add('special-v');
-            if (!val) cells[i].style.opacity = '0'; else cells[i].style.opacity = '1';
+            if (specials[i] === 'h-striped') cells[i].classList.add('special-striped-h');
+            if (specials[i] === 'bomb') cells[i].classList.add('special-bomb');
+            cells[i].style.opacity = val ? "1" : "0";
         });
     }
 
-    function checkEnd() {
-        if (gameScore >= gameTarget) {
-            document.getElementById('victory-modal').style.display = 'flex';
-            coins += 50; unlocked = Math.max(unlocked, currentLvl + 1);
-            save();
-        } else if (gameMoves <= 0) {
-            lives--; save();
-            alert("¡OH NO! Te has quedado sin movimientos.");
-            quitGame();
-        }
-    }
-
-    function nextLevel() {
-        document.getElementById('victory-modal').style.display = 'none';
-        quitGame();
-    }
-
-    function quitGame() {
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('map-screen').style.display = 'block';
-        initMap();
-    }
-
-    function isAdj(a, b) {
-        let r1 = Math.floor(a/8), r2 = Math.floor(b/8);
-        let c1 = a%8, c2 = b%8;
+    function isAdjacent(a, b) {
+        const r1 = Math.floor(a/8), r2 = Math.floor(b/8);
+        const c1 = a%8, c2 = b%8;
         return (Math.abs(r1-r2) + Math.abs(c1-c2)) === 1;
     }
 
     function swap(i, j) {
-        let t = gridData[i]; gridData[i] = gridData[j]; gridData[j] = t;
-        let s = specialData[i]; specialData[i] = specialData[j]; specialData[j] = s;
-        updateView();
+        let t = grid[i]; grid[i] = grid[j]; grid[j] = t;
+        let s = specials[i]; specials[i] = specials[j]; specials[j] = s;
+        refreshUI();
     }
 
-    function shuffleGrid() { gridData = gridData.map(() => emojis[Math.floor(Math.random()*emojis.length)]); }
-    function save() { 
-        localStorage.setItem('azdi_u', unlocked); 
-        localStorage.setItem('azdi_c', coins); 
-        localStorage.setItem('azdi_l', lives); 
-    }
-    function addGift() { lives = 5; coins += 100; save(); initMap(); alert("¡Regalo activado! 💖"); }
+    function hasMatches() { return getMatches().length > 0; }
+    function shuffle() { grid = grid.map(() => EMOJIS[Math.floor(Math.random()*EMOJIS.length)]); }
+    function save() { localStorage.setItem('az_un', unlocked); localStorage.setItem('az_co', coins); localStorage.setItem('az_li', lives); }
+    function exitGame() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('map-screen').style.display = 'block'; initMap(); }
+    function nextLevel() { document.getElementById('win-modal').style.display = 'none'; exitGame(); }
 
     window.onload = initMap;
 </script>
