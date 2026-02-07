@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Mundo Interactivo - Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style> body { margin: 0; overflow: hidden; background: #222; } </style>
+</head>
+<body>
+
+<script>
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: { preload: preload, create: create, update: update }
+};
+
+const game = new Phaser.Game(config);
+let player;
+let cursors;
+
+function preload() {
+    // Aquí podrías cargar tus propios dibujos
+    // Ejemplo: this.load.image('avatar', 'tu-foto.png');
+}
+
+function create() {
+    // 1. Creamos un mundo grande (2000x2000 píxeles)
+    this.cameras.main.setBounds(0, 0, 2000, 2000);
+    this.physics.world.setBounds(0, 0, 2000, 2000);
+
+    // 2. Dibujamos un suelo simple (cuadrícula)
+    let graphics = this.add.graphics();
+    graphics.lineStyle(2, 0x444444, 1);
+    for(let i=0; i<2000; i+=100) {
+        graphics.moveTo(i, 0); graphics.lineTo(i, 2000);
+        graphics.moveTo(0, i); graphics.lineTo(2000, i);
+    }
+    graphics.strokePath();
+
+    // 3. Creamos al Personaje (un cuadrado azul por ahora)
+    player = this.add.rectangle(400, 300, 400, 300, 0x00aaff); // Cuerpo
+    this.physics.add.existing(player);
+    player.body.setCollideWorldBounds(true);
+
+    // 4. Añadimos obstáculos (ejemplo: muros rojos)
+    let obstacles = this.physics.add.staticGroup();
+    obstacles.add(this.add.rectangle(600, 400, 100, 100, 0xff5555));
+    obstacles.add(this.add.rectangle(200, 800, 200, 50, 0xff5555));
+    
+    this.physics.add.collider(player, obstacles);
+
+    // 5. La cámara sigue al jugador
+    this.cameras.main.startFollow(player);
+
+    // 6. Controles
+    cursors = this.input.keyboard.createCursorKeys();
+
+    this.add.text(10, 10, 'Usa las flechas para moverte por el mundo', { fill: '#ffffff' }).setScrollFactor(0);
+}
+
+function update() {
+    player.body.setVelocity(0);
+
+    if (cursors.left.isDown) player.body.setVelocityX(-300);
+    else if (cursors.right.isDown) player.body.setVelocityX(300);
+
+    if (cursors.up.isDown) player.body.setVelocityY(-300);
+    else if (cursors.down.isDown) player.body.setVelocityY(300);
+}
+</script>
+</body>
+</html>
+
