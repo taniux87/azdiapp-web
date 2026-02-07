@@ -3,107 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tomy World Avatar - Mi Casa</title>
+    <title>Tomy World Avatar - Casa Completa</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style> 
-        body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { border: 8px solid #333; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        body { margin: 0; background: #1a1a1a; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
 <script>
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    backgroundColor: '#f8edeb', // Color de las paredes
+    width: window.innerWidth,
+    height: window.innerHeight,
+    backgroundColor: '#333',
     physics: { default: 'arcade' },
     scene: { preload: preload, create: create, update: update }
 };
 
 const game = new Phaser.Game(config);
-let player;
-let cursors;
 
 function preload() {}
 
 function create() {
-    // --- 1. DISEÑO DE LA HABITACIÓN ---
-    // Suelo (Parqué)
-    let floor = this.add.rectangle(400, 450, 800, 300, 0xd4a373);
-    
-    // Alfombra (Decoración fija)
-    this.add.ellipse(400, 480, 300, 150, 0xe9edc9);
+    const anchoHabitacion = 800;
+    const altoCasa = 600;
+    const totalHabitaciones = 4;
+    const mundoAncho = anchoHabitacion * totalHabitaciones;
 
-    // --- 2. MUEBLES ARRASTRABLES (Interactivos) ---
-    // Función para crear muebles que se puedan mover
-    const createMueble = (x, y, w, h, color, nombre) => {
-        let container = this.add.container(x, y);
-        let box = this.add.rectangle(0, 0, w, h, color).setStrokeStyle(4, 0x000000, 0.2);
-        let label = this.add.text(0, -h/2 - 15, nombre, { fontSize: '14px', fill: '#666' }).setOrigin(0.5);
-        
-        container.add([box, label]);
-        container.setSize(w, h);
-        container.setInteractive({ draggable: true });
-        
-        // Lógica de arrastrar
-        container.on('drag', (pointer, dragX, dragY) => {
-            container.x = dragX;
-            container.y = dragY;
-            container.setDepth(container.y); // Para que lo que esté abajo se vea delante
-        });
+    // Configurar el mundo (Casa alargada)
+    this.cameras.main.setBounds(0, 0, mundoAncho, altoCasa);
+    this.physics.world.setBounds(0, 0, mundoAncho, altoCasa);
 
-        return container;
-    };
+    // --- DISEÑO DE HABITACIONES ---
+    const colores = [0xfff1e6, 0xe0f2f1, 0xfffab3, 0xfce4ec]; // Cocina, Baño, Salón, Habitación
+    const nombres = ["COCINA", "BAÑO", "SALÓN", "HABITACIÓN"];
 
-    // Creamos algunos muebles básicos
-    createMueble(200, 420, 140, 80, 0xa5a5a5, "Cama");
-    createMueble(600, 400, 80, 80, 0xfaedcd, "Mesita");
-    createMueble(400, 350, 100, 150, 0xd4a373, "Armario");
-
-    // --- 3. NUESTRO AVATAR (TOMY) ---
-    player = this.add.container(400, 500);
-    this.physics.add.existing(player);
-    player.body.setCollideWorldBounds(true);
-
-    // Visual de Tomy
-    let shadow = this.add.ellipse(0, 15, 40, 15, 0x000000, 0.2);
-    let body = this.add.rectangle(0, 0, 30, 40, 0xffb5a7); // Camiseta color melocotón
-    let head = this.add.circle(0, -25, 18, 0xffd2a6);
-    let eyes = this.add.group();
-    let eL = this.add.circle(-6, -26, 3, 0x000000);
-    let eR = this.add.circle(6, -26, 3, 0x000000);
-    
-    player.add([shadow, body, head, eL, eR]);
-    player.setDepth(500); // Tomy suele estar por delante
-
-    // --- 4. CONTROLES ---
-    cursors = this.input.keyboard.createCursorKeys();
-
-    this.add.text(20, 20, "TOMY WORLD: MI CASA\nUsa flechas para caminar\nArrastra los muebles para decorar", {
-        fill: '#6b705c',
-        font: 'bold 16px Arial'
-    });
-}
-
-function update() {
-    const speed = 200;
-    player.body.setVelocity(0);
-
-    if (cursors.left.isDown) {
-        player.body.setVelocityX(-speed);
-        player.scaleX = -1;
-    } else if (cursors.right.isDown) {
-        player.body.setVelocityX(speed);
-        player.scaleX = 1;
+    for(let i=0; i<totalHabitaciones; i++) {
+        let x = i * anchoHabitacion;
+        // Pared
+        this.add.rectangle(x + 400, 300, 800, 600, colores[i]);
+        // Suelo
+        this.add.rectangle(x + 400, 520, 800, 160, 0xd4a373);
+        // Etiqueta
+        this.add.text(x + 400, 50, nombres[i], { fontSize: '32px', fill: '#000', alpha: 0.3 }).setOrigin(0.5);
     }
 
-    if (cursors.up.isDown) player.body.setVelocityY(-speed);
-    else if (cursors.down.isDown) player.body.setVelocityY(speed);
+    // --- FUNCIÓN PARA CREAR OBJETOS MÓVILES ---
+    const crearObjeto = (x, y, w, h, color, txt) => {
+        let obj = this.add.container(x, y);
+        let box = this.add.rectangle(0, 0, w, h, color).setStrokeStyle(3, 0x000000, 0.5);
+        let label = this.add.text(0, 0, txt, { fontSize: '12px', fill: '#000' }).setOrigin(0.5);
+        obj.add([box, label]);
+        obj.setSize(w, h);
+        obj.setInteractive({ draggable: true });
+        
+        obj.on('drag', (pointer, dragX, dragY) => {
+            obj.x = dragX;
+            obj.y = dragY;
+        });
+        return obj;
+    };
 
-    // Hacer que Tomy se vea detrás o delante de los muebles según su altura
-    player.setDepth(player.y);
+    // --- AMUEBLANDO LA CASA ---
+    // Cocina
+    crearObjeto(200, 450, 80, 120, 0xcccccc, "NEVERA");
+    crearObjeto(400, 480, 100, 60, 0xffffff, "MESA");
+    
+    // Baño
+    crearObjeto(1000, 480, 120, 50, 0xffffff, "BAÑERA");
+    crearObjeto(1300, 450, 40, 60, 0x81d4fa, "WC");
+
+    // Salón
+    crearObjeto(1800, 480, 150, 70, 0xffcc80, "SOFÁ");
+    crearObjeto(2100, 400, 100, 60, 0x424242, "TV");
+
+    // Habitación
+    crearObjeto(2600, 480, 140, 80, 0x9575cd, "CAMA");
+    crearObjeto(3000, 420, 80, 150, 0x8d6e63, "ARMARIO");
+
+    // --- NUESTRO PERSONAJE (TOMY) ---
+    let tomy = this.add.container(400, 450);
+    let shadow = this.add.ellipse(0, 35, 50, 15, 0x000000, 0.2);
+    let body = this.add.rectangle(0, 0, 40, 60, 0x38bdf8).setStrokeStyle(2, 0xffffff);
+    let head = this.add.circle(0, -40, 25, 0xffd2a6).setStrokeStyle(2, 0xffffff);
+    let eyes = this.add.group();
+    tomy.add([shadow, body, head, this.add.circle(-8,-42,4,0), this.add.circle(8,-42,4,0)]);
+    
+    tomy.setSize(60, 100);
+    tomy.setInteractive({ draggable: true });
+    tomy.setDepth(1000);
+
+    tomy.on('drag', (pointer, dragX, dragY) => {
+        tomy.x = dragX;
+        tomy.y = dragY;
+        // La cámara sigue a Tomy suavemente
+        this.cameras.main.scrollX = Phaser.Math.Linear(this.cameras.main.scrollX, tomy.x - window.innerWidth/2, 0.1);
+    });
+
+    // --- INSTRUCCIONES ---
+    this.add.text(20, 20, "ARRASTRA A TOMY PARA EXPLORAR LA CASA", { 
+        backgroundColor: '#000', padding: 10 
+    }).setScrollFactor(0);
 }
+
+function update() {}
 </script>
 </body>
 </html>
