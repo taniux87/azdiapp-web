@@ -2,229 +2,237 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>AzDi Art Studio</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-:root{
---primary:#ff4fac;
---secondary:#4facfe;
---dark:#0a0a0a;
-}
-
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
-html,body{
-margin:0;height:100%;
+body{
+margin:0;
 background:#0a0a0a;
 font-family:Poppins;
 color:white;
 overflow:hidden;
 }
 
-/* SPLASH */
-#splash{
-position:fixed;inset:0;
-display:flex;align-items:center;justify-content:center;
-background:#0a0a0a;z-index:5;
-font-family:"Luckiest Guy";
-font-size:3rem;
-background:linear-gradient(45deg,#ff4fac,#4facfe);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
+/* MENÚ */
+#menu{
+position:absolute;inset:0;
+padding:20px;overflow:auto;
 }
 
-/* MENU */
-#menu{display:none;height:100%;padding:20px;overflow:auto}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:20px}
-.card{background:#1a1a1a;border-radius:18px;padding:15px;text-align:center;cursor:pointer;border:2px solid #333}
-.card:hover{border-color:var(--primary)}
-.title{font-family:"Luckiest Guy";color:var(--secondary);margin:20px 0}
+.title{
+font-family:"Luckiest Guy";
+color:#4facfe;
+font-size:24px;
+margin:20px 0;
+}
 
-/* GAME */
-#game{display:none;height:100%;flex-direction:column}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+gap:15px;
+}
+
+.card{
+background:#1a1a1a;
+padding:15px;
+border-radius:16px;
+text-align:center;
+border:2px solid #333;
+cursor:pointer;
+}
+.card:hover{border-color:#ff4fac}
+
+/* JUEGO */
+#game{display:none;height:100vh;flex-direction:column}
 
 header{
-height:70px;background:#252525;
+height:60px;background:#222;
 display:flex;align-items:center;justify-content:space-between;
-padding:0 20px;border-bottom:3px solid var(--primary)
+padding:0 15px;
 }
 
 .btn{
-background:var(--primary);
-border:none;color:white;padding:10px 18px;border-radius:20px;
-font-family:"Luckiest Guy";cursor:pointer
+background:#ff4fac;border:none;color:white;
+padding:8px 16px;border-radius:20px;font-weight:bold;
 }
 
-.view{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111}
-
-#canvas{display:grid;background:white;touch-action:none}
+#canvas{
+flex:1;background:white;
+touch-action:none;
+position:relative;
+}
 
 .pixel{
-width:28px;height:28px;
-display:flex;align-items:center;justify-content:center;
-font-size:11px;font-weight:bold;color:#aaa;
-border:1px solid rgba(0,0,0,.08);
+position:absolute;
 }
 
 .controls{
-height:170px;background:white;color:black;padding:10px;
-display:flex;flex-direction:column;gap:10px
+height:120px;background:#eee;color:black;padding:8px;
+display:flex;flex-direction:column;gap:6px;
 }
 
-.palette{display:flex;gap:10px;overflow:auto}
+.palette{display:flex;gap:8px;overflow:auto}
 
 .color{
-min-width:45px;height:45px;border-radius:50%;
-border:3px solid white;cursor:pointer;
-display:flex;align-items:center;justify-content:center;
-font-weight:bold;color:white;text-shadow:1px 1px 2px #000
+width:36px;height:36px;border-radius:50%;
+border:2px solid white;
+cursor:pointer;
 }
-.color.active{border:3px solid black;transform:scale(1.15)}
-
-.tools{display:flex;gap:10px;align-items:center}
+.color.active{border:2px solid black;transform:scale(1.15)}
 </style>
 </head>
 
 <body>
 
-<div id="splash">AZDI STUDIO</div>
-
 <div id="menu">
-<div class="title">PINTAR POR NUMEROS</div>
+<div class="title">Dibujos</div>
 <div id="levels" class="grid"></div>
 
-<div class="title">MODO LIBRE</div>
+<div class="title">Lienzo libre</div>
 <div class="grid">
-<div class="card" data-size="20">LIENZO 20x20</div>
-<div class="card" data-size="40">LIENZO GRANDE</div>
+<div class="card" onclick="startFree(32)">Pequeño</div>
+<div class="card" onclick="startFree(48)">Medio</div>
+<div class="card" onclick="startFree(64)">Grande</div>
 </div>
 </div>
 
 <div id="game">
 <header>
-<button class="btn" id="exit">SALIR</button>
+<button class="btn" onclick="exitGame()">Salir</button>
 <div id="percent">0%</div>
-<button class="btn" id="clear">LIMPIAR</button>
+<button class="btn" onclick="clearCanvas()">Borrar</button>
 </header>
 
-<div class="view">
-<div id="canvas"></div>
-</div>
+<canvas id="canvas"></canvas>
 
 <div class="controls">
-<div class="tools">
-Tamaño <input type="range" id="size" min="1" max="4" value="1">
-</div>
+<input type="range" id="size" min="4" max="30" value="12">
 <div id="palette" class="palette"></div>
 </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
 
-/* ELEMENTOS */
-const splash=document.getElementById("splash");
+/* ===== COLORES ===== */
+
+const FREE_COLORS=[
+"#000","#444","#888","#fff","#f00","#ff7f00","#ff0","#0f0","#0ff","#00f","#8b00ff",
+"#ff69b4","#a52a2a","#deb887","#ffd700","#98fb98","#20b2aa","#87cefa","#dda0dd"
+];
+
+/* ===== DIBUJOS ===== */
+
+const DRAWINGS=[
+{
+name:"Cara Feliz",
+data:[
+[0,1,1,1,0],
+[1,0,1,0,1],
+[1,1,1,1,1],
+[1,0,0,0,1],
+[0,1,1,1,0]
+]
+},
+{
+name:"Corazon",
+data:[
+[0,1,0,1,0],
+[1,1,1,1,1],
+[1,1,1,1,1],
+[0,1,1,1,0],
+[0,0,1,0,0]
+]
+}
+];
+
+/* ===== VARIABLES ===== */
+
 const menu=document.getElementById("menu");
 const game=document.getElementById("game");
 const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
 const palette=document.getElementById("palette");
 const percent=document.getElementById("percent");
-const levelsDiv=document.getElementById("levels");
-const sizeSlider=document.getElementById("size");
+let drawing=false;
+let color="#000";
+let freeMode=true;
 
-/* DATOS */
-const COLORS={1:"#ff3b30",2:"#000",3:"#ffcc00",4:"#007aff",5:"#4cd964",8:"#ff2d55",14:"#ffccbc",15:"#8b4513"};
-const FREE=["#000","#777","#fff","#f00","#ff0","#0f0","#00f","#ff69b4","#ffa500","#00ffff"];
+/* ===== MENU ===== */
 
-const LEVELS=[
-{name:"Corazón",grid:[[0,8,0,8,0],[8,8,8,8,8],[8,8,8,8,8],[0,8,8,8,0],[0,0,8,0,0]]},
-{name:"Fantasma",grid:[[0,3,3,3,0],[3,3,2,3,3],[3,3,3,3,3],[3,2,3,2,3],[3,3,3,3,3]]},
-{name:"Seta",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]}
-];
-
-/* SPLASH */
-setTimeout(()=>{splash.style.display="none";menu.style.display="block";},800);
-
-/* MENU NIVELES */
-LEVELS.forEach((lvl,i)=>{
-let d=document.createElement("div");
-d.className="card";
-d.textContent=lvl.name;
-d.onclick=()=>startLevel(i);
-levelsDiv.appendChild(d);
+DRAWINGS.forEach((d,i)=>{
+const div=document.createElement("div");
+div.className="card";
+div.textContent=d.name;
+div.onclick=()=>startDrawing(i);
+levels.appendChild(div);
 });
 
-/* VARIABLES */
-let free=false;
-let currentColor=1;
-let painting=false;
+/* ===== LIBRE ===== */
 
-/* INICIAR NIVEL */
-function startLevel(i){
-free=false;
+function startFree(size){
+freeMode=true;
 menu.style.display="none";
 game.style.display="flex";
-buildNumbers(LEVELS[i].grid);
+resizeCanvas();
+buildPalette();
+clearCanvas();
 }
 
-/* CONSTRUIR NUMEROS */
-function buildNumbers(grid){
-canvas.innerHTML="";
-canvas.style.gridTemplateColumns=`repeat(${grid[0].length},28px)`;
-
-let needed=new Set();
-
-grid.forEach(row=>{
-row.forEach(v=>{
-let p=document.createElement("div");
-p.className="pixel";
-
-if(v!==0){
-p.dataset.n=v;
-p.textContent=v;
-needed.add(v);
-p.onpointerdown=()=>paintNumber(p);
+function resizeCanvas(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight-180;
 }
 
-canvas.appendChild(p);
-});
-});
+/* ===== DIBUJO LIBRE ===== */
 
-buildPalette([...needed],true);
+canvas.addEventListener("pointerdown",e=>{drawing=true;paint(e)});
+canvas.addEventListener("pointermove",e=>drawing&&paint(e));
+window.addEventListener("pointerup",()=>drawing=false);
+
+function paint(e){
+const rect=canvas.getBoundingClientRect();
+const x=e.clientX-rect.left;
+const y=e.clientY-rect.top;
+ctx.fillStyle=color;
+ctx.beginPath();
+ctx.arc(x,y,size.value/2,0,Math.PI*2);
+ctx.fill();
 }
 
-function paintNumber(p){
-if(Number(p.dataset.n)===currentColor){
-p.style.background=COLORS[currentColor];
-p.textContent="";
-p.dataset.ok=1;
-update();
-}
-}
+/* ===== PALETA ===== */
 
-function update(){
-let t=document.querySelectorAll(".pixel[data-n]").length;
-let d=document.querySelectorAll(".pixel[data-ok]").length;
-percent.textContent=Math.floor(d/t*100)+"%";
-}
-
-/* PALETA */
-function buildPalette(list,numbers){
+function buildPalette(){
 palette.innerHTML="";
-list.forEach(n=>{
-let c=document.createElement("div");
-c.className="color";
-c.style.background=numbers?COLORS[n]:n;
-c.textContent=numbers?n:"";
-c.onclick=()=>{currentColor=n;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
-palette.appendChild(c);
+FREE_COLORS.forEach(c=>{
+const div=document.createElement("div");
+div.className="color";
+div.style.background=c;
+div.onclick=()=>{
+color=c;
+document.querySelectorAll(".color").forEach(el=>el.classList.remove("active"));
+div.classList.add("active");
+};
+palette.appendChild(div);
 });
 }
 
-});
+/* ===== UTIL ===== */
+
+function clearCanvas(){
+ctx.fillStyle="#ffffff";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function exitGame(){
+game.style.display="none";
+menu.style.display="block";
+}
+
+window.addEventListener("resize",resizeCanvas);
+
 </script>
 
 </body>
