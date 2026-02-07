@@ -352,10 +352,11 @@ path.forEach(c=>c.classList.add("selected"));
 // ---- SOLTAR ----
 d.onpointerup=e=>{
 down=false;
+setTimeout(()=>{
 check();
 clear();
+},10);
 };
-
 b.appendChild(d);
 }
 }
