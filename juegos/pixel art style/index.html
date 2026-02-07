@@ -60,21 +60,15 @@ font-family:"Luckiest Guy";cursor:pointer
 
 .view{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111}
 
-#canvas-wrapper{
-display:grid;
-background:white;
-touch-action:none;
-}
+#canvas{display:grid;background:white;touch-action:none}
 
 .pixel{
 width:28px;height:28px;
 display:flex;align-items:center;justify-content:center;
 font-size:11px;font-weight:bold;color:#aaa;
 border:1px solid rgba(0,0,0,.08);
-touch-action:none;
 }
 
-/* panel */
 .controls{
 height:170px;background:white;color:black;padding:10px;
 display:flex;flex-direction:column;gap:10px
@@ -104,106 +98,111 @@ font-weight:bold;color:white;text-shadow:1px 1px 2px #000
 
 <div class="title">MODO LIBRE</div>
 <div class="grid">
-<div class="card" onclick="freeMode(20)">LIENZO 20x20</div>
-<div class="card" onclick="freeMode(40)">LIENZO GRANDE</div>
+<div class="card" data-size="20">LIENZO 20x20</div>
+<div class="card" data-size="40">LIENZO GRANDE</div>
 </div>
 </div>
 
 <div id="game">
 <header>
-<button class="btn" onclick="location.reload()">SALIR</button>
+<button class="btn" id="exit">SALIR</button>
 <div id="percent">0%</div>
-<button class="btn" onclick="reset()">CENTRAR</button>
+<button class="btn" id="clear">LIMPIAR</button>
 </header>
 
 <div class="view">
-<div id="canvas-wrapper"></div>
+<div id="canvas"></div>
 </div>
 
 <div class="controls">
 <div class="tools">
-<b>Herramienta:</b>
-<button onclick="setBrush(1)">Lápiz</button>
-<button onclick="setBrush(3)">Brocha</button>
-<b>Tamaño:</b>
-<input type="range" min="1" max="5" value="1" id="size">
+Tamaño <input type="range" id="size" min="1" max="4" value="1">
 </div>
 <div id="palette" class="palette"></div>
 </div>
 </div>
 
 <script>
-/* COLORES */
-const COLORS={
-1:"#FF3B30",2:"#000000",3:"#FFCC00",4:"#007AFF",5:"#4CD964",
-6:"#5856D6",7:"#FF9500",8:"#FF2D55",9:"#AF52DE",10:"#5AC8FA",
-11:"#FFFFFF",12:"#8E8E93",13:"#5E5E5E",14:"#FFCCBC",15:"#8B4513"
-};
+document.addEventListener("DOMContentLoaded",()=>{
 
-const FREE_COLORS=[
-"#000","#777","#fff","#f00","#ff7f00","#ff0","#0f0","#0ff","#00f","#8b00ff",
-"#ff69b4","#a52a2a","#deb887","#ffd700","#98fb98","#20b2aa","#87cefa","#dda0dd"
-];
+/* ELEMENTOS */
+const splash=document.getElementById("splash");
+const menu=document.getElementById("menu");
+const game=document.getElementById("game");
+const canvas=document.getElementById("canvas");
+const palette=document.getElementById("palette");
+const percent=document.getElementById("percent");
+const levelsDiv=document.getElementById("levels");
+const sizeSlider=document.getElementById("size");
 
-/* MUCHOS DIBUJOS */
+/* DATOS */
+const COLORS={1:"#ff3b30",2:"#000",3:"#ffcc00",4:"#007aff",5:"#4cd964",8:"#ff2d55",14:"#ffccbc",15:"#8b4513"};
+const FREE=["#000","#777","#fff","#f00","#ff0","#0f0","#00f","#ff69b4","#ffa500","#00ffff"];
+
 const LEVELS=[
-{name:"Corazon",grid:[[0,8,0,8,0],[8,8,8,8,8],[8,8,8,8,8],[0,8,8,8,0],[0,0,8,0,0]]},
+{name:"Corazón",grid:[[0,8,0,8,0],[8,8,8,8,8],[8,8,8,8,8],[0,8,8,8,0],[0,0,8,0,0]]},
 {name:"Fantasma",grid:[[0,3,3,3,0],[3,3,2,3,3],[3,3,3,3,3],[3,2,3,2,3],[3,3,3,3,3]]},
-{name:"Seta",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]},
-{name:"Helado",grid:[[0,7,7,7,0],[7,7,7,7,7],[7,7,7,7,7],[0,15,15,15,0],[0,15,15,15,0]]},
-{name:"Cara",grid:[[0,3,3,3,0],[3,2,3,2,3],[3,3,3,3,3],[3,3,3,3,3],[0,3,3,3,0]]}
+{name:"Seta",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]}
 ];
 
-let free=false,painting=false,selected=1,brush=1;
+/* SPLASH */
+setTimeout(()=>{splash.style.display="none";menu.style.display="block";},800);
 
-/* INIT */
-window.onload=()=>{
-setTimeout(()=>{splash.style.display="none";menu.style.display="block"},700);
-LEVELS.forEach((l,i)=>levels.innerHTML+=`<div class="card" onclick="start(${i})">${l.name}</div>`);
-};
+/* MENU NIVELES */
+LEVELS.forEach((lvl,i)=>{
+let d=document.createElement("div");
+d.className="card";
+d.textContent=lvl.name;
+d.onclick=()=>startLevel(i);
+levelsDiv.appendChild(d);
+});
 
-/* NUMEROS */
-function start(i){
+/* VARIABLES */
+let free=false;
+let currentColor=1;
+let painting=false;
+
+/* INICIAR NIVEL */
+function startLevel(i){
 free=false;
-menu.style.display="none";game.style.display="flex";
-drawNumbers(LEVELS[i].grid);
-paletteNumbers(LEVELS[i].grid);
+menu.style.display="none";
+game.style.display="flex";
+buildNumbers(LEVELS[i].grid);
 }
 
-function drawNumbers(grid){
-canvas-wrapper.innerHTML="";
-canvas-wrapper.style.gridTemplateColumns=`repeat(${grid[0].length},28px)`;
+/* CONSTRUIR NUMEROS */
+function buildNumbers(grid){
+canvas.innerHTML="";
+canvas.style.gridTemplateColumns=`repeat(${grid[0].length},28px)`;
+
+let needed=new Set();
 
 grid.forEach(row=>{
 row.forEach(v=>{
 let p=document.createElement("div");
 p.className="pixel";
-if(v!==0){p.dataset.n=v;p.textContent=v}
+
+if(v!==0){
+p.dataset.n=v;
+p.textContent=v;
+needed.add(v);
 p.onpointerdown=()=>paintNumber(p);
-canvas-wrapper.appendChild(p);
+}
+
+canvas.appendChild(p);
 });
 });
+
+buildPalette([...needed],true);
 }
 
 function paintNumber(p){
-if(Number(p.dataset.n)===selected){
-p.style.background=COLORS[selected];
+if(Number(p.dataset.n)===currentColor){
+p.style.background=COLORS[currentColor];
 p.textContent="";
 p.dataset.ok=1;
 update();
 }
-}
-
-function paletteNumbers(grid){
-palette.innerHTML="";
-[...new Set(grid.flat())].filter(v=>v!=0).forEach(n=>{
-let c=document.createElement("div");
-c.className="color";
-c.style.background=COLORS[n];
-c.textContent=n;
-c.onclick=()=>{selected=n;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
-palette.appendChild(c);
-});
 }
 
 function update(){
@@ -212,51 +211,20 @@ let d=document.querySelectorAll(".pixel[data-ok]").length;
 percent.textContent=Math.floor(d/t*100)+"%";
 }
 
-/* LIBRE */
-function freeMode(size){
-free=true;
-menu.style.display="none";game.style.display="flex";
-
-canvas-wrapper.innerHTML="";
-canvas-wrapper.style.gridTemplateColumns=`repeat(${size},18px)`;
-
-for(let y=0;y<size;y++){
-for(let x=0;x<size;x++){
-let p=document.createElement("div");
-p.className="pixel";
-p.style.background="#fff";
-p.dataset.x=x;p.dataset.y=y;
-
-p.onpointerdown=()=>{painting=true;paintFree(x,y)};
-p.onpointerenter=()=>painting&&paintFree(x,y);
-
-canvas-wrapper.appendChild(p);
-}}
-window.onpointerup=()=>painting=false;
-paletteFree();
-}
-
-function paintFree(x,y){
-document.querySelectorAll(".pixel").forEach(p=>{
-let dx=p.dataset.x-x;
-let dy=p.dataset.y-y;
-if(Math.sqrt(dx*dx+dy*dy)<=brush*size.value)p.style.background=selected;
-});
-}
-
-function paletteFree(){
+/* PALETA */
+function buildPalette(list,numbers){
 palette.innerHTML="";
-FREE_COLORS.forEach(col=>{
+list.forEach(n=>{
 let c=document.createElement("div");
 c.className="color";
-c.style.background=col;
-c.onclick=()=>{selected=col;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
+c.style.background=numbers?COLORS[n]:n;
+c.textContent=numbers?n:"";
+c.onclick=()=>{currentColor=n;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
 palette.appendChild(c);
 });
 }
 
-function setBrush(b){brush=b}
-function reset(){canvas-wrapper.style.transform="scale(1)"}
+});
 </script>
 
 </body>
