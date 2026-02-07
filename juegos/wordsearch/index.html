@@ -114,8 +114,16 @@ font-weight:bold;
 font-size:clamp(14px,4vw,26px);
 }
 
-.selected{background:#475569}
-.found{background:var(--accent)}
+.selected{
+background:#334155;
+box-shadow:0 0 8px rgba(255,255,255,.25) inset;
+}
+
+.found{
+color:#fff;
+font-weight:bold;
+text-shadow:0 0 6px rgba(255,255,255,.6);
+}
 
 .word{
 background:var(--panel);
@@ -232,6 +240,10 @@ c.appendChild(b);
 
 // ================= ENGINE =================
 let direction=null;
+let wordColors=[
+"#22c55e","#38bdf8","#f97316","#e879f9","#facc15","#ef4444","#14b8a6"
+];
+let foundMap={};
 let grid=[],size,placed=[],path=[],down=false,time=60,timer;
 
 function randomWord(){
@@ -402,7 +414,13 @@ if(time<=0)lose();
 },1000);
 }
 
-function clear(){path.forEach(c=>c.classList.remove("selected"));path=[]}
+function clear(){
+path.forEach(c=>{
+if(!c.classList.contains("found"))
+c.classList.remove("selected");
+});
+path=[];
+}
 
 function check(){
 
@@ -410,13 +428,26 @@ let w=path.map(c=>c.textContent).join("");
 let r=[...w].reverse().join("");
 
 let idx=placed.findIndex(a=>a==w||a==r);
+if(idx==-1) return;
 
-if(idx!=-1){
+// color unico por palabra
+let color=wordColors[idx%wordColors.length];
 
-path.forEach(c=>c.classList.add("found"));
+// pintar tablero
+path.forEach(c=>{
+c.classList.remove("selected");
+c.classList.add("found");
+c.style.background=color;
+});
 
-document.querySelectorAll(".word")[idx].classList.add("done");
+// pintar palabra arriba
+let wordBox=document.querySelectorAll(".word")[idx];
+wordBox.classList.add("done");
+wordBox.style.background=color;
+wordBox.style.color="#fff";
 
+// guardar encontrada
+foundMap[placed[idx]]=true;
 placed.splice(idx,1);
 
 save.coins+=3;
@@ -424,7 +455,6 @@ saveGame();
 updateUI();
 
 if(!placed.length)win();
-}
 }
 
 function hint(){
