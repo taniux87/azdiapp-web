@@ -348,13 +348,6 @@ clear();
 path=getLine(first,d);
 path.forEach(c=>c.classList.add("selected"));
 };
-
-// ---- SOLTAR ----
-d.onpointerup=e=>{
-down=false;
-check();
-setTimeout(clear,30);
-};
 b.appendChild(d);
 }
 }
@@ -512,6 +505,13 @@ show("levels");
 }
 
 updateUI();
-
+// SOLTAR EL DEDO EN CUALQUIER PARTE (movil real)
+document.addEventListener("pointerup",()=>{
+if(!down) return;
+down=false;
+check();
+setTimeout(clear,30);
+});
+ 
 </script></body>
 </html>
