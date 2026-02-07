@@ -3,175 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Pixel Studio</title>
+    <title>AzDi Pixel Studio Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #1a1a1a; --pink: #ff4fac; --font: 'Luckiest Guy', cursive; }
-        body { margin: 0; background: var(--bg); font-family: var(--font); color: white; overflow: hidden; }
+        :root { --pink: #ff4fac; --dark: #1a1a1a; --font: 'Luckiest Guy', cursive; }
+        body { margin: 0; background: var(--dark); font-family: var(--font); color: white; overflow: hidden; }
         
-        /* Menú Inicial */
-        #menu { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-        
-        /* Contenedor Principal */
-        #app { display: none; height: 100vh; flex-direction: column; }
-        #header { height: 60px; background: #333; display: flex; justify-content: space-around; align-items: center; border-bottom: 3px solid var(--pink); }
-        
-        #canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 20px; background: #222; }
-        #grid { display: grid; gap: 1px; background: #444; border: 5px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        
-        .pixel { width: 30px; height: 30px; background: #eee; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #ccc; }
+        /* PANTALLAS */
+        .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: var(--dark); z-index: 100; }
+        .screen.active { display: flex; }
 
-        /* Paleta */
-        #footer { height: 100px; background: #333; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 10px; overflow-x: auto; }
-        .color-btn { width: 45px; height: 45px; border-radius: 10px; border: 3px solid #fff; flex-shrink: 0; }
-        .color-btn.active { transform: translateY(-10px); border-color: var(--pink); box-shadow: 0 5px 15px var(--pink); }
+        /* MENÚ SELECCIÓN */
+        .grid-menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; max-height: 60vh; overflow-y: auto; }
+        .card { background: #333; padding: 10px; border-radius: 15px; border: 3px solid #555; cursor: pointer; text-align: center; }
+        .card:hover { border-color: var(--pink); }
+        .card-img { width: 60px; height: 60px; background: #222; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
 
-        .btn { background: var(--pink); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-family: var(--font); font-size: 18px; cursor: pointer; box-shadow: 0 4px 0 #b02e75; }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
+        /* INTERFAZ JUEGO */
+        #game-ui { display: none; height: 100vh; flex-direction: column; }
+        #top-bar { height: 60px; background: #333; display: flex; justify-content: space-around; align-items: center; border-bottom: 3px solid var(--pink); padding: 0 10px; }
         
-        #win-msg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
+        #canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; background: #111; padding: 10px; }
+        #grid { display: grid; gap: 1px; background: #444; border: 4px solid white; }
+        .px { width: 25px; height: 25px; background: #eee; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #bbb; transition: 0.1s; }
+
+        /* PALETA Y HERRAMIENTAS */
+        #controls { background: #222; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; gap: 8px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
+        .color-circle { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(0,0,0,0.5); font-weight: bold; }
+        .color-circle.active { transform: scale(1.2); border-color: var(--pink); box-shadow: 0 0 10px var(--pink); }
+
+        .btn { background: var(--pink); color: white; border: none; padding: 10px 20px; border-radius: 50px; font-family: var(--font); cursor: pointer; }
+        .tool-btn { background: #444; color: white; border: 2px solid #666; padding: 8px; border-radius: 10px; }
+        .tool-btn.active { background: #4facfe; border-color: white; }
     </style>
 </head>
 <body>
 
-<div id="menu">
-    <h1 style="color:var(--pink); font-size: 40px;">AZDI PIXEL STUDIO</h1>
-    <button class="btn" onclick="startApp('library')">📚 ELEGIR DIBUJO</button>
-    <button class="btn" style="background:#4facfe; box-shadow: 0 4px 0 #2a80c0;" onclick="startApp('free')">🎨 DIBUJO LIBRE</button>
+<div id="screen-main" class="screen active">
+    <h1 style="color:var(--pink); font-size: 35px;">AZDI PIXEL STUDIO</h1>
+    <button class="btn" style="margin-bottom: 20px; width: 200px;" onclick="showScreen('screen-library')">🎨 COLOREAR</button>
+    <button class="btn" style="background:#4facfe; width: 200px;" onclick="startFreeMode()">🖌️ MODO LIBRE</button>
 </div>
 
-<div id="app">
-    <div id="header">
-        <button class="btn" style="padding: 5px 15px; font-size: 12px;" onclick="location.reload()">⬅ VOLVER</button>
-        <div id="mode-title">MODO</div>
-        <div id="stats">100%</div>
+<div id="screen-library" class="screen">
+    <h2>ELIGE UN DIBUJO</h2>
+    <div class="grid-menu" id="library-list"></div>
+    <button class="btn" style="margin-top: 20px; background:#666;" onclick="showScreen('screen-main')">VOLVER</button>
+</div>
+
+<div id="game-ui">
+    <div id="top-bar">
+        <button class="btn" style="padding: 5px 12px; font-size: 10px;" onclick="location.reload()">ATRAS</button>
+        <span id="title-lvl">MODO</span>
+        <span id="perc">0%</span>
     </div>
 
-    <div id="canvas-area">
+    <div id="canvas-wrap">
         <div id="grid"></div>
     </div>
 
-    <div id="footer"></div>
-</div>
-
-<div id="win-msg">
-    <h1>¡OBRA MAESTRA! 🏆</h1>
-    <button class="btn" onclick="location.reload()">CONTINUAR</button>
+    <div id="controls">
+        <div class="row" id="tool-row" style="justify-content: center;">
+            <button class="tool-btn active" id="tool-pen" onclick="setTool('pen')">🖌️ PINCEL</button>
+            <button class="tool-btn" id="tool-fill" onclick="setTool('fill')">🪣 CUBO</button>
+        </div>
+        <div class="row" id="palette"></div>
+    </div>
 </div>
 
 <script>
     const COLORS = {
-        0: "#ffffff", 1: "#ff0000", 2: "#000000", 3: "#ffff00", 
-        4: "#0000ff", 5: "#ffdbac", 6: "#8b4513", 7: "#00ff00", 8: "#ff00ff"
+        0: "#ffffff", 1: "#ff0000", 2: "#000000", 3: "#ffff00", 4: "#0000ff", 
+        5: "#ffdbac", 6: "#8b4513", 7: "#00ff00", 8: "#ff00ff", 9: "#00ffff",
+        10: "#ffa500", 11: "#800080", 12: "#ffc0cb", 13: "#a52a2a", 14: "#808080"
     };
 
-    const LIBRARY = [
-        {
-            name: "MARIO",
-            grid: [
-                [0,1,1,1,1,0],
-                [1,1,1,1,1,1],
-                [6,6,6,5,5,2],
-                [6,5,6,5,5,5],
-                [0,5,5,5,5,0]
-            ]
-        },
-        {
-            name: "FANTASMA",
-            grid: [
-                [0,0,2,2,2,0,0],
-                [0,2,0,0,0,2,0],
-                [2,0,2,0,2,0,2],
-                [2,0,0,0,0,0,2],
-                [2,2,2,2,2,2,2]
-            ]
-        }
+    const DIBUJOS = [
+        { name: "MARIO", icon: "🍄", grid: [[0,1,1,1,0],[1,1,1,1,1],[6,5,2,5,5],[6,5,6,5,5],[0,5,5,5,0]] },
+        { name: "ESPADA", icon: "⚔️", grid: [[0,0,4,0,0],[0,4,4,4,0],[0,0,4,0,0],[0,0,6,0,0],[0,6,6,6,0]] },
+        { name: "PATITO", icon: "🐤", grid: [[0,3,3,3,0],[3,3,3,3,10],[3,3,3,3,3],[0,3,3,3,0]] },
+        { name: "CORAZON", icon: "❤️", grid: [[0,1,0,1,0],[1,1,1,1,1],[1,1,1,1,1],[0,1,1,1,0],[0,0,1,0,0]] }
     ];
 
-    let currentMode = '';
+    let currentTool = 'pen';
     let selectedColor = 1;
+    let isFreeMode = false;
 
-    function startApp(mode) {
-        currentMode = mode;
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        
-        if (mode === 'library') {
-            loadDrawing(LIBRARY[Math.floor(Math.random() * LIBRARY.length)]);
-        } else {
-            loadFreeMode();
-        }
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'screen-library') renderLibrary();
     }
 
-    function loadDrawing(drawing) {
-        document.getElementById('mode-title').textContent = drawing.name;
+    function renderLibrary() {
+        const list = document.getElementById('library-list');
+        list.innerHTML = '';
+        DIBUJOS.forEach((d, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<div class="card-img">${d.icon}</div><div>${d.name}</div>`;
+            card.onclick = () => startLibraryMode(i);
+            list.appendChild(card);
+        });
+    }
+
+    function startLibraryMode(index) {
+        isFreeMode = false;
+        const drawing = DIBUJOS[index];
+        setupGame(drawing.name, drawing.grid);
+        setupPalette(Object.keys(COLORS).slice(0, 10), true); // Paleta con números
+    }
+
+    function startFreeMode() {
+        isFreeMode = true;
+        // Crear un grid vacío de 15x15
+        const emptyGrid = Array(15).fill().map(() => Array(15).fill(0));
+        setupGame("DIBUJO LIBRE", emptyGrid);
+        setupPalette(Object.keys(COLORS), false); // Paleta extendida sin números obligatorios
+    }
+
+    function setupGame(name, matrix) {
+        showScreen('none'); 
+        document.getElementById('game-ui').style.display = 'flex';
+        document.getElementById('title-lvl').textContent = name;
+        
         const gridUI = document.getElementById('grid');
-        gridUI.style.gridTemplateColumns = `repeat(${drawing.grid[0].length}, 1fr)`;
+        gridUI.style.gridTemplateColumns = `repeat(${matrix[0].length}, 1fr)`;
         gridUI.innerHTML = '';
 
-        drawing.grid.forEach((row, r) => {
-            row.forEach((colorIdx, c) => {
-                const pixel = document.createElement('div');
-                pixel.className = 'pixel';
-                pixel.dataset.target = colorIdx;
-                pixel.dataset.current = "-1";
-                if(colorIdx !== 0) pixel.textContent = colorIdx; // Ayuda visual
-                pixel.onclick = () => {
-                    if (selectedColor == colorIdx) {
-                        pixel.style.backgroundColor = COLORS[colorIdx];
-                        pixel.dataset.current = colorIdx;
-                        pixel.textContent = "";
-                        checkWin();
-                    } else {
-                        pixel.style.background = "#ffcccc";
-                        setTimeout(() => pixel.style.background = "#eee", 200);
-                    }
-                };
-                gridUI.appendChild(pixel);
+        matrix.forEach((row, r) => {
+            row.forEach((val, c) => {
+                const px = document.createElement('div');
+                px.className = 'px';
+                px.dataset.target = val;
+                px.dataset.current = "-1";
+                if(!isFreeMode && val !== 0) px.textContent = val;
+                
+                px.onclick = () => handlePixelClick(px);
+                gridUI.appendChild(px);
             });
         });
-        setupPalette(Object.keys(COLORS));
     }
 
-    function loadFreeMode() {
-        document.getElementById('mode-title').textContent = "DIBUJO LIBRE";
-        const gridUI = document.getElementById('grid');
-        gridUI.style.gridTemplateColumns = `repeat(15, 1fr)`;
-        gridUI.innerHTML = '';
-
-        for (let i = 0; i < 225; i++) {
-            const pixel = document.createElement('div');
-            pixel.className = 'pixel';
-            pixel.style.width = "22px"; pixel.style.height = "22px";
-            pixel.onclick = () => pixel.style.backgroundColor = COLORS[selectedColor];
-            gridUI.appendChild(pixel);
-        }
-        setupPalette(Object.keys(COLORS));
-    }
-
-    function setupPalette(colorIndices) {
-        const footer = document.getElementById('footer');
-        footer.innerHTML = '';
-        colorIndices.forEach(idx => {
-            const btn = document.createElement('div');
-            btn.className = 'color-btn';
-            btn.style.backgroundColor = COLORS[idx];
-            btn.onclick = () => {
-                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+    function setupPalette(indices, showNumbers) {
+        const pal = document.getElementById('palette');
+        pal.innerHTML = '';
+        indices.forEach(idx => {
+            const c = document.createElement('div');
+            c.className = 'color-circle';
+            c.style.backgroundColor = COLORS[idx];
+            if(showNumbers) c.textContent = idx;
+            c.onclick = () => {
+                document.querySelectorAll('.color-circle').forEach(el => el.classList.remove('active'));
+                c.classList.add('active');
                 selectedColor = idx;
             };
-            footer.appendChild(btn);
+            pal.appendChild(c);
         });
+    }
+
+    function handlePixelClick(px) {
+        if (currentTool === 'pen') {
+            paint(px);
+        } else {
+            fillArea(px);
+        }
+    }
+
+    function paint(px) {
+        if (isFreeMode) {
+            px.style.backgroundColor = COLORS[selectedColor];
+        } else {
+            if (px.dataset.target == selectedColor) {
+                px.style.backgroundColor = COLORS[selectedColor];
+                px.dataset.current = selectedColor;
+                px.textContent = "";
+                checkWin();
+            } else {
+                px.style.boxShadow = "inset 0 0 10px red";
+                setTimeout(() => px.style.boxShadow = "none", 200);
+            }
+        }
+    }
+
+    function setTool(t) {
+        currentTool = t;
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tool-'+t).classList.add('active');
+    }
+
+    function fillArea(startPx) {
+        if(!isFreeMode) return alert("Cubo solo disponible en Modo Libre");
+        const allPx = Array.from(document.querySelectorAll('.px'));
+        allPx.forEach(p => p.style.backgroundColor = COLORS[selectedColor]);
     }
 
     function checkWin() {
-        const pixels = document.querySelectorAll('.pixel');
-        let win = true;
-        pixels.forEach(p => {
-            if (p.dataset.target && p.dataset.target != "0" && p.dataset.current != p.dataset.target) win = false;
+        const all = document.querySelectorAll('.px');
+        let total = 0, ok = 0;
+        all.forEach(p => {
+            if(p.dataset.target != "0") {
+                total++;
+                if(p.dataset.current == p.dataset.target) ok++;
+            }
         });
-        if (win) document.getElementById('win-msg').style.display = 'flex';
+        const p = Math.floor((ok/total)*100);
+        document.getElementById('perc').textContent = p + "%";
+        if(p === 100) alert("¡PERFECTO! 🎉");
     }
 </script>
 </body>
