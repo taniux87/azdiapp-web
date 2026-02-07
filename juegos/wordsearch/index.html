@@ -192,12 +192,11 @@
     <h1>WORD QUEST</h1>
     <div id="avatarDisplay" style="font-size:90px;text-align:center;margin:20px 0; filter: drop-shadow(0 0 10px white)">🙂</div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-        <button onclick="setMode('infantil')" style="background:rgba(56,189,248,0.15); border-color: #38bdf8">👶 NIÑOS</button>
+        <button onclick="setMode('infantil')" style="background:rgba(56,189,248,0.15); border-color: #38bdf8">🧐 NIÑOS</button>
         <button onclick="setMode('adulto')" style="background:rgba(167,139,250,0.15); border-color: #a78bfa">🧠 ADULTOS</button>
     </div>
     <button onclick="openShop()" style="margin-top:10px; border-color: var(--gold); color: var(--gold)">🛒 TIENDA DE AVATARES</button>
 </div>
-
 <div id="categories" class="screen">
     <h2 id="modeTitle">ELIGE CATEGORÍA</h2>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px">
@@ -206,7 +205,15 @@
         <button onclick="selectCategory('rios')">🌊 Ríos</button>
         <button onclick="selectCategory('cultura')">📚 Cultura</button>
         <button onclick="selectCategory('comida')">🍕 Comida</button> 
+        <button onclick="selectCategory('disney')">🏰 Disney</button>
+        <button onclick="selectCategory('peliculas')">🎬 Películas</button>
+        <button onclick="selectCategory('paises')">🌍 Países</button>
+        <button onclick="selectCategory('espacio')">🚀 Espacio</button>
+        <button onclick="selectCategory('cuerpo')">🦴 Cuerpo</button>
     </div>
+    <button onclick="show('menu')" style="margin-top:20px; background: none; border: none; font-size: 14px; opacity: 0.7">← VOLVER AL INICIO</button>
+</div>
+
     <button onclick="show('menu')" style="margin-top:20px; background: none; border: none; font-size: 14px; opacity: 0.7">← VOLVER AL INICIO</button>
 </div>
 
@@ -250,17 +257,28 @@ const DATA = {
         animales: ["GATO","PERRO","OSO","PATO","RANA","VACA","LEON","MONO","PEZ","AVE","LOBO","ZORRO","CEBRA","LORO","RATON"],
         ciudades: ["MADRID","PARIS","ROMA","LIMA","BONN","OSLO","TOKIO","PISA","DUBAI","BERLIN","MIAMI","CUBA","CADIZ","JAEN"],
         rios: ["EBRO","TAJO","NILO","SENA","PO","RIN","DUERO","MINO","SIL","LOIRA","RUA"],
-        cultura: ["ARTE","CINE","FOTO","LIBRO","PIANO","SOL","LUNA","MAR","NUBE","PINTA","COLOR"]
-        comida: ["PAN", "PIZZA", "PERA", "SOPA", "MIEL", "LECHE"] // <- Nueva categoría
+        cultura: ["ARTE","CINE","FOTO","LIBRO","PIANO","SOL","LUNA","MAR","NUBE","PINTA","COLOR"],
+        comida: ["PAN", "PIZZA", "PERA", "SOPA", "MIEL", "LECHE", "MANZANA", "ARROZ", "HUEVO", "QUESO"],
+        disney: ["MICKEY", "MINNIE", "ELSA", "OLAF", "SIMBA", "BAMBI", "PLUTO", "DUMBO", "NEMO", "LILO"],
+        peliculas: ["SHREK", "CARS", "COCO", "UP", "MOANA", "MULAN", "TARZAN", "BALTO"],
+        paises: ["ESPAÑA", "ITALIA", "FRANCIA", "MEXICO", "PERU", "CHILE", "CHINA", "JAPON"],
+        espacio: ["SOL", "LUNA", "MARTE", "VENUS", "ASTRO", "CIELO", "RAYO"],
+        cuerpo: ["MANO", "PIE", "BOCA", "NARIZ", "OJO", "PELO", "CARA", "DEDO"]
     },
     adulto: {
         animales: ["ORNITORRINCO","GUEPARDO","CANGURO","HIENA","AVESTRUZ","LINCE","COCODRILO","ESCORPION","PANTERA","MEDUSA"],
         ciudades: ["ESTOCOLMO","REIKIAVIK","SINGAPUR","CHICAGO","ESTAMBUL","VARSOVIA","BUCAREST","BRUSELAS","MONTREAL","SIDNEY"],
         rios: ["AMAZONAS","MISISIPI","DANUBIO","GANGES","MEKONG","VOLGA","YANGTSE","ORINOCO","ZAMBEZE","TIBER"],
-        cultura: ["CUANTICO","SINTAXIS","ALGORITMO","NEURONA","GRAVEDAD","ESTRELLA","GALAXIA","GENOMA","DATOS","SISTEMA"]
-        comida: ["ESPAGUETIS", "HAMBURGUESA", "GUACAMOLE", "BERENJENA"] // <- Nueva categoría
+        cultura: ["CUANTICO","SINTAXIS","ALGORITMO","NEURONA","GRAVEDAD","ESTRELLA","GALAXIA","GENOMA","DATOS","SISTEMA"],
+        comida: ["ESPAGUETIS", "HAMBURGUESA", "GUACAMOLE", "BERENJENA", "RESTAURANTE", "GASTRONOMIA", "REPOSTERIA"],
+        disney: ["MALEFICA", "CENICIENTA", "ESMERALDA", "ALADDIN", "HERCULES", "RATATOUILLE", "POCAHONTAS"],
+        peliculas: ["INCEPTION", "GLADIATOR", "INTERSTELLAR", "WHIPLASH", "TITANIC", "AVATAR", "TERMINATOR"],
+        paises: ["ARGENTINA", "AUSTRALIA", "SUIZA", "NORUEGA", "TAILANDIA", "FILIPINAS", "PORTUGAL"],
+        espacio: ["CONSTELACION", "ASTEROIDE", "METEORITO", "NEBULOSA", "UNIVERSO", "TELESCOPIO"],
+        cuerpo: ["ESTÓMAGO", "PÁNCREAS", "ESQUELETO", "CEREBRO", "CLAVÍCULA", "INTESTINO", "MUSCULO"]
     }
 };
+
 
 const COLORS = ["#f87171", "#fb923c", "#facc15", "#4ade80", "#2dd4bf", "#38bdf8", "#818cf8", "#a78bfa", "#fb7185"];
 const AVATARS = [["🙂",0],["😎",50],["🤖",120],["👽",200],["🐱",80],["🐸",90],["🐵",150],["🦊",180],["🐼",250],["🐯",300],["🦄",500]];
