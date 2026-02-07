@@ -3,322 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! - Pro</title>
+    <title>Animal Saga: Extreme Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root { --pink: #ff66b2; --blue: #4facfe; --bg-main: #124e66; --font: 'Luckiest Guy', cursive; }
-        * { box-sizing: border-box; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; font-family: var(--font); }
-        
-        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: var(--bg-main); overflow: hidden; }
+        :root {
+            --pink: #ff1493; --blue: #00d2ff; --purple: #9d50bb;
+            --gold: #ffcc33; --font: 'Luckiest Guy', cursive;
+        }
+
+        * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background: #0f0c29; font-family: var(--font);
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- CONTENEDOR TIPO APP --- */
+        #game-container {
+            width: 100%; max-width: 480px; height: 100%;
+            background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29);
+            position: relative; display: flex; flex-direction: column;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+        }
 
         /* --- HEADER --- */
-        .top-nav { height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.3); border-bottom: 4px solid var(--pink); color: white; }
-        .stat { text-align: center; }
-        .stat-val { font-size: 20px; display: block; color: var(--pink); }
+        .header {
+            height: 90px; display: flex; justify-content: space-around; align-items: center;
+            background: rgba(0,0,0,0.4); border-bottom: 4px solid var(--pink);
+            padding: 0 10px; z-index: 10;
+        }
 
-        /* --- MAPA --- */
-        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #a8e063, #ffd700); z-index: 10; padding-top: 80px; }
-        .level-node { position: absolute; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.4); transform: translateX(-50%); cursor: pointer; transition: 0.2s; }
-        .level-node.locked { background: #666; filter: grayscale(1); opacity: 0.7; }
+        .stat-box { text-align: center; color: white; min-width: 80px; }
+        .stat-label { font-size: 12px; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 24px; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+        /* --- PUNTUACIÓN --- */
+        .score-bar {
+            padding: 20px 10px; text-align: center; color: white;
+        }
+        .score-bar h2 { font-size: 50px; margin: 0; color: var(--gold); text-shadow: 0 0 20px rgba(255,204,51,0.5); }
+        .target-text { font-size: 14px; opacity: 0.8; letter-spacing: 2px; }
 
         /* --- TABLERO --- */
-        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#2193b0, #6ddaff); z-index: 100; flex-direction: column; align-items: center; }
-        .score-panel { margin-top: 40px; text-align: center; color: white; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
-        
-        #grid-container { 
-            background: rgba(255,255,255,0.2); 
-            backdrop-filter: blur(10px);
-            padding: 10px; border-radius: 20px; border: 5px solid rgba(255,255,255,0.4);
-            display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
-            width: 95%; aspect-ratio: 1/1; margin: 20px 0;
+        #board-area {
+            flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            padding: 10px; perspective: 1000px;
         }
 
-        .cell { 
-            background: rgba(255,255,255,0.1); border-radius: 12px;
-            display: flex; justify-content: center; align-items: center; font-size: 30px;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        #grid {
+            display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+            width: 100%; aspect-ratio: 1/1; 
+            background: rgba(255,255,255,0.05); padding: 10px;
+            border-radius: 25px; border: 6px solid rgba(255,255,255,0.1);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
             position: relative;
         }
-        
-        /* ESPECIALES */
-        .special-striped-h { border: 3px solid white; background: linear-gradient(0deg, rgba(255,255,255,0) 40%, white 50%, rgba(255,255,255,0) 60%); border-radius: 50%; }
-        .special-striped-v { border: 3px solid white; background: linear-gradient(90deg, rgba(255,255,255,0) 40%, white 50%, rgba(255,255,255,0) 60%); border-radius: 50%; }
-        .special-bomb { animation: bombPulse 0.5s infinite alternate; font-size: 38px; filter: drop-shadow(0 0 8px gold); }
-        
-        @keyframes bombPulse { from { transform: scale(1); } to { transform: scale(1.2); } }
 
-        /* MODAL VICTORIA */
-        #win-modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
-        .win-box { background: white; width: 85%; padding: 40px 20px; border-radius: 40px; text-align: center; border: 10px solid var(--pink); }
-        .win-box h1 { color: var(--pink); font-size: 40px; margin: 0; }
-        .btn-win { background: #4caf50; color: white; padding: 15px 40px; border-radius: 50px; border: none; font-family: var(--font); font-size: 25px; margin-top: 20px; box-shadow: 0 6px 0 #2e7d32; }
+        /* --- PIEZAS --- */
+        .cell {
+            aspect-ratio: 1/1; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 34px; position: relative; cursor: pointer;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255,255,255,0.03);
+        }
 
-        .moves-box { background: rgba(0,0,0,0.3); padding: 10px 30px; border-radius: 30px; color: white; font-size: 28px; }
+        .cell.active { transform: scale(1.2); z-index: 100; background: rgba(255,255,255,0.2) !important; box-shadow: 0 0 20px white; }
+
+        /* ESPECIALES VISUALES */
+        .s-row::before { content: ''; position: absolute; width: 100%; height: 10px; background: white; border-radius: 20px; box-shadow: 0 0 15px white; }
+        .s-col::before { content: ''; position: absolute; width: 10px; height: 100%; background: white; border-radius: 20px; box-shadow: 0 0 15px white; }
+        .s-bomb { background: radial-gradient(circle, var(--gold), transparent) !important; animation: pulse 0.6s infinite alternate; }
+        .s-hyper { animation: rotate 2s infinite linear; font-size: 45px !important; filter: drop-shadow(0 0 15px white); }
+
+        @keyframes pulse { from { transform: scale(0.9); } to { transform: scale(1.1); } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* --- PARTICULAS --- */
+        .particle {
+            position: absolute; pointer-events: none; border-radius: 50%;
+            z-index: 1000; animation: particleOut 0.6s forwards;
+        }
+        @keyframes particleOut {
+            to { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
+        }
+
+        /* --- MODALES --- */
+        .modal {
+            display: none; position: absolute; inset: 0;
+            background: rgba(0,0,0,0.85); z-index: 2000;
+            align-items: center; justify-content: center;
+        }
+
+        .modal-content {
+            background: white; width: 85%; padding: 40px 20px;
+            border-radius: 40px; border: 10px solid var(--pink);
+            text-align: center; transform: translateY(100px); opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal.show .modal-content { transform: translateY(0); opacity: 1; }
+
+        .btn-big {
+            background: #4caf50; color: white; padding: 18px 45px;
+            border-radius: 50px; border: none; font-family: var(--font);
+            font-size: 28px; cursor: pointer; margin-top: 25px;
+            box-shadow: 0 8px 0 #2e7d32; transition: 0.1s;
+        }
+
+        .btn-big:active { transform: translateY(4px); box-shadow: 0 4px 0 #2e7d32; }
+
+        /* --- FOOTER --- */
+        .footer {
+            height: 120px; display: flex; justify-content: center; align-items: center;
+            padding-bottom: 20px;
+        }
+        .moves-circle {
+            width: 90px; height: 90px; border-radius: 50%;
+            background: var(--pink); border: 5px solid white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
     </style>
 </head>
 <body>
 
-<div id="game-wrapper">
-    <div class="top-nav">
-        <div class="stat">VIDAS<span class="stat-val" id="ui-lives">5</span></div>
-        <div class="stat">MONEDAS<span class="stat-val" id="ui-coins">100</span></div>
-        <button onclick="location.reload()" style="background:none; border:2px solid white; color:white; border-radius:10px; font-family:var(--font)">🏠</button>
-    </div>
-
-    <div id="map-screen">
-        <div id="nodes-container" style="position:relative; width:100%; height:5000px;"></div>
-    </div>
-
-    <div id="game-screen">
-        <div class="score-panel">
-            <div style="font-size: 16px;">OBJETIVO: <span id="txt-target">0</span></div>
-            <div style="font-size: 45px;">PUNTOS: <span id="txt-score">0</span></div>
+<div id="game-container">
+    <div class="header">
+        <div class="stat-box">
+            <div class="stat-label">Vidas</div>
+            <div class="stat-val">❤️ 5</div>
         </div>
+        <div class="stat-box">
+            <div class="stat-label">Monedas</div>
+            <div class="stat-val" style="color:var(--gold)">💰 <span id="coins">100</span></div>
+        </div>
+        <button onclick="location.reload()" style="background:none; border:2px solid white; color:white; border-radius:10px; font-family:var(--font); padding:5px 10px;">RESET</button>
+    </div>
 
-        <div id="grid-container"></div>
+    <div class="score-bar">
+        <div class="target-text">OBJETIVO: <span id="target">1200</span></div>
+        <h2 id="score">0</h2>
+    </div>
 
-        <div style="display:flex; width:100%; justify-content:space-around; align-items:center;">
-            <div class="moves-box">🎈 <span id="txt-moves">25</span></div>
-            <button onclick="exitGame()" style="background:#ff4d4d; border:none; padding:15px; border-radius:20px; color:white; font-family:var(--font);">SALIR</button>
+    <div id="board-area">
+        <div id="grid"></div>
+    </div>
+
+    <div class="footer">
+        <div class="moves-circle">
+            <div style="font-size:12px">MOVS</div>
+            <div id="moves" style="font-size:32px">25</div>
         </div>
     </div>
 
-    <div id="win-modal">
-        <div class="win-box">
-            <h1>¡GENIAL!</h1>
-            <p style="font-size:20px; color:#555">NIVEL COMPLETADO<br>💰 +50 MONEDAS</p>
-            <button class="btn-win" onclick="nextLevel()">CONTINUAR</button>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h1 style="color:var(--pink); font-size:50px; margin:0;">¡INCREÍBLE!</h1>
+            <div style="font-size:60px; margin:20px 0;">⭐⭐⭐</div>
+            <p style="font-size:24px; color:#333;">NIVEL COMPLETADO</p>
+            <button class="btn-big" onclick="nextLevel()">CONTINUAR</button>
         </div>
     </div>
 </div>
 
 <script>
-    const EMOJIS = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
-    let unlocked = parseInt(localStorage.getItem('az_un')) || 1;
-    let coins = parseInt(localStorage.getItem('az_co')) || 100;
-    let lives = parseInt(localStorage.getItem('az_li')) || 5;
+/**
+ * MOTOR DE JUEGO "GOLIATH"
+ * Diseñado para Tania - Clon Pro Candy Crush
+ */
 
-    let grid = [], specials = []; 
-    let selected = null, isBlocked = false;
-    let score = 0, moves = 0, target = 0, curLvl = 0;
+const ANIMALS = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
+const HYPER = '🌈';
 
-    function initMap() {
-        const container = document.getElementById('nodes-container');
-        container.innerHTML = '';
-        const w = document.body.clientWidth;
-        document.getElementById('ui-lives').innerText = lives;
-        document.getElementById('ui-coins').innerText = coins;
+let state = {
+    grid: [],
+    specials: [], // null, 'row', 'col', 'bomb', 'hyper'
+    score: 0,
+    moves: 25,
+    target: 1200,
+    isLocked: false,
+    selected: null
+};
 
-        for (let i = 1; i <= 50; i++) {
-            const btn = document.createElement('div');
-            btn.className = `level-node ${i > unlocked ? 'locked' : ''}`;
-            btn.innerText = i;
-            btn.style.top = (4800 - (i * 140)) + 'px';
-            btn.style.left = (w/2 + Math.sin(i * 0.7) * (w * 0.28)) + 'px';
-            if (i <= unlocked) btn.onclick = () => startLevel(i);
-            container.appendChild(btn);
-        }
-        document.getElementById('map-screen').scrollTop = 4800 - (unlocked * 140) - 350;
+// --- AUDIO (Sintetizado para evitar dependencias externas que fallen) ---
+const playSfx = (freq, type = 'sine', duration = 0.1) => {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+};
+
+// --- INICIALIZACIÓN ---
+function init() {
+    const gridEl = document.getElementById('grid');
+    gridEl.innerHTML = '';
+    state.grid = [];
+    state.specials = [];
+    state.score = 0;
+    state.moves = 25;
+
+    for (let i = 0; i < 64; i++) {
+        state.grid.push(ANIMALS[Math.floor(Math.random() * ANIMALS.length)]);
+        state.specials.push(null);
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.dataset.idx = i;
+        div.onclick = () => onCellClick(i);
+        gridEl.appendChild(div);
     }
 
-    function startLevel(lvl) {
-        if (lives <= 0) return alert("¡Sin vidas!");
-        curLvl = lvl; score = 0;
-        moves = Math.max(15, 30 - Math.floor(lvl/5));
-        target = 500 + (lvl * 400);
-        
-        document.getElementById('txt-score').innerText = score;
-        document.getElementById('txt-target').innerText = target;
-        document.getElementById('txt-moves').innerText = moves;
-        document.getElementById('map-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'flex';
-        
-        buildGrid();
+    // Limpiar matches iniciales
+    while (findMatches().length > 0) {
+        findMatches().forEach(m => state.grid[m] = ANIMALS[Math.floor(Math.random() * ANIMALS.length)]);
     }
+    render();
+}
 
-    function buildGrid() {
-        const container = document.getElementById('grid-container');
-        container.innerHTML = '';
-        grid = []; specials = [];
-        for (let i = 0; i < 64; i++) {
-            const animal = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-            grid.push(animal);
-            specials.push(null);
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.dataset.idx = i;
-            cell.innerText = animal;
-            cell.onclick = () => onCellClick(cell);
-            container.appendChild(cell);
-        }
-        while(hasMatches()) { shuffle(); }
-        refreshUI();
-    }
+// --- LÓGICA DE CLICK ---
+async function onCellClick(idx) {
+    if (state.isLocked || state.moves <= 0) return;
 
-    function onCellClick(cell) {
-        if (isBlocked || moves <= 0) return;
-        const idx = parseInt(cell.dataset.idx);
+    if (state.selected === null) {
+        state.selected = idx;
+        document.querySelectorAll('.cell')[idx].classList.add('active');
+        playSfx(440, 'sine', 0.05);
+    } else {
+        const i = state.selected;
+        const j = idx;
+        document.querySelectorAll('.cell')[i].classList.remove('active');
+        state.selected = null;
 
-        if (!selected) {
-            selected = cell;
-            cell.style.transform = "scale(1.2)";
-            cell.style.background = "white";
-        } else {
-            const idx1 = parseInt(selected.dataset.idx);
-            const idx2 = idx;
+        if (isAdjacent(i, j)) {
+            state.isLocked = true;
+            await swap(i, j);
 
-            if (isAdjacent(idx1, idx2)) {
-                swap(idx1, idx2);
-                isBlocked = true;
-                setTimeout(() => {
-                    if (!processTurn()) {
-                        swap(idx1, idx2); // Rebote si no hay match
-                        isBlocked = false;
-                    } else {
-                        moves--;
-                        document.getElementById('txt-moves').innerText = moves;
-                    }
-                }, 300);
+            let matches = findMatches();
+            
+            // Especial: Mezcla con Hiper-Arcoíris
+            if (state.grid[i] === HYPER || state.grid[j] === HYPER) {
+                const colorIdx = state.grid[i] === HYPER ? j : i;
+                const hyperIdx = state.grid[i] === HYPER ? i : j;
+                matches = activateHyper(state.grid[colorIdx]);
+                matches.push(hyperIdx);
             }
-            selected.style.transform = "scale(1)";
-            selected.style.background = "rgba(255,255,255,0.1)";
-            selected = null;
+
+            if (matches.length > 0) {
+                state.moves--;
+                await handleMatches(matches);
+            } else {
+                await swap(i, j); // Retroceso
+            }
+            state.isLocked = false;
+            checkEnd();
         }
     }
+}
 
-    function processTurn() {
-        let matches = getMatches();
-        if (matches.length > 0) {
-            handleSpecials(matches);
-            removeAndFill(matches);
-            return true;
-        }
-        return false;
+// --- GESTIÓN DE MATCHES Y COMBOS ---
+async function handleMatches(matches) {
+    let toDestroy = new Set(matches);
+
+    // Detección de creación de especiales
+    // (Simplificada: si el match es grande, creamos especial en la posición del primer click)
+    if (matches.length === 4) {
+        state.specials[matches[0]] = Math.random() > 0.5 ? 'row' : 'col';
+    } else if (matches.length >= 5) {
+        state.grid[matches[0]] = HYPER;
+        state.specials[matches[0]] = 'hyper';
     }
 
-    function getMatches() {
-        let matched = new Set();
-        // Horiz
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 6; c++) {
-                let i = r * 8 + c;
-                if (grid[i] && grid[i] === grid[i+1] && grid[i] === grid[i+2]) {
-                    matched.add(i); matched.add(i+1); matched.add(i+2);
-                    if (c < 5 && grid[i] === grid[i+3]) { // Crear Striped
-                        matched.add(i+3);
-                        specials[i] = 'h-striped';
-                    }
-                }
+    // Activar explosiones especiales
+    matches.forEach(m => {
+        if (state.specials[m] === 'row') explodeRow(Math.floor(m/8), toDestroy);
+        if (state.specials[m] === 'col') explodeCol(m % 8, toDestroy);
+        if (state.specials[m] === 'bomb') explodeArea(m, toDestroy);
+    });
+
+    // Puntuación y efectos
+    state.score += toDestroy.size * 25;
+    updateUI();
+    playSfx(200 + (toDestroy.size * 10), 'triangle', 0.2);
+    shakeBoard();
+
+    // Eliminar piezas
+    toDestroy.forEach(idx => {
+        createParticles(idx);
+        state.grid[idx] = null;
+        state.specials[idx] = null;
+    });
+
+    render();
+    await wait(400);
+    await fillCascada();
+}
+
+// --- SISTEMA DE CASCADA (EL CORAZÓN) ---
+async function fillCascada() {
+    for (let c = 0; c < 8; c++) {
+        let holes = 0;
+        for (let r = 7; r >= 0; r--) {
+            let i = r * 8 + c;
+            if (state.grid[i] === null) holes++;
+            else if (holes > 0) {
+                state.grid[i + (holes * 8)] = state.grid[i];
+                state.specials[i + (holes * 8)] = state.specials[i];
+                state.grid[i] = null;
+                state.specials[i] = null;
             }
         }
-        // Vert
-        for (let c = 0; c < 8; c++) {
-            for (let r = 0; r < 6; r++) {
-                let i = r * 8 + c;
-                if (grid[i] && grid[i] === grid[i+8] && grid[i] === grid[i+16]) {
-                    matched.add(i); matched.add(i+8); matched.add(i+16);
-                    if (r < 5 && grid[i] === grid[i+24]) { // Crear Bomb/Color
-                        matched.add(i+24);
-                        specials[i] = 'bomb';
-                        grid[i] = '🌈';
-                    }
-                }
-            }
-        }
-        return Array.from(matched);
-    }
-
-    function handleSpecials(matches) {
-        matches.forEach(id => {
-            if (specials[id] === 'h-striped') {
-                let row = Math.floor(id/8);
-                for(let c=0; c<8; c++) matches.push(row*8+c);
-            }
-            if (specials[id] === 'bomb') {
-                // Simula explosión de área
-                let neighbors = [id-1, id+1, id-8, id+8, id-7, id+7, id-9, id+9];
-                neighbors.forEach(n => { if(n>=0 && n<64) matches.push(n); });
-            }
-        });
-    }
-
-    function removeAndFill(matches) {
-        score += matches.length * 10;
-        document.getElementById('txt-score').innerText = score;
-        matches.forEach(id => { grid[id] = null; specials[id] = null; });
-        refreshUI();
-
-        setTimeout(() => {
-            for (let c = 0; c < 8; c++) {
-                for (let r = 7; r >= 0; r--) {
-                    let i = r * 8 + c;
-                    if (grid[i] === null) {
-                        let k = r - 1;
-                        while (k >= 0 && grid[k*8+c] === null) k--;
-                        if (k >= 0) {
-                            grid[i] = grid[k*8+c];
-                            specials[i] = specials[k*8+c];
-                            grid[k*8+c] = null;
-                            specials[k*8+c] = null;
-                        } else {
-                            grid[i] = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
-                        }
-                    }
-                }
-            }
-            refreshUI();
-            setTimeout(() => {
-                if (!processTurn()) {
-                    isBlocked = false;
-                    checkState();
-                }
-            }, 300);
-        }, 300);
-    }
-
-    function checkState() {
-        if (score >= target) {
-            document.getElementById('win-modal').style.display = 'flex';
-            coins += 50; unlocked = Math.max(unlocked, curLvl + 1);
-            save();
-        } else if (moves <= 0) {
-            lives--; save();
-            alert("¡Se acabaron los movimientos! 😢");
-            exitGame();
+        for (let r = 0; r < holes; r++) {
+            state.grid[r * 8 + c] = ANIMALS[Math.floor(Math.random() * ANIMALS.length)];
         }
     }
-
-    function refreshUI() {
-        const cells = document.querySelectorAll('.cell');
-        grid.forEach((val, i) => {
-            cells[i].innerText = val || '';
-            cells[i].className = 'cell';
-            if (specials[i] === 'h-striped') cells[i].classList.add('special-striped-h');
-            if (specials[i] === 'bomb') cells[i].classList.add('special-bomb');
-            cells[i].style.opacity = val ? "1" : "0";
-        });
+    render();
+    
+    let comboMatches = findMatches();
+    if (comboMatches.length > 0) {
+        await wait(300);
+        await handleMatches(comboMatches);
     }
+}
 
-    function isAdjacent(a, b) {
-        const r1 = Math.floor(a/8), r2 = Math.floor(b/8);
-        const c1 = a%8, c2 = b%8;
-        return (Math.abs(r1-r2) + Math.abs(c1-c2)) === 1;
+// --- BUSCADOR DE MATCHES ---
+function findMatches() {
+    let m = new Set();
+    // Horizontales
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 6; c++) {
+            let i = r * 8 + c;
+            if (state.grid[i] && state.grid[i] === state.grid[i+1] && state.grid[i] === state.grid[i+2]) {
+                m.add(i); m.add(i+1); m.add(i+2);
+            }
+        }
     }
-
-    function swap(i, j) {
-        let t = grid[i]; grid[i] = grid[j]; grid[j] = t;
-        let s = specials[i]; specials[i] = specials[j]; specials[j] = s;
-        refreshUI();
+    // Verticales
+    for (let c = 0; c < 8; c++) {
+        for (let r = 0; r < 6; r++) {
+            let i = r * 8 + c;
+            if (state.grid[i] && state.grid[i] === state.grid[i+8] && state.grid[i] === state.grid[i+16]) {
+                m.add(i); m.add(i+8); m.add(i+16);
+            }
+        }
     }
+    return Array.from(m);
+}
 
-    function hasMatches() { return getMatches().length > 0; }
-    function shuffle() { grid = grid.map(() => EMOJIS[Math.floor(Math.random()*EMOJIS.length)]); }
-    function save() { localStorage.setItem('az_un', unlocked); localStorage.setItem('az_co', coins); localStorage.setItem('az_li', lives); }
-    function exitGame() { document.getElementById('game-screen').style.display = 'none'; document.getElementById('map-screen').style.display = 'block'; initMap(); }
-    function nextLevel() { document.getElementById('win-modal').style.display = 'none'; exitGame(); }
+// --- FUNCIONES DE EXPLOSIÓN ---
+function explodeRow(r, set) { for(let i=0; i<8; i++) set.add(r*8+i); playSfx(150, 'square', 0.3); }
+function explodeCol(c, set) { for(let i=0; i<8; i++) set.add(i*8+c); playSfx(150, 'square', 0.3); }
+function explodeArea(idx, set) {
+    let r = Math.floor(idx/8), c = idx%8;
+    for(let i=r-1; i<=r+1; i++) {
+        for(let j=c-1; j<=c+1; j++) {
+            if(i>=0 && i<8 && j>=0 && j<8) set.add(i*8+j);
+        }
+    }
+}
+function activateHyper(emoji) {
+    return state.grid.map((v, i) => v === emoji ? i : -1).filter(i => i !== -1);
+}
 
-    window.onload = initMap;
+// --- UI Y RENDER ---
+function render() {
+    const cells = document.querySelectorAll('.cell');
+    state.grid.forEach((v, i) => {
+        cells[i].innerText = v || '';
+        cells[i].className = 'cell';
+        if (state.specials[i] === 'row') cells[i].classList.add('s-row');
+        if (state.specials[i] === 'col') cells[i].classList.add('s-col');
+        if (state.specials[i] === 'hyper') cells[i].classList.add('s-hyper');
+        cells[i].style.opacity = v ? 1 : 0;
+    });
+}
+
+function updateUI() {
+    document.getElementById('score').innerText = state.score;
+    document.getElementById('moves').innerText = state.moves;
+}
+
+function createParticles(idx) {
+    const cell = document.querySelectorAll('.cell')[idx];
+    const rect = cell.getBoundingClientRect();
+    for (let i = 0; i < 6; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = (rect.left + 20) + 'px';
+        p.style.top = (rect.top + 20) + 'px';
+        p.style.width = '10px'; p.style.height = '10px';
+        p.style.background = ['#ff1493','#00d2ff','#ffcc33'][Math.floor(Math.random()*3)];
+        p.style.setProperty('--x', (Math.random()*100 - 50) + 'px');
+        p.style.setProperty('--y', (Math.random()*100 - 50) + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 600);
+    }
+}
+
+function shakeBoard() {
+    const b = document.getElementById('grid');
+    b.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
+    setTimeout(() => b.style.transform = 'translate(0,0)', 100);
+}
+
+function checkEnd() {
+    if (state.score >= state.target) {
+        const m = document.getElementById('modal');
+        m.style.display = 'flex';
+        setTimeout(() => m.classList.add('show'), 10);
+        playSfx(523, 'sine', 0.5);
+    } else if (state.moves <= 0) {
+        alert("GAME OVER 😢");
+        init();
+    }
+}
+
+// --- UTILS ---
+function isAdjacent(a, b) {
+    return Math.abs(Math.floor(a/8) - Math.floor(b/8)) + Math.abs((a%8) - (b%8)) === 1;
+}
+async function swap(i, j) {
+    [state.grid[i], state.grid[j]] = [state.grid[j], state.grid[i]];
+    [state.specials[i], state.specials[j]] = [state.specials[j], state.specials[i]];
+    render();
+    await wait(200);
+}
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+function nextLevel() {
+    document.getElementById('modal').classList.remove('show');
+    setTimeout(() => {
+        document.getElementById('modal').style.display = 'none';
+        state.target += 500;
+        document.getElementById('target').innerText = state.target;
+        init();
+    }, 500);
+}
+
+window.onload = init;
 </script>
 </body>
 </html>
