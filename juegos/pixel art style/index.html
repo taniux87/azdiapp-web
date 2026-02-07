@@ -3,237 +3,210 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AzDi Art Studio</title>
+<title>AzDi Pixel Art Style</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 body{
 margin:0;
-background:#0a0a0a;
+background:#222;
 font-family:Poppins;
 color:white;
 overflow:hidden;
 }
 
-/* MENÚ */
-#menu{
-position:absolute;inset:0;
-padding:20px;overflow:auto;
-}
-
-.title{
-font-family:"Luckiest Guy";
-color:#4facfe;
-font-size:24px;
-margin:20px 0;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-gap:15px;
-}
-
-.card{
-background:#1a1a1a;
-padding:15px;
-border-radius:16px;
-text-align:center;
-border:2px solid #333;
-cursor:pointer;
-}
-.card:hover{border-color:#ff4fac}
-
-/* JUEGO */
-#game{display:none;height:100vh;flex-direction:column}
-
-header{
-height:60px;background:#222;
-display:flex;align-items:center;justify-content:space-between;
-padding:0 15px;
-}
-
-.btn{
-background:#ff4fac;border:none;color:white;
-padding:8px 16px;border-radius:20px;font-weight:bold;
-}
-
+/* CANVAS */
 #canvas{
-flex:1;background:white;
-touch-action:none;
-position:relative;
-}
-
-.pixel{
 position:absolute;
+top:0;left:0;
 }
 
-.controls{
-height:120px;background:#eee;color:black;padding:8px;
-display:flex;flex-direction:column;gap:6px;
+/* PANEL */
+#panel{
+position:fixed;
+bottom:0;left:0;right:0;
+background:#f0f0f0;
+color:black;
+padding:8px;
+display:flex;
+flex-direction:column;
+gap:6px;
 }
 
-.palette{display:flex;gap:8px;overflow:auto}
+.row{display:flex;gap:6px;overflow-x:auto}
 
 .color{
 width:36px;height:36px;border-radius:50%;
-border:2px solid white;
-cursor:pointer;
+border:2px solid white;cursor:pointer;flex:0 0 auto;
 }
-.color.active{border:2px solid black;transform:scale(1.15)}
+.color.active{border:2px solid black;transform:scale(1.2)}
+
+button{
+border:none;padding:8px 12px;border-radius:12px;font-weight:bold;
+background:#ff4fac;color:white;
+}
+
+.tools button.active{background:#4facfe}
 </style>
 </head>
-
 <body>
-
-<div id="menu">
-<div class="title">Dibujos</div>
-<div id="levels" class="grid"></div>
-
-<div class="title">Lienzo libre</div>
-<div class="grid">
-<div class="card" onclick="startFree(32)">Pequeño</div>
-<div class="card" onclick="startFree(48)">Medio</div>
-<div class="card" onclick="startFree(64)">Grande</div>
-</div>
-</div>
-
-<div id="game">
-<header>
-<button class="btn" onclick="exitGame()">Salir</button>
-<div id="percent">0%</div>
-<button class="btn" onclick="clearCanvas()">Borrar</button>
-</header>
 
 <canvas id="canvas"></canvas>
 
-<div class="controls">
-<input type="range" id="size" min="4" max="30" value="12">
-<div id="palette" class="palette"></div>
+<div id="panel">
+
+<div class="row tools">
+<button data-tool="pencil">Lápiz</button>
+<button data-tool="marker">Rotulador</button>
+<button data-tool="spray">Spray</button>
+<button data-tool="water">Acuarela</button>
+<button data-tool="eraser">Borrar</button>
+<button onclick="clearCanvas()">Limpiar</button>
+<button onclick="saveImage()">Guardar</button>
 </div>
+
+<input type="range" id="size" min="2" max="60" value="10">
+
+<div class="row" id="palette"></div>
+
 </div>
 
 <script>
 
-/* ===== COLORES ===== */
-
-const FREE_COLORS=[
-"#000","#444","#888","#fff","#f00","#ff7f00","#ff0","#0f0","#0ff","#00f","#8b00ff",
-"#ff69b4","#a52a2a","#deb887","#ffd700","#98fb98","#20b2aa","#87cefa","#dda0dd"
-];
-
-/* ===== DIBUJOS ===== */
-
-const DRAWINGS=[
-{
-name:"Cara Feliz",
-data:[
-[0,1,1,1,0],
-[1,0,1,0,1],
-[1,1,1,1,1],
-[1,0,0,0,1],
-[0,1,1,1,0]
-]
-},
-{
-name:"Corazon",
-data:[
-[0,1,0,1,0],
-[1,1,1,1,1],
-[1,1,1,1,1],
-[0,1,1,1,0],
-[0,0,1,0,0]
-]
-}
-];
-
-/* ===== VARIABLES ===== */
-
-const menu=document.getElementById("menu");
-const game=document.getElementById("game");
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 const palette=document.getElementById("palette");
-const percent=document.getElementById("percent");
+
 let drawing=false;
 let color="#000";
-let freeMode=true;
+let tool="pencil";
+let lastX=0,lastY=0;
 
-/* ===== MENU ===== */
-
-DRAWINGS.forEach((d,i)=>{
-const div=document.createElement("div");
-div.className="card";
-div.textContent=d.name;
-div.onclick=()=>startDrawing(i);
-levels.appendChild(div);
-});
-
-/* ===== LIBRE ===== */
-
-function startFree(size){
-freeMode=true;
-menu.style.display="none";
-game.style.display="flex";
-resizeCanvas();
-buildPalette();
-clearCanvas();
-}
-
-function resizeCanvas(){
+/* CANVAS SIZE */
+function resize(){
 canvas.width=window.innerWidth;
-canvas.height=window.innerHeight-180;
+canvas.height=window.innerHeight-140;
+ctx.fillStyle="#fff";
+ctx.fillRect(0,0,canvas.width,canvas.height);
 }
+window.addEventListener("resize",resize);
+resize();
 
-/* ===== DIBUJO LIBRE ===== */
-
-canvas.addEventListener("pointerdown",e=>{drawing=true;paint(e)});
-canvas.addEventListener("pointermove",e=>drawing&&paint(e));
+/* INPUT */
+canvas.addEventListener("pointerdown",e=>{
+drawing=true;
+[lastX,lastY]=pos(e);
+draw(e);
+});
+canvas.addEventListener("pointermove",e=>drawing&&draw(e));
 window.addEventListener("pointerup",()=>drawing=false);
 
-function paint(e){
-const rect=canvas.getBoundingClientRect();
-const x=e.clientX-rect.left;
-const y=e.clientY-rect.top;
+function pos(e){
+const r=canvas.getBoundingClientRect();
+return [e.clientX-r.left,e.clientY-r.top];
+}
+
+/* DIBUJO */
+function draw(e){
+const [x,y]=pos(e);
+const size=document.getElementById("size").value;
+
+if(tool==="eraser"){
+ctx.globalCompositeOperation="destination-out";
+ctx.beginPath();
+ctx.arc(x,y,size/2,0,Math.PI*2);
+ctx.fill();
+ctx.globalCompositeOperation="source-over";
+}
+
+else if(tool==="pencil"){
+ctx.strokeStyle=color;
+ctx.lineWidth=2;
+ctx.lineCap="round";
+ctx.beginPath();
+ctx.moveTo(lastX,lastY);
+ctx.lineTo(x,y);
+ctx.stroke();
+}
+
+else if(tool==="marker"){
+ctx.strokeStyle=color;
+ctx.lineWidth=size;
+ctx.lineCap="round";
+ctx.beginPath();
+ctx.moveTo(lastX,lastY);
+ctx.lineTo(x,y);
+ctx.stroke();
+}
+
+else if(tool==="spray"){
+for(let i=0;i<15;i++){
+const a=Math.random()*Math.PI*2;
+const r=Math.random()*size;
+ctx.fillStyle=color;
+ctx.fillRect(x+Math.cos(a)*r,y+Math.sin(a)*r,1,1);
+}
+}
+
+else if(tool==="water"){
+ctx.globalAlpha=0.1;
 ctx.fillStyle=color;
 ctx.beginPath();
-ctx.arc(x,y,size.value/2,0,Math.PI*2);
+ctx.arc(x,y,size,0,Math.PI*2);
 ctx.fill();
+ctx.globalAlpha=1;
 }
 
-/* ===== PALETA ===== */
+[lastX,lastY]=[x,y];
+}
 
-function buildPalette(){
+/* PALETAS */
+const palettes={
+basico:["#000","#444","#888","#fff","#f00","#0f0","#00f","#ff0"],
+pastel:["#ffd1dc","#ffe4b5","#e0ffff","#e6e6fa","#fffacd","#d8bfd8"],
+neon:["#ff00ff","#00ffff","#39ff14","#ff073a","#ff6ec7","#00f5ff"],
+piel:["#f6d7c3","#eac086","#c68642","#8d5524","#ffdbac","#ffe0bd"]
+};
+
+function loadPalette(name){
 palette.innerHTML="";
-FREE_COLORS.forEach(c=>{
-const div=document.createElement("div");
-div.className="color";
-div.style.background=c;
-div.onclick=()=>{
+palettes[name].forEach(c=>{
+let d=document.createElement("div");
+d.className="color";
+d.style.background=c;
+d.onclick=()=>{
 color=c;
 document.querySelectorAll(".color").forEach(el=>el.classList.remove("active"));
-div.classList.add("active");
+d.classList.add("active");
 };
-palette.appendChild(div);
+palette.appendChild(d);
 });
 }
+loadPalette("basico");
 
-/* ===== UTIL ===== */
+/* BOTONES HERRAMIENTA */
+document.querySelectorAll(".tools button[data-tool]").forEach(b=>{
+b.onclick=()=>{
+tool=b.dataset.tool;
+document.querySelectorAll(".tools button").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+};
+});
 
+/* UTIL */
 function clearCanvas(){
-ctx.fillStyle="#ffffff";
+ctx.fillStyle="#fff";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function exitGame(){
-game.style.display="none";
-menu.style.display="block";
+function saveImage(){
+const link=document.createElement("a");
+link.download="dibujo.png";
+link.href=canvas.toDataURL();
+link.click();
 }
 
-window.addEventListener("resize",resizeCanvas);
-
 </script>
-
 </body>
 </html>
