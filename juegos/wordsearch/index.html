@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Word Quest: Edición Definitiva</title>
+    <title>Word Quest Tania Edition</title>
     <style>
         :root {
             --bg: #020617;
@@ -12,12 +12,12 @@
             --gold: #facc15;
             --theme-color: #38bdf8;
             --glass: rgba(255, 255, 255, 0.05);
-            --neon-blue: #00d2ff;
+            --neon: #00d2ff;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: radial-gradient(circle at center, #0f172a, #020617);
             color: white;
             display: flex;
@@ -29,50 +29,59 @@
             user-select: none;
         }
 
-        .screen { display: none; width: min(94vw, 500px); flex-direction: column; gap: 15px; animation: fadeIn 0.3s ease; }
+        .screen { display: none; width: min(94vw, 500px); flex-direction: column; gap: 15px; animation: fadeIn 0.4s ease-out; }
         .active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         h1 {
             text-align: center;
-            font-size: clamp(32px, 8vw, 48px);
-            background: linear-gradient(to right, var(--theme-color), #a78bfa);
+            font-size: clamp(34px, 9vw, 50px);
+            background: linear-gradient(to right, #38bdf8, #a78bfa, #f472b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin: 10px 0;
-            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
         }
 
-        h2 { text-align: center; color: var(--theme-color); margin: 5px 0; text-transform: uppercase; letter-spacing: 2px; }
+        h2 { text-align: center; color: var(--theme-color); margin: 5px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 18px; }
 
         button {
             width: 100%;
             padding: 16px;
-            border-radius: 16px;
+            border-radius: 18px;
             font-size: 16px;
             font-weight: 800;
             color: white;
             border: 1px solid rgba(255,255,255,0.1);
             background: var(--glass);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        button:hover { background: rgba(255,255,255,0.1); border-color: var(--theme-color); transform: translateY(-2px); }
-        button:active { transform: scale(0.95); }
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover::after { left: 100%; }
+        button:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
 
         /* --- TABLERO --- */
         #board {
             display: grid;
             gap: 5px;
-            background: rgba(255,255,255,0.03);
-            padding: 10px;
-            border-radius: 15px;
+            background: rgba(255,255,255,0.02);
+            padding: 12px;
+            border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.1);
-            touch-action: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .cell {
@@ -83,10 +92,9 @@
             aspect-ratio: 1/1;
             border-radius: 8px;
             font-weight: 900;
-            font-size: clamp(14px, 4vw, 24px);
-            transition: 0.1s;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
-            position: relative;
+            font-size: clamp(14px, 4vw, 22px);
+            transition: transform 0.1s, background 0.2s;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .cell.selected {
@@ -94,53 +102,48 @@
             color: #000 !important;
             transform: scale(1.1);
             z-index: 5;
-            box-shadow: 0 0 20px var(--theme-color);
+            box-shadow: 0 0 15px var(--theme-color);
         }
 
         .cell.found {
             color: #000;
-            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: foundAnim 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        @keyframes pop {
+        @keyframes foundAnim {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.4) rotate(10deg); }
             100% { transform: scale(1); }
         }
 
-        .cell.hint-flash {
-            animation: hintFlash 0.8s infinite;
-            background: var(--gold) !important;
-            color: #000 !important;
-        }
-        @keyframes hintFlash { 0%, 100% { opacity: 1; transform: scale(1.1); } 50% { opacity: 0.5; } }
-
-        /* --- LISTA --- */
+        /* --- LISTA DE PALABRAS --- */
         #wordList {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             justify-content: center;
-            padding: 10px;
-            background: var(--glass);
-            border-radius: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            max-height: 100px;
+            overflow-y: auto;
         }
 
         .word-item {
             padding: 6px 14px;
             background: #334155;
-            border-radius: 25px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
+            color: #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .word-item.done {
             background: var(--accent) !important;
+            color: white;
             text-decoration: line-through;
-            opacity: 0.6;
+            opacity: 0.5;
             transform: scale(0.9);
         }
 
@@ -148,58 +151,70 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 15px;
+            padding: 15px 20px;
             background: var(--glass);
-            border-radius: 14px;
+            border-radius: 18px;
             font-weight: 800;
-            font-size: 14px;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* --- PANTALLA VICTORIA --- */
-        #winScreen {
-            text-align: center;
-            background: rgba(2, 6, 23, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 50px 20px;
-            border-radius: 30px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 0 50px rgba(34, 197, 94, 0.2);
+        /* --- TIENDA --- */
+        .shop-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            padding: 10px;
+            max-height: 350px;
+            overflow-y: auto;
         }
 
-        .win-title { font-size: 36px; color: var(--accent); margin-bottom: 10px; text-shadow: 0 0 15px var(--accent); }
-
-        /* --- TIENDA --- */
-        .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .shop-item {
             background: var(--panel);
-            padding: 20px;
+            padding: 15px;
             border-radius: 20px;
             text-align: center;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: 0.2s;
+            transition: 0.3s;
         }
-        .shop-item.owned { border-color: var(--accent); }
-        .shop-item.selected { background: rgba(56, 189, 248, 0.2); border-color: var(--theme-color); }
-        .shop-item.locked { opacity: 0.5; }
+        .shop-item.owned { background: #0f172a; border-color: rgba(34, 197, 94, 0.3); }
+        .shop-item.selected { border-color: var(--theme-color); background: rgba(56, 189, 248, 0.1); transform: scale(1.05); }
 
+        /* --- MODALES --- */
+        #winScreen {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 30px;
+            background: rgba(2, 6, 23, 0.98);
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 40px rgba(34, 197, 94, 0.3);
+        }
+
+        .stat-box {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
     </style>
 </head>
 <body>
 
 <div id="menu" class="screen active">
     <h1>WORD QUEST</h1>
-    <div id="avatarDisplay" style="font-size:90px;text-align:center;margin:20px 0; filter: drop-shadow(0 0 10px white)">🤔</div>
+    <div id="avatarDisplay" style="font-size:100px;text-align:center;margin:10px 0; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2))">🙂</div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-        <button onclick="setMode('infantil')" style="background:rgba(56,189,248,0.15); border-color: #38bdf8">🧐 NIÑOS</button>
-        <button onclick="setMode('adulto')" style="background:rgba(167,139,250,0.15); border-color: #a78bfa">🧠 ADULTOS</button>
+        <button onclick="setMode('infantil')" style="border-color: #38bdf8; background: rgba(56,189,248,0.05)">👶 NIÑOS</button>
+        <button onclick="setMode('adulto')" style="border-color: #a78bfa; background: rgba(167,139,250,0.05)">🧠 ADULTOS</button>
     </div>
     <button onclick="openShop()" style="margin-top:10px; border-color: var(--gold); color: var(--gold)">🛒 TIENDA DE AVATARES</button>
 </div>
+
 <div id="categories" class="screen">
-    <h2 id="modeTitle">ELIGE CATEGORÍA</h2>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+    <h2 id="modeTitle">CATEGORÍAS</h2>
+    <div id="catGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
         <button onclick="selectCategory('animales')">🐾 Animales</button>
         <button onclick="selectCategory('ciudades')">🏙 Ciudades</button>
         <button onclick="selectCategory('rios')">🌊 Ríos</button>
@@ -211,10 +226,7 @@
         <button onclick="selectCategory('espacio')">🚀 Espacio</button>
         <button onclick="selectCategory('cuerpo')">🦴 Cuerpo</button>
     </div>
-    <button onclick="show('menu')" style="margin-top:20px; background: none; border: none; font-size: 14px; opacity: 0.7">← VOLVER AL INICIO</button>
-</div>
-
-    <button onclick="show('menu')" style="margin-top:20px; background: none; border: none; font-size: 14px; opacity: 0.7">← VOLVER AL INICIO</button>
+    <button onclick="show('menu')" style="margin-top:15px; border:none; background:none; font-size:14px; opacity:0.6">← VOLVER</button>
 </div>
 
 <div id="levels" class="screen">
@@ -225,9 +237,9 @@
 
 <div id="game" class="screen">
     <div class="topbar">
-        <span id="gameInfo">ANIMALES 1</span>
-        <span style="color:var(--theme-color)">⏱ <span id="time">0</span></span>
-        <span style="color:var(--gold)">🪙 <span id="coinsDisplay">0</span></span>
+        <div id="gameInfo" style="font-size: 12px; letter-spacing: 1px;">ANIMALES 1</div>
+        <div style="color:var(--theme-color); font-size: 18px;">⏱ <span id="time">0</span></div>
+        <div style="color:var(--gold); font-size: 18px;">🪙 <span id="coinsDisplay">0</span></div>
     </div>
     <div id="wordList"></div>
     <div id="board"></div>
@@ -238,56 +250,61 @@
 </div>
 
 <div id="winScreen" class="screen">
-    <div class="win-title">¡BRUTAL!</div>
-    <div id="winEmoji" style="font-size: 80px; margin: 20px;">🎉</div>
-    <p style="font-size: 20px;">Has ganado <span style="color:var(--gold); font-weight: bold;">+25 Monedas</span></p>
-    <button onclick="show('levels')" style="background: var(--accent); margin-top: 20px; color: white; border: none; font-size: 20px">CONTINUAR</button>
+    <h2 style="color:var(--accent); font-size: 32px;">¡COMPLETADO!</h2>
+    <div id="winEmoji" style="font-size: 80px; margin: 10px;">🏆</div>
+    <div class="stat-box">
+        <div><span>PUNTOS</span><br><strong id="winPoints">+25</strong></div>
+        <div><span>MONEDAS</span><br><strong style="color:var(--gold)">+25</strong></div>
+    </div>
+    <button onclick="show('levels')" style="background: var(--accent); color: white; border: none; font-size: 20px">SIGUIENTE NIVEL</button>
 </div>
 
 <div id="shop" class="screen">
-    <h2>TU COLECCIÓN</h2>
+    <h2>TIENDA</h2>
     <div id="shopItems" class="shop-grid"></div>
-    <button onclick="show('menu')" style="margin-top:20px">← VOLVER</button>
+    <div style="padding: 15px; text-align: center;">
+        <span style="color:var(--gold)">Tus Monedas: <strong id="shopCoins">0</strong> 🪙</span>
+    </div>
+    <button onclick="show('menu')">← SALIR DE LA TIENDA</button>
 </div>
 
 <script>
-// ================= BASE DE DATOS COMPLETA =================
+// ================= DICCIONARIOS GIGANTES =================
 const DATA = {
     infantil: {
-        animales: ["GATO","PERRO","OSO","PATO","RANA","VACA","LEON","MONO","PEZ","AVE","LOBO","ZORRO","CEBRA","LORO","RATON"],
-        ciudades: ["MADRID","PARIS","ROMA","LIMA","BONN","OSLO","TOKIO","PISA","DUBAI","BERLIN","MIAMI","CUBA","CADIZ","JAEN"],
-        rios: ["EBRO","TAJO","NILO","SENA","PO","RIN","DUERO","MINO","SIL","LOIRA","RUA"],
-        cultura: ["ARTE","CINE","FOTO","LIBRO","PIANO","SOL","LUNA","MAR","NUBE","PINTA","COLOR"],
-        comida: ["PAN", "PIZZA", "PERA", "SOPA", "MIEL", "LECHE", "MANZANA", "ARROZ", "HUEVO", "QUESO"],
-        disney: ["MICKEY", "MINNIE", "ELSA", "OLAF", "SIMBA", "BAMBI", "PLUTO", "DUMBO", "NEMO", "LILO"],
-        peliculas: ["SHREK", "CARS", "COCO", "UP", "MOANA", "MULAN", "TARZAN", "BALTO"],
-        paises: ["ESPAÑA", "ITALIA", "FRANCIA", "MEXICO", "PERU", "CHILE", "CHINA", "JAPON"],
-        espacio: ["SOL", "LUNA", "MARTE", "VENUS", "ASTRO", "CIELO", "RAYO"],
-        cuerpo: ["MANO", "PIE", "BOCA", "NARIZ", "OJO", "PELO", "CARA", "DEDO"]
+        animales: ["GATO","PERRO","OSO","PATO","RANA","VACA","LEON","MONO","PEZ","AVE","LOBO","ZORRO","CEBRA","LORO","RATON","TIGRE","CONEJO","POLLO"],
+        ciudades: ["MADRID","PARIS","ROMA","LIMA","TOKIO","PISA","DUBAI","BERLIN","MIAMI","CUBA","CADIZ","JAEN","OSLO","QUITO","CANO"],
+        rios: ["EBRO","TAJO","NILO","SENA","PO","RIN","DUERO","MINO","SIL","LOIRA","RUA","GENIL","ODRA"],
+        cultura: ["ARTE","CINE","FOTO","LIBRO","PIANO","SOL","LUNA","MAR","NUBE","PINTA","COLOR","MUSEO","DIBUJO"],
+        comida: ["PAN", "PIZZA", "PERA", "SOPA", "MIEL", "LECHE", "ARROZ", "QUESO", "YOGUR", "PIÑA", "COCO", "TARTA"],
+        disney: ["MICKEY", "MINNIE", "ELSA", "OLAF", "SIMBA", "BAMBI", "PLUTO", "DUMBO", "NEMO", "LILO", "STITCH", "MOWGLI"],
+        peliculas: ["SHREK", "CARS", "COCO", "UP", "MOANA", "MULAN", "TARZAN", "BALTO", "BAMBI", "SING"],
+        paises: ["ESPANA", "ITALIA", "FRANCIA", "MEXICO", "PERU", "CHILE", "CHINA", "JAPON", "RUSIA", "INDIA"],
+        espacio: ["SOL", "LUNA", "MARTE", "VENUS", "ASTRO", "CIELO", "RAYO", "NUBE", "GAS", "POLO"],
+        cuerpo: ["MANO", "PIE", "BOCA", "NARIZ", "OJO", "PELO", "CARA", "DEDO", "CEJA", "UÑA", "CODO"]
     },
     adulto: {
-        animales: ["ORNITORRINCO","GUEPARDO","CANGURO","HIENA","AVESTRUZ","LINCE","COCODRILO","ESCORPION","PANTERA","MEDUSA"],
-        ciudades: ["ESTOCOLMO","REIKIAVIK","SINGAPUR","CHICAGO","ESTAMBUL","VARSOVIA","BUCAREST","BRUSELAS","MONTREAL","SIDNEY"],
-        rios: ["AMAZONAS","MISISIPI","DANUBIO","GANGES","MEKONG","VOLGA","YANGTSE","ORINOCO","ZAMBEZE","TIBER"],
-        cultura: ["CUANTICO","SINTAXIS","ALGORITMO","NEURONA","GRAVEDAD","ESTRELLA","GALAXIA","GENOMA","DATOS","SISTEMA"],
-        comida: ["ESPAGUETIS", "HAMBURGUESA", "GUACAMOLE", "BERENJENA", "RESTAURANTE", "GASTRONOMIA", "REPOSTERIA"],
-        disney: ["MALEFICA", "CENICIENTA", "ESMERALDA", "ALADDIN", "HERCULES", "RATATOUILLE", "POCAHONTAS"],
-        peliculas: ["INCEPTION", "GLADIATOR", "INTERSTELLAR", "WHIPLASH", "TITANIC", "AVATAR", "TERMINATOR"],
-        paises: ["ARGENTINA", "AUSTRALIA", "SUIZA", "NORUEGA", "TAILANDIA", "FILIPINAS", "PORTUGAL"],
-        espacio: ["CONSTELACION", "ASTEROIDE", "METEORITO", "NEBULOSA", "UNIVERSO", "TELESCOPIO"],
-        cuerpo: ["ESTÓMAGO", "PÁNCREAS", "ESQUELETO", "CEREBRO", "CLAVÍCULA", "INTESTINO", "MUSCULO"]
+        animales: ["ORNITORRINCO","GUEPARDO","CANGURO","HIENA","AVESTRUZ","LINCE","COCODRILO","ESCORPION","PANTERA","MEDUSA","CHIMPANCE","CALAMAR"],
+        ciudades: ["ESTOCOLMO","REIKIAVIK","SINGAPUR","CHICAGO","ESTAMBUL","VARSOVIA","BUCAREST","BRUSELAS","MONTREAL","SIDNEY","AMSTERDAM"],
+        rios: ["AMAZONAS","MISISIPI","DANUBIO","GANGES","MEKONG","VOLGA","YANGTSE","ORINOCO","ZAMBEZE","TIBER","RHOANO","EUFRATES"],
+        cultura: ["ALGORITMO","NEURONA","GRAVEDAD","ESTRELLA","GALAXIA","GENOMA","SISTEMA","FILOSOFIA","CINETICA","ESCULTURA","LITERATURA"],
+        comida: ["ESPAGUETIS", "HAMBURGUESA", "GUACAMOLE", "BERENJENA", "GASTRONOMIA", "REPOSTERIA", "ALCACHOFA", "ZANAHORIA", "MACARRONES"],
+        disney: ["MALEFICA", "CENICIENTA", "ESMERALDA", "ALADDIN", "HERCULES", "POCAHONTAS", "RATATOUILLE", "CRUELLA", "ARISTOGATOS"],
+        peliculas: ["INCEPTION", "GLADIATOR", "INTERSTELLAR", "WHIPLASH", "TITANIC", "AVATAR", "TERMINATOR", "PSICOSIS", "CASABLANCA"],
+        paises: ["ARGENTINA", "AUSTRALIA", "SUIZA", "NORUEGA", "TAILANDIA", "FILIPINAS", "PORTUGAL", "SENEGAL", "COLOMBIA", "FINLANDIA"],
+        espacio: ["CONSTELACION", "ASTEROIDE", "METEORITO", "NEBULOSA", "UNIVERSO", "TELESCOPIO", "GALAXIA", "SUPERNVA", "GRAVEDAD"],
+        cuerpo: ["ESTOMAGO", "PANCREAS", "ESQUELETO", "CEREBRO", "CLAVICULA", "INTESTINO", "ARTICULACION", "DIAFRAGMA", "PULMONES"]
     }
 };
 
-
 const COLORS = ["#f87171", "#fb923c", "#facc15", "#4ade80", "#2dd4bf", "#38bdf8", "#818cf8", "#a78bfa", "#fb7185"];
-const AVATARS = [["🙂",0],["😎",50],["🤖",120],["👽",200],["🐱",80],["🐸",90],["🐵",150],["🦊",180],["🐼",250],["🐯",300],["🦄",500]];
+const AVATARS = [["🙂",0],["😎",50],["🤖",100],["👽",150],["🐱",200],["🐸",250],["🐵",300],["🦊",350],["🐼",400],["🐯",450],["🦄",500],["🐲",600],["👻",700],["👑",1000]];
 
-// ================= ESTADO DEL JUEGO =================
-let save = JSON.parse(localStorage.wordquest_tania_v3 || '{"coins":50, "avatar":"🙂", "owned":["🙂"]}');
-let gameMode, gameCat, level, size, grid, placedWords, foundWords, isDragging, startCell, currentPath, timer, hintTimeout;
+// ================= VARIABLES DE ESTADO =================
+let save = JSON.parse(localStorage.wordquest_tania_vfinal || '{"coins":50, "avatar":"🙂", "owned":["🙂"]}');
+let gameMode, gameCat, level, size, grid, placedWords, foundWords, isDragging, startCell, currentPath, timer, seconds;
 
-function saveGame() { localStorage.wordquest_tania_v3 = JSON.stringify(save); }
+function saveGame() { localStorage.wordquest_tania_vfinal = JSON.stringify(save); }
 
 function show(id) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -297,6 +314,7 @@ function show(id) {
 
 function updateUI() {
     document.getElementById("coinsDisplay").textContent = save.coins;
+    document.getElementById("shopCoins").textContent = save.coins;
     document.getElementById("avatarDisplay").textContent = save.avatar;
 }
 
@@ -320,19 +338,18 @@ function selectCategory(c) {
     show('levels');
 }
 
-// ================= LÓGICA DEL MOTOR =================
+// ================= MOTOR DEL JUEGO =================
 function startLevel(lv) {
     level = lv;
     foundWords = [];
-    const hue = (lv * 45) % 360;
+    const hue = (lv * 36) % 360;
     document.documentElement.style.setProperty('--theme-color', `hsl(${hue}, 80%, 60%)`);
     
-    // El tamaño del tablero depende del modo y el nivel
-    if(gameMode === 'infantil') size = Math.min(6 + Math.floor(lv/2), 9);
-    else size = Math.min(8 + Math.floor(lv/2), 13);
+    if(gameMode === 'infantil') size = Math.min(7 + Math.floor(lv/3), 10);
+    else size = Math.min(10 + Math.floor(lv/3), 14);
     
     show('game');
-    document.getElementById("gameInfo").textContent = `${gameCat.toUpperCase()} ${lv}`;
+    document.getElementById("gameInfo").textContent = `${gameCat.toUpperCase()} NIVEL ${lv}`;
     generateBoard();
     startTimer();
 }
@@ -341,9 +358,7 @@ function generateBoard() {
     grid = Array(size).fill().map(() => Array(size).fill(""));
     placedWords = [];
     let pool = [...DATA[gameMode][gameCat]].sort(() => Math.random() - 0.5);
-    
-    // Más palabras según el nivel
-    let count = (gameMode === 'infantil' ? 3 : 5) + Math.floor(level/3);
+    let count = (gameMode === 'infantil' ? 4 : 6) + Math.floor(level/4);
     
     pool.slice(0, count).forEach(w => {
         if(tryPlace(w)) placedWords.push(w);
@@ -361,8 +376,11 @@ function generateBoard() {
 
 function tryPlace(word) {
     const dirs = [[1,0],[0,1],[1,1],[-1,1],[0,-1],[-1,0],[1,-1],[-1,-1]];
-    for(let i=0; i<150; i++) {
-        let d = dirs[Math.floor(Math.random() * dirs.length)];
+    // En modo infantil quitamos las diagonales difíciles y los reversos
+    const activeDirs = gameMode === 'infantil' ? dirs.slice(0,3) : dirs;
+
+    for(let i=0; i<200; i++) {
+        let d = activeDirs[Math.floor(Math.random() * activeDirs.length)];
         let x = Math.floor(Math.random() * size), y = Math.floor(Math.random() * size);
         let can = true;
         for(let j=0; j<word.length; j++) {
@@ -389,33 +407,77 @@ function drawBoard() {
             d.className = "cell";
             d.textContent = grid[y][x];
             d.dataset.x = x; d.dataset.y = y;
-            d.onpointerdown = (e) => { 
-                isDragging = true; 
-                startCell = d; 
-                currentPath = [d]; 
-                d.classList.add("selected");
-                d.releasePointerCapture(e.pointerId);
-            };
-            d.onpointerenter = () => { if(isDragging) selectPath(startCell, d); };
+            d.addEventListener('pointerdown', handleStart);
+            d.addEventListener('pointerenter', handleEnter);
             b.appendChild(d);
         }
     }
 }
 
-function selectPath(start, end) {
-    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
-    let x1 = +start.dataset.x, y1 = +start.dataset.y, x2 = +end.dataset.x, y2 = +end.dataset.y;
-    let dx = x2 - x1, dy = y2 - y1, dist = Math.max(Math.abs(dx), Math.abs(dy));
+function handleStart(e) {
+    isDragging = true;
+    startCell = e.target;
+    currentPath = [startCell];
+    startCell.classList.add("selected");
+    e.target.releasePointerCapture(e.pointerId);
+}
+
+function handleEnter(e) {
+    if(!isDragging) return;
+    const endCell = e.target;
     
+    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+    
+    let x1 = +startCell.dataset.x, y1 = +startCell.dataset.y;
+    let x2 = +endCell.dataset.x, y2 = +endCell.dataset.y;
+    
+    let dx = x2 - x1, dy = y2 - y1;
+    let dist = Math.max(Math.abs(dx), Math.abs(dy));
+    
+    // Solo líneas rectas o diagonales de 45 grados
     if(dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) {
         currentPath = [];
-        let sx = dx === 0 ? 0 : dx/dist, sy = dy === 0 ? 0 : dy/dist;
+        let stepX = dx === 0 ? 0 : dx / dist;
+        let stepY = dy === 0 ? 0 : dy / dist;
+        
         for(let i=0; i<=dist; i++) {
-            let c = document.querySelector(`.cell[data-x="${x1 + sx*i}"][data-y="${y1 + sy*i}"]`);
-            if(c) { c.classList.add("selected"); currentPath.push(c); }
+            let currX = x1 + (stepX * i);
+            let currY = y1 + (stepY * i);
+            let cell = document.querySelector(`.cell[data-x="${currX}"][data-y="${currY}"]`);
+            if(cell) {
+                cell.classList.add("selected");
+                currentPath.push(cell);
+            }
         }
     }
 }
+
+document.addEventListener('pointerup', () => {
+    if(!isDragging) return;
+    isDragging = false;
+    
+    let selectedWord = currentPath.map(c => c.textContent).join("");
+    let reversedWord = [...selectedWord].reverse().join("");
+    
+    let match = placedWords.find(w => (w === selectedWord || w === reversedWord) && !foundWords.includes(w));
+    
+    if(match) {
+        let color = COLORS[foundWords.length % COLORS.length];
+        foundWords.push(match);
+        currentPath.forEach(c => {
+            c.classList.remove("selected");
+            c.classList.add("found");
+            c.style.background = color;
+            c.style.boxShadow = `0 0 15px ${color}`;
+        });
+        document.getElementById("w-" + match).classList.add("done");
+        save.coins += 5;
+        updateUI();
+        if(foundWords.length === placedWords.length) setTimeout(win, 500);
+    } else {
+        document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+    }
+});
 
 function drawWordList() {
     const list = document.getElementById("wordList");
@@ -428,52 +490,19 @@ function drawWordList() {
         list.appendChild(s);
     });
 }
-
-// SOLTAR SELECCIÓN
-document.addEventListener("pointerup", () => {
-    if(!isDragging) return;
-    isDragging = false;
-    let word = currentPath.map(c => c.textContent).join("");
-    let rev = [...word].reverse().join("");
-    let found = placedWords.find(w => (w === word || w === rev) && !foundWords.includes(w));
-    
-    if(found) {
-        // APLICAR COLOR ARCOÍRIS
-        let color = COLORS[foundWords.length % COLORS.length];
-        foundWords.push(found);
-        currentPath.forEach(c => {
-            c.classList.add("found");
-            c.style.background = color;
-            c.style.boxShadow = `0 0 15px ${color}`;
-        });
-        document.getElementById("w-" + found).classList.add("done");
-        save.coins += 5; updateUI(); 
-        if(foundWords.length === placedWords.length) win();
-    }
-    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
-});
-
-// PISTA
-function hint() {
-    if(save.coins < 10) return;
-    let pending = placedWords.find(w => !foundWords.includes(w));
-    if(pending) {
-        let cell = [...document.querySelectorAll(".cell")].find(c => c.textContent === pending[0] && !c.classList.contains("found"));
-        if(cell) {
-            cell.classList.add("hint-flash");
-            save.coins -= 10; updateUI();
-            setTimeout(() => cell.classList.remove("hint-flash"), 2500);
-        }
-    }
-}
-
+// ================= FUNCIONES EXTRA =================
 function startTimer() {
     clearInterval(timer);
-    let t = 120;
-    document.getElementById("time").textContent = t;
+    seconds = gameMode === 'infantil' ? 200 : 150;
+    document.getElementById("time").textContent = seconds;
     timer = setInterval(() => {
-        t--; document.getElementById("time").textContent = t;
-        if(t <= 0) { clearInterval(timer); show('levels'); }
+        seconds--;
+        document.getElementById("time").textContent = seconds;
+        if(seconds <= 0) {
+            clearInterval(timer);
+            alert("¡Se acabó el tiempo!");
+            show('levels');
+        }
     }, 1000);
 }
 
@@ -481,31 +510,59 @@ function win() {
     clearInterval(timer);
     save.coins += 25;
     saveGame();
-    setTimeout(() => show('winScreen'), 500);
+    show('winScreen');
 }
 
-// ================= TIENDA =================
+function hint() {
+    if(save.coins < 10) return;
+    let pending = placedWords.find(w => !foundWords.includes(w));
+    if(pending) {
+        let firstLetter = pending[0];
+        let cell = [...document.querySelectorAll(".cell")].find(c => c.textContent === firstLetter && !c.classList.contains("found"));
+        if(cell) {
+            save.coins -= 10;
+            updateUI();
+            cell.style.background = "var(--gold)";
+            setTimeout(() => { if(!cell.classList.contains("found")) cell.style.background = ""; }, 3000);
+        }
+    }
+}
+
+// ================= TIENDA COMPLETA =================
 function openShop() {
     show("shop");
     const container = document.getElementById("shopItems");
     container.innerHTML = "";
     AVATARS.forEach(a => {
+        let isOwned = save.owned.includes(a[0]);
+        let isSelected = save.avatar === a[0];
+        
         let d = document.createElement("div");
-        d.className = `shop-item ${save.owned.includes(a[0]) ? 'owned' : ''} ${save.avatar === a[0] ? 'selected' : ''}`;
-        d.innerHTML = `<div style="font-size:40px">${a[0]}</div><div style="font-size:12px; margin-top:5px; color:var(--gold)">${save.owned.includes(a[0]) ? 'DUEÑO' : a[1] + ' 🪙'}</div>`;
+        d.className = `shop-item ${isOwned ? 'owned' : ''} ${isSelected ? 'selected' : ''}`;
+        d.innerHTML = `
+            <div style="font-size:40px">${a[0]}</div>
+            <div style="font-size:12px; margin-top:5px; color:var(--gold)">
+                ${isOwned ? (isSelected ? 'EQUIPADO' : 'USAR') : a[1] + ' 🪙'}
+            </div>
+        `;
+        
         d.onclick = () => {
-            if(save.owned.includes(a[0])) { save.avatar = a[0]; }
-            else if(save.coins >= a[1]) {
+            if(isOwned) {
+                save.avatar = a[0];
+            } else if(save.coins >= a[1]) {
                 save.coins -= a[1];
                 save.owned.push(a[0]);
                 save.avatar = a[0];
             }
-            saveGame(); openShop(); updateUI();
+            saveGame();
+            openShop();
+            updateUI();
         };
         container.appendChild(d);
     });
 }
 
+// Inicialización
 updateUI();
 </script>
 </body>
