@@ -27,11 +27,12 @@ function preload() {
 }
 
 function create() {
-    // 1. Creamos un mundo grande (2000x2000 píxeles)
+
+    // Mundo grande
     this.cameras.main.setBounds(0, 0, 2000, 2000);
     this.physics.world.setBounds(0, 0, 2000, 2000);
 
-    // 2. Dibujamos un suelo simple (cuadrícula)
+    // Cuadrícula suelo
     let graphics = this.add.graphics();
     graphics.lineStyle(2, 0x444444, 1);
     for(let i=0; i<2000; i+=100) {
@@ -40,25 +41,59 @@ function create() {
     }
     graphics.strokePath();
 
-    // 3. Creamos al Personaje (un cuadrado azul por ahora)
-    player = this.add.rectangle(400, 300, 400, 300, 0x00aaff); // Cuerpo
+
+    /* =====================
+       CREAR AVATAR
+    ===================== */
+
+    // Contenedor (el jugador real)
+    player = this.add.container(400, 300);
     this.physics.add.existing(player);
+
+    player.body.setSize(40, 70);
     player.body.setCollideWorldBounds(true);
 
-    // 4. Añadimos obstáculos (ejemplo: muros rojos)
+
+    // SOMBRA
+    let shadow = this.add.ellipse(0, 28, 40, 18, 0x000000, 0.25);
+
+    // CUERPO
+    let body = this.add.rectangle(0, 10, 30, 40, 0x4aa3ff);
+
+    // CABEZA
+    let head = this.add.circle(0, -25, 18, 0xffd2a6);
+
+    // OJOS
+    let eyeL = this.add.circle(-6, -28, 3, 0x000000);
+    let eyeR = this.add.circle(6, -28, 3, 0x000000);
+
+    // PELO
+    let hair = this.add.ellipse(0, -40, 36, 20, 0x2b1b0f);
+
+    // Añadir todo al personaje
+    player.add([shadow, body, head, hair, eyeL, eyeR]);
+
+
+    /* =====================
+       OBJETOS
+    ===================== */
+
     let obstacles = this.physics.add.staticGroup();
+
     obstacles.add(this.add.rectangle(600, 400, 100, 100, 0xff5555));
     obstacles.add(this.add.rectangle(200, 800, 200, 50, 0xff5555));
-    
+
     this.physics.add.collider(player, obstacles);
 
-    // 5. La cámara sigue al jugador
-    this.cameras.main.startFollow(player);
 
-    // 6. Controles
+    /* =====================
+       CAMARA Y CONTROLES
+    ===================== */
+
+    this.cameras.main.startFollow(player);
     cursors = this.input.keyboard.createCursorKeys();
 
-    this.add.text(10, 10, 'Usa las flechas para moverte por el mundo', { fill: '#ffffff' }).setScrollFactor(0);
+    this.add.text(10, 10, 'Tomy World Avatar - Movimiento base', { fill: '#ffffff' }).setScrollFactor(0);
 }
 
 function update() {
