@@ -332,10 +332,8 @@ if(newPath.length>=2){
 direction=[Math.sign(dx),Math.sign(dy)];
 }
 
-clear();
-path=newPath;
-path.forEach(c=>c.classList.add("selected"));
-}
+path.push(d);
+d.classList.add("selected");
 
 return;
 }
@@ -416,23 +414,49 @@ path=[];
 
 function check(){
 
-if(path.length===0) return;
+if(path.length < 2) return;
 
-// COPIA REAL de lo marcado
-let attempt = path.map(c=>c.textContent).join("");
-let reverse = [...attempt].reverse().join("");
+// SOLO IMPORTA inicio y final
+let start = path[0];
+let end   = path[path.length-1];
 
-let idx = placed.findIndex(w => w===attempt || w===reverse);
-if(idx===-1) return;
+// reconstruir línea real perfecta
+let realLine = getLine(start,end);
 
+// crear palabra
+let word = realLine.map(c=>c.textContent).join("");
+let reverse = [...word].reverse().join("");
+
+// comprobar contra lista
+let idx = placed.findIndex(w => w===word || w===reverse);
+if(idx === -1) return;
+
+// color por palabra
 let color = wordColors[idx % wordColors.length];
 
 // pintar tablero
-path.forEach(c=>{
+realLine.forEach(c=>{
 c.classList.remove("selected");
 c.classList.add("found");
-c.style.background=color;
+c.style.background = color;
 });
+
+// tachar arriba
+let box = document.querySelectorAll(".word")[idx];
+if(box){
+box.classList.add("done");
+box.style.background=color;
+box.style.color="#fff";
+}
+
+placed.splice(idx,1);
+
+save.coins+=3;
+saveGame();
+updateUI();
+
+if(!placed.length) win();
+}
 
 // pintar palabra arriba
 let wordBox=document.querySelectorAll(".word")[idx];
