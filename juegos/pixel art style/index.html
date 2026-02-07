@@ -2,222 +2,177 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AzDi Paint | Color by Number</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AzDi Pixel Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon: #00f7ff;
-            --bg: #050a0f;
-            --card: #101a24;
-        }
+        :root { --bg: #1a1a1a; --pink: #ff4fac; --font: 'Luckiest Guy', cursive; }
+        body { margin: 0; background: var(--bg); font-family: var(--font); color: white; overflow: hidden; }
+        
+        /* Menú Inicial */
+        #menu { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        
+        /* Contenedor Principal */
+        #app { display: none; height: 100vh; flex-direction: column; }
+        #header { height: 60px; background: #333; display: flex; justify-content: space-around; align-items: center; border-bottom: 3px solid var(--pink); }
+        
+        #canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 20px; background: #222; }
+        #grid { display: grid; gap: 1px; background: #444; border: 5px solid #fff; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        .pixel { width: 30px; height: 30px; background: #eee; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #ccc; }
 
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: white;
-            font-family: 'Orbitron', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+        /* Paleta */
+        #footer { height: 100px; background: #333; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 10px; overflow-x: auto; }
+        .color-btn { width: 45px; height: 45px; border-radius: 10px; border: 3px solid #fff; flex-shrink: 0; }
+        .color-btn.active { transform: translateY(-10px); border-color: var(--pink); box-shadow: 0 5px 15px var(--pink); }
 
-        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-size: 22px; margin: 20px 0; }
-
-        /* Selector de Plantillas */
-        .templates { display: flex; gap: 10px; margin-bottom: 20px; }
-        .temp-btn { 
-            background: var(--card); border: 1px solid var(--neon); color: white;
-            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 10px;
-        }
-        .temp-btn:hover { background: var(--neon); color: black; }
-
-        /* Contenedor del Juego */
-        #paint-container {
-            background: #fff; /* Fondo blanco para que resalten los números */
-            padding: 10px;
-            border-radius: 8px;
-            display: grid;
-            gap: 1px;
-            box-shadow: 0 0 30px rgba(0, 247, 255, 0.2);
-        }
-
-        .pixel {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #ccc;
-            cursor: pointer;
-            user-select: none;
-            background: #f9f9f9;
-            transition: 0.2s;
-        }
-
-        .pixel:hover { background: #eee; }
-
-        /* Paleta de Colores */
-        .palette {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            background: var(--card);
-            padding: 15px;
-            border-radius: 20px;
-            border: 1px solid #333;
-        }
-
-        .color-tool {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            cursor: pointer;
-            border: 3px solid transparent;
-            color: white;
-            text-shadow: 1px 1px 2px #000;
-        }
-
-        .color-tool.active { border-color: var(--neon); transform: scale(1.2); box-shadow: 0 0 15px var(--neon); }
-
-        .back-btn { margin-top: 30px; color: var(--neon); text-decoration: none; font-size: 12px; }
+        .btn { background: var(--pink); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-family: var(--font); font-size: 18px; cursor: pointer; box-shadow: 0 4px 0 #b02e75; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        #win-msg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <h1>AZDI PIXEL PAINT</h1>
+<div id="menu">
+    <h1 style="color:var(--pink); font-size: 40px;">AZDI PIXEL STUDIO</h1>
+    <button class="btn" onclick="startApp('library')">📚 ELEGIR DIBUJO</button>
+    <button class="btn" style="background:#4facfe; box-shadow: 0 4px 0 #2a80c0;" onclick="startApp('free')">🎨 DIBUJO LIBRE</button>
+</div>
 
-    <div class="templates">
-        <button class="temp-btn" onclick="loadTemplate('heart')">CORAZÓN</button>
-        <button class="temp-btn" onclick="loadTemplate('face')">SMILE</button>
-        <button class="temp-btn" onclick="loadTemplate('sword')">ESPADA</button>
+<div id="app">
+    <div id="header">
+        <button class="btn" style="padding: 5px 15px; font-size: 12px;" onclick="location.reload()">⬅ VOLVER</button>
+        <div id="mode-title">MODO</div>
+        <div id="stats">100%</div>
     </div>
 
-    <div id="paint-container"></div>
+    <div id="canvas-area">
+        <div id="grid"></div>
+    </div>
 
-    <div class="palette" id="palette"></div>
+    <div id="footer"></div>
+</div>
 
-    <a href="index.html" class="back-btn">← VOLVER AL ARCADE</a>
+<div id="win-msg">
+    <h1>¡OBRA MAESTRA! 🏆</h1>
+    <button class="btn" onclick="location.reload()">CONTINUAR</button>
+</div>
 
 <script>
-    // 0: Blanco, 1: Rojo, 2: Negro, 3: Amarillo, 4: Marrón, 5: Cian, 6: Naranja
-    const colorMap = {
-        0: "#ffffff", 1: "#ff4d4d", 2: "#2d2d2d", 3: "#fffa65", 4: "#7d5233", 5: "#18dcff", 6: "#ff9f1a"
+    const COLORS = {
+        0: "#ffffff", 1: "#ff0000", 2: "#000000", 3: "#ffff00", 
+        4: "#0000ff", 5: "#ffdbac", 6: "#8b4513", 7: "#00ff00", 8: "#ff00ff"
     };
 
-    const templates = {
-        heart: [
-            [0,0,1,1,0,0,1,1,0,0],
-            [0,1,1,1,1,1,1,1,1,0],
-            [1,1,1,1,1,1,1,1,1,1],
-            [1,1,1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,1,1,0,0],
-            [0,0,0,1,1,1,1,0,0,0],
-            [0,0,0,0,1,1,0,0,0,0]
-        ],
-        face: [
-            [0,0,3,3,3,3,3,3,0,0],
-            [0,3,3,3,3,3,3,3,3,0],
-            [3,3,2,3,3,3,3,2,3,3],
-            [3,3,2,3,3,3,3,2,3,3],
-            [3,3,3,3,3,3,3,3,3,3],
-            [3,2,3,3,3,3,3,3,2,3],
-            [0,3,2,2,2,2,2,2,3,0],
-            [0,0,3,3,3,3,3,3,0,0]
-        ],
-        sword: [
-            [0,0,0,0,0,0,0,5,5,0],
-            [0,0,0,0,0,0,5,5,5,0],
-            [0,0,0,0,0,5,5,5,0,0],
-            [0,0,0,0,5,5,5,0,0,0],
-            [0,6,6,5,5,5,0,0,0,0],
-            [0,6,6,6,0,0,0,0,0,0],
-            [4,4,6,6,6,0,0,0,0,0],
-            [4,4,0,0,0,0,0,0,0,0]
-        ]
-    };
+    const LIBRARY = [
+        {
+            name: "MARIO",
+            grid: [
+                [0,1,1,1,1,0],
+                [1,1,1,1,1,1],
+                [6,6,6,5,5,2],
+                [6,5,6,5,5,5],
+                [0,5,5,5,5,0]
+            ]
+        },
+        {
+            name: "FANTASMA",
+            grid: [
+                [0,0,2,2,2,0,0],
+                [0,2,0,0,0,2,0],
+                [2,0,2,0,2,0,2],
+                [2,0,0,0,0,0,2],
+                [2,2,2,2,2,2,2]
+            ]
+        }
+    ];
 
+    let currentMode = '';
     let selectedColor = 1;
-    let currentData = [];
 
-    function initPalette() {
-        const palEl = document.getElementById('palette');
-        palEl.innerHTML = '';
-        // Sacamos los números únicos del dibujo actual (excepto el 0)
-        const uniqueColors = [...new Set(currentData.flat())].filter(n => n !== 0);
+    function startApp(mode) {
+        currentMode = mode;
+        document.getElementById('menu').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
         
-        uniqueColors.forEach(num => {
-            const btn = document.createElement('div');
-            btn.className = `color-tool ${num === selectedColor ? 'active' : ''}`;
-            btn.style.backgroundColor = colorMap[num];
-            btn.innerText = num;
-            btn.onclick = () => {
-                selectedColor = num;
-                document.querySelectorAll('.color-tool').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            };
-            palEl.appendChild(btn);
-        });
+        if (mode === 'library') {
+            loadDrawing(LIBRARY[Math.floor(Math.random() * LIBRARY.length)]);
+        } else {
+            loadFreeMode();
+        }
     }
 
-    function loadTemplate(name) {
-        currentData = templates[name];
-        const container = document.getElementById('paint-container');
-        container.style.gridTemplateColumns = `repeat(${currentData[0].length}, 30px)`;
-        container.innerHTML = '';
+    function loadDrawing(drawing) {
+        document.getElementById('mode-title').textContent = drawing.name;
+        const gridUI = document.getElementById('grid');
+        gridUI.style.gridTemplateColumns = `repeat(${drawing.grid[0].length}, 1fr)`;
+        gridUI.innerHTML = '';
 
-        currentData.forEach((row, r) => {
-            row.forEach((num, c) => {
+        drawing.grid.forEach((row, r) => {
+            row.forEach((colorIdx, c) => {
                 const pixel = document.createElement('div');
                 pixel.className = 'pixel';
-                // Si es 0 (fondo), lo pintamos ya de blanco
-                if(num === 0) {
-                    pixel.style.backgroundColor = "#fff";
-                    pixel.innerText = "";
-                } else {
-                    pixel.innerText = num;
-                    pixel.onclick = () => paintPixel(pixel, num);
-                }
-                container.appendChild(pixel);
+                pixel.dataset.target = colorIdx;
+                pixel.dataset.current = "-1";
+                if(colorIdx !== 0) pixel.textContent = colorIdx; // Ayuda visual
+                pixel.onclick = () => {
+                    if (selectedColor == colorIdx) {
+                        pixel.style.backgroundColor = COLORS[colorIdx];
+                        pixel.dataset.current = colorIdx;
+                        pixel.textContent = "";
+                        checkWin();
+                    } else {
+                        pixel.style.background = "#ffcccc";
+                        setTimeout(() => pixel.style.background = "#eee", 200);
+                    }
+                };
+                gridUI.appendChild(pixel);
             });
         });
-        selectedColor = [...new Set(currentData.flat())].find(n => n !== 0);
-        initPalette();
+        setupPalette(Object.keys(COLORS));
     }
 
-    function paintPixel(el, num) {
-        if (num === selectedColor) {
-            el.style.backgroundColor = colorMap[num];
-            el.style.color = colorMap[num]; // Escondemos el número
-            el.style.border = "none";
-            checkWin();
-        } else {
-            // Efecto de error simple
-            el.style.backgroundColor = "#ffcccc";
-            setTimeout(() => { el.style.backgroundColor = "#f9f9f9"; }, 200);
+    function loadFreeMode() {
+        document.getElementById('mode-title').textContent = "DIBUJO LIBRE";
+        const gridUI = document.getElementById('grid');
+        gridUI.style.gridTemplateColumns = `repeat(15, 1fr)`;
+        gridUI.innerHTML = '';
+
+        for (let i = 0; i < 225; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.style.width = "22px"; pixel.style.height = "22px";
+            pixel.onclick = () => pixel.style.backgroundColor = COLORS[selectedColor];
+            gridUI.appendChild(pixel);
         }
+        setupPalette(Object.keys(COLORS));
+    }
+
+    function setupPalette(colorIndices) {
+        const footer = document.getElementById('footer');
+        footer.innerHTML = '';
+        colorIndices.forEach(idx => {
+            const btn = document.createElement('div');
+            btn.className = 'color-btn';
+            btn.style.backgroundColor = COLORS[idx];
+            btn.onclick = () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedColor = idx;
+            };
+            footer.appendChild(btn);
+        });
     }
 
     function checkWin() {
         const pixels = document.querySelectorAll('.pixel');
-        const allFilled = Array.from(pixels).every(p => {
-            return p.innerText === "" || p.style.backgroundColor !== "rgb(249, 249, 249)";
+        let win = true;
+        pixels.forEach(p => {
+            if (p.dataset.target && p.dataset.target != "0" && p.dataset.current != p.dataset.target) win = false;
         });
-        if(allFilled) {
-            alert("¡Dibujo completado! Eres un artista, Tania.");
-        }
+        if (win) document.getElementById('win-msg').style.display = 'flex';
     }
-
-    // Cargar por defecto
-    loadTemplate('heart');
-
 </script>
 </body>
 </html>
