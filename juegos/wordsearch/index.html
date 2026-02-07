@@ -9,6 +9,10 @@
 --accent:#22c55e;
 --gold:#facc15;
 --danger:#ef4444;
+--neon1:#38bdf8;
+--neon2:#a78bfa;
+--neon3:#22c55e;
+--glass:rgba(255,255,255,.06);
 }
 
 body{
@@ -26,16 +30,64 @@ min-height:100vh;
 .active{display:block}
 
 h1,h2{text-align:center;margin:10px}
+h1{
+font-size:42px;
+letter-spacing:2px;
+text-shadow:
+0 0 10px var(--neon1),
+0 0 20px var(--neon2);
+ }
 
 button{
 width:100%;
-padding:14px;
-margin:8px 0;
-border:none;
-border-radius:14px;
+padding:16px;
+margin:10px 0;
+border-radius:18px;
 font-size:18px;
-background:var(--panel);
 color:white;
+border:1px solid rgba(255,255,255,.15);
+background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+backdrop-filter:blur(8px);
+box-shadow:
+0 0 0px transparent,
+0 0 10px rgba(56,189,248,.2),
+inset 0 0 10px rgba(255,255,255,.05);
+transition:.25s;
+position:relative;
+overflow:hidden;
+}
+ button:hover{
+transform:translateY(-2px);
+box-shadow:
+0 0 12px var(--neon1),
+0 0 24px rgba(56,189,248,.6);
+}
+
+button:active{
+transform:scale(.96);
+box-shadow:
+0 0 6px var(--neon2),
+0 0 12px var(--neon2);
+}
+ button::before{
+content:"";
+position:absolute;
+inset:0;
+border-radius:18px;
+padding:1px;
+background:linear-gradient(120deg,var(--neon1),var(--neon2),var(--neon3));
+-webkit-mask:
+linear-gradient(#000 0 0) content-box,
+linear-gradient(#000 0 0);
+-webkit-mask-composite:xor;
+mask-composite:exclude;
+opacity:.6;
+animation:borderFlow 4s linear infinite;
+}
+
+@keyframes borderFlow{
+0%{filter:hue-rotate(0deg)}
+100%{filter:hue-rotate(360deg)}
 }
 
 .topbar{
@@ -239,33 +291,57 @@ d.textContent=grid[y][x];
 d.dataset.x=x;
 d.dataset.y=y;
 
+// ---- EMPEZAR SELECCION ----
 d.onpointerdown=e=>{
 down=true;
 direction=null;
 path=[d];
-clearSelection();
+clear();
 d.classList.add("selected");
 };
 
+// ---- ARRASTRAR ----
 d.onpointerenter=e=>{
-if(!down)return;
+if(!down) return;
 
 const first=path[0];
+const dx=(+d.dataset.x)-(+first.dataset.x);
+const dy=(+d.dataset.y)-(+first.dataset.y);
 
-const dx = (+d.dataset.x) - (+first.dataset.x);
-const dy = (+d.dataset.y) - (+first.dataset.y);
+// si aun no hay direccion → permitir explorar
+if(direction===null){
 
-// SOLO PERMITIR LINEA RECTA
-if(path.length===1 || (dx===0 || dy===0 || Math.abs(dx)===Math.abs(dy))){
-clearSelection();
-path=getLine(first,d);
+// permitir cualquier linea valida
+if(dx===0 || dy===0 || Math.abs(dx)===Math.abs(dy)){
+let newPath=getLine(first,d);
+
+// evitar micro saltos del dedo
+if(newPath.length>=2){
+direction=[Math.sign(dx),Math.sign(dy)];
+}
+
+clear();
+path=newPath;
 path.forEach(c=>c.classList.add("selected"));
 }
+
+return;
+}
+
+// direccion fijada → no permitir girar
+let newDir=[Math.sign(dx),Math.sign(dy)];
+if(newDir[0]!==direction[0] || newDir[1]!==direction[1]) return;
+
+clear();
+path=getLine(first,d);
+path.forEach(c=>c.classList.add("selected"));
 };
+
+// ---- SOLTAR ----
 d.onpointerup=e=>{
 down=false;
 check();
-clearSelection();
+clear();
 };
 
 b.appendChild(d);
