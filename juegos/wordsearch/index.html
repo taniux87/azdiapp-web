@@ -443,23 +443,6 @@ c.style.background=color;
 
 // pintar palabra arriba
 let wordBox=document.querySelectorAll(".word")[idx];
-if(wordBox){
-wordBox.classList.add("done");
-wordBox.style.background=color;
-wordBox.style.color="#fff";
-}
-
-placed.splice(idx,1);
-
-save.coins+=3;
-saveGame();
-updateUI();
-
-if(!placed.length) win();
-}
-
-// pintar palabra arriba
-let wordBox=document.querySelectorAll(".word")[idx];
 wordBox.classList.add("done");
 wordBox.style.background=color;
 wordBox.style.color="#fff";
