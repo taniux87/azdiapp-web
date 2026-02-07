@@ -259,7 +259,15 @@ path=getLine(first,d);
 path.forEach(c=>c.classList.add("selected"));
 }
 };
-  
+d.onpointerup=e=>{
+down=false;
+check();
+clearSelection();
+};
+
+b.appendChild(d);
+}
+}
 function getLine(a,b){
 
 let x1=+a.dataset.x, y1=+a.dataset.y;
@@ -281,16 +289,6 @@ x+=dx; y+=dy;
 
 return cells;
 }
-d.onpointerup=e=>{
-down=false;
-check();
-clearSelection();
-};
-
-b.appendChild(d);
-}
-}
-
 // ================= GAME =================
 function startLevel(lv){
 level=lv;
