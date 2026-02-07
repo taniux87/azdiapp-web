@@ -352,10 +352,8 @@ path.forEach(c=>c.classList.add("selected"));
 // ---- SOLTAR ----
 d.onpointerup=e=>{
 down=false;
-setTimeout(()=>{
 check();
-clear();
-},10);
+setTimeout(clear,30);
 };
 b.appendChild(d);
 }
@@ -425,14 +423,16 @@ path=[];
 
 function check(){
 
-let w=path.map(c=>c.textContent).join("");
-let r=[...w].reverse().join("");
+if(path.length===0) return;
 
-let idx=placed.findIndex(a=>a==w||a==r);
-if(idx==-1) return;
+// COPIA REAL de lo marcado
+let attempt = path.map(c=>c.textContent).join("");
+let reverse = [...attempt].reverse().join("");
 
-// color unico por palabra
-let color=wordColors[idx%wordColors.length];
+let idx = placed.findIndex(w => w===attempt || w===reverse);
+if(idx===-1) return;
+
+let color = wordColors[idx % wordColors.length];
 
 // pintar tablero
 path.forEach(c=>{
@@ -440,6 +440,23 @@ c.classList.remove("selected");
 c.classList.add("found");
 c.style.background=color;
 });
+
+// pintar palabra arriba
+let wordBox=document.querySelectorAll(".word")[idx];
+if(wordBox){
+wordBox.classList.add("done");
+wordBox.style.background=color;
+wordBox.style.color="#fff";
+}
+
+placed.splice(idx,1);
+
+save.coins+=3;
+saveGame();
+updateUI();
+
+if(!placed.length) win();
+}
 
 // pintar palabra arriba
 let wordBox=document.querySelectorAll(".word")[idx];
