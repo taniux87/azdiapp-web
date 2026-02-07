@@ -179,6 +179,7 @@ c.appendChild(b);
 }
 
 // ================= ENGINE =================
+let direction=null;
 let grid=[],size,placed=[],path=[],down=false,time=60,timer;
 
 function randomWord(){
@@ -240,6 +241,7 @@ d.dataset.y=y;
 
 d.onpointerdown=e=>{
 down=true;
+direction=null;
 path=[d];
 clearSelection();
 d.classList.add("selected");
@@ -249,8 +251,9 @@ d.onpointerenter=e=>{
 if(!down)return;
 
 const first=path[0];
-const dx=d.dataset.x-first.dataset.x;
-const dy=d.dataset.y-first.dataset.y;
+
+const dx = (+d.dataset.x) - (+first.dataset.x);
+const dy = (+d.dataset.y) - (+first.dataset.y);
 
 // SOLO PERMITIR LINEA RECTA
 if(path.length===1 || (dx===0 || dy===0 || Math.abs(dx)===Math.abs(dy))){
