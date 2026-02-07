@@ -189,7 +189,11 @@ basico:[
 "#ff0000","#00ff00","#0000ff","#ffff00","#ff00ff","#00ffff",
 "#800000","#008000","#000080","#808000","#800080","#008080"
 ],
-
+arcoiris:[
+"#ff0000","#ff4000","#ff8000","#ffbf00","#ffff00","#bfff00","#80ff00","#40ff00",
+"#00ff00","#00ff40","#00ff80","#00ffbf","#00ffff","#00bfff","#0080ff","#0040ff",
+"#0000ff","#4000ff","#8000ff","#bf00ff","#ff00ff","#ff00bf","#ff0080","#ff0040"
+],
 pastel:[
 "#ffd1dc","#ffe4e1","#fffacd","#e0ffff","#e6e6fa","#f0fff0",
 "#fafad2","#f5deb3","#ffc0cb","#e0b0ff","#d8bfd8","#ffb6c1",
@@ -225,10 +229,31 @@ dulces:[
 "#c7ceea","#f6abb6","#fcd5ce","#fae1dd","#e4c1f9",
 "#d0f4de","#a9def9","#fcf6bd","#ffc8dd","#ffafcc"
 ]
+fantasia:["#ff00ff","#00ffcc","#cc00ff","#ffcc00"]
 
 };
+/* ===== CREAR SELECTOR DE PALETAS ===== */
 
-/* selector paleta */
+const selector=document.createElement("div");
+selector.style.display="flex";
+selector.style.gap="6px";
+selector.style.overflowX="auto";
+selector.style.marginBottom="6px";
+palette.parentNode.insertBefore(selector,palette);
+
+Object.keys(palettes).forEach(name=>{
+let b=document.createElement("button");
+b.textContent=name;
+b.style.background="#ddd";
+b.style.color="black";
+b.style.borderRadius="8px";
+b.style.padding="6px 10px";
+b.onclick=()=>loadPalette(name);
+selector.appendChild(b);
+});
+
+/* ===== FUNCION PALETA ===== */
+
 function loadPalette(name){
 palette.innerHTML="";
 palettes[name].forEach(c=>{
