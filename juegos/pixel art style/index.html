@@ -179,67 +179,85 @@ ctx.globalAlpha=1;
 
 [lastX,lastY]=[x,y];
 }
-
 /* ===== PALETAS GRANDES ===== */
 
-const palettes={
+const palettes = {
 
 basico:[
-"#000000","#404040","#808080","#c0c0c0","#ffffff",
+"#000000","#202020","#404040","#606060","#808080","#a0a0a0","#c0c0c0","#e0e0e0","#ffffff",
 "#ff0000","#00ff00","#0000ff","#ffff00","#ff00ff","#00ffff",
 "#800000","#008000","#000080","#808000","#800080","#008080"
 ],
+
 arcoiris:[
 "#ff0000","#ff4000","#ff8000","#ffbf00","#ffff00","#bfff00","#80ff00","#40ff00",
 "#00ff00","#00ff40","#00ff80","#00ffbf","#00ffff","#00bfff","#0080ff","#0040ff",
 "#0000ff","#4000ff","#8000ff","#bf00ff","#ff00ff","#ff00bf","#ff0080","#ff0040"
 ],
+
 pastel:[
-"#ffd1dc","#ffe4e1","#fffacd","#e0ffff","#e6e6fa","#f0fff0",
-"#fafad2","#f5deb3","#ffc0cb","#e0b0ff","#d8bfd8","#ffb6c1",
-"#ffe4b5","#faf0e6","#e0ffff","#f0ffff","#f5f5dc","#fff0f5"
+"#ffd1dc","#ffe4e1","#fffacd","#e0ffff","#e6e6fa","#f0fff0","#fafad2","#f5deb3",
+"#ffc0cb","#e0b0ff","#d8bfd8","#ffb6c1","#ffe4b5","#faf0e6","#f0ffff","#f5f5dc",
+"#fff0f5","#e3f2fd","#fce4ec","#f3e5f5"
 ],
 
 neon:[
-"#ff00ff","#00ffff","#39ff14","#ff073a","#ff6ec7","#00f5ff",
-"#fffb00","#ff1493","#00ffea","#ff5f1f","#7fff00","#00ff9f",
-"#ff00aa","#00e5ff","#ffea00","#ff3300","#66ff00","#cc00ff"
+"#ff00ff","#00ffff","#39ff14","#ff073a","#ff6ec7","#00f5ff","#fffb00","#ff1493",
+"#00ffea","#ff5f1f","#7fff00","#00ff9f","#ff00aa","#00e5ff","#ffea00","#ff3300",
+"#66ff00","#cc00ff","#00ffcc","#ffcc00"
 ],
 
 piel:[
-"#f6d7c3","#eac086","#d1a17a","#b97a56","#8d5524",
-"#ffdbac","#ffe0bd","#fcd5b5","#e0ac69","#c68642",
-"#b77b4b","#a56b46","#7a5230","#5c3b21","#3d2b1f"
+"#fff5e1","#ffe0bd","#ffcd94","#eac086","#d1a17a","#b97a56","#8d5524","#7a4b2a",
+"#c68642","#a56b46","#5c3b21","#3d2b1f","#f6d7c3","#fcd5b5","#e0ac69","#c68642"
 ],
 
 naturaleza:[
-"#2e8b57","#3cb371","#66cdaa","#8fbc8f","#556b2f",
-"#6b8e23","#228b22","#9acd32","#32cd32","#7cfc00",
-"#228b22","#006400","#8f9779","#4f7942","#3a5f0b"
+"#2e8b57","#3cb371","#66cdaa","#8fbc8f","#556b2f","#6b8e23","#228b22","#9acd32",
+"#32cd32","#7cfc00","#006400","#8f9779","#4f7942","#3a5f0b","#355e3b","#4b5320"
 ],
 
 cielo_mar:[
-"#87ceeb","#00bfff","#1e90ff","#4682b4","#5f9ea0",
-"#00ced1","#20b2aa","#40e0d0","#48d1cc","#00ffff",
-"#87cefa","#b0e0e6","#add8e6","#87cefa","#4682b4"
+"#87ceeb","#00bfff","#1e90ff","#4682b4","#5f9ea0","#00ced1","#20b2aa","#40e0d0",
+"#48d1cc","#00ffff","#b0e0e6","#add8e6","#87cefa","#4682b4","#5dade2","#85c1e9"
 ],
 
 dulces:[
-"#ff9aa2","#ffb7b2","#ffdac1","#e2f0cb","#b5ead7",
-"#c7ceea","#f6abb6","#fcd5ce","#fae1dd","#e4c1f9",
-"#d0f4de","#a9def9","#fcf6bd","#ffc8dd","#ffafcc"
+"#ff9aa2","#ffb7b2","#ffdac1","#e2f0cb","#b5ead7","#c7ceea","#f6abb6","#fcd5ce",
+"#fae1dd","#e4c1f9","#d0f4de","#a9def9","#fcf6bd","#ffc8dd","#ffafcc","#f1c0e8"
+],
+
+fantasia:[
+"#ff00ff","#cc00ff","#9900ff","#6600ff","#3300ff","#0033ff","#0066ff","#0099ff",
+"#00ccff","#00ffff","#00ffcc","#00ff99","#00ff66","#33ff33","#66ff00","#99ff00"
+],
+
+tierra:[
+"#3b2f2f","#4b3621","#654321","#8b4513","#a0522d","#cd853f","#d2b48c","#deb887",
+"#f4a460","#daa520","#b8860b","#c2b280","#e5c07b","#d7b899","#c19a6b","#967969"
+],
+
+hielo:[
+"#e0ffff","#d0f0ff","#c0e8ff","#b0e0ff","#a0d8ff","#90d0ff","#80c8ff","#70c0ff",
+"#60b8ff","#50b0ff","#40a8ff","#309fff","#2097ff","#108fff","#0087ff","#0077e6"
 ]
-fantasia:["#ff00ff","#00ffcc","#cc00ff","#ffcc00"]
 
 };
-/* ===== CREAR SELECTOR DE PALETAS ===== */
+
+
+/* ===== CREAR SELECTOR DE PALETAS (SEGURO PARA MOVIL) ===== */
+
+window.addEventListener("load",()=>{
+
+const paletteBar=document.getElementById("palette");
 
 const selector=document.createElement("div");
 selector.style.display="flex";
 selector.style.gap="6px";
 selector.style.overflowX="auto";
 selector.style.marginBottom="6px";
-palette.parentNode.insertBefore(selector,palette);
+
+paletteBar.parentNode.insertBefore(selector,paletteBar);
 
 Object.keys(palettes).forEach(name=>{
 let b=document.createElement("button");
@@ -252,20 +270,29 @@ b.onclick=()=>loadPalette(name);
 selector.appendChild(b);
 });
 
-/* ===== FUNCION PALETA ===== */
+loadPalette("basico");
+
+});
+
+
+/* ===== FUNCION CARGAR PALETA ===== */
 
 function loadPalette(name){
-palette.innerHTML="";
+const paletteBar=document.getElementById("palette");
+paletteBar.innerHTML="";
+
 palettes[name].forEach(c=>{
 let d=document.createElement("div");
 d.className="color";
 d.style.background=c;
+
 d.onclick=()=>{
 color=c;
 document.querySelectorAll(".color").forEach(el=>el.classList.remove("active"));
 d.classList.add("active");
 };
-palette.appendChild(d);
+
+paletteBar.appendChild(d);
 });
 }
 
