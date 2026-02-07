@@ -131,52 +131,117 @@ font-family:"Luckiest Guy";color:white;text-shadow:1px 1px 2px #000
 </div>
 
 <script>
-const COLORS={
+/* =========================
+   CONFIGURACION GENERAL
+========================= */
+
+const DRAW_COLORS = [
+"#000000","#7f7f7f","#c0c0c0","#ffffff",
+"#ff0000","#ff7f00","#ffff00","#00ff00","#00ffff","#0000ff","#8b00ff",
+"#ff69b4","#a52a2a","#deb887","#f4a460","#ffd700","#98fb98","#20b2aa",
+"#87cefa","#4682b4","#dda0dd","#ffb6c1"
+];
+
+const NUMBER_COLORS={
 1:"#FF3B30",2:"#000000",3:"#FFCC00",4:"#007AFF",5:"#4CD964",
 6:"#5856D6",7:"#FF9500",8:"#FF2D55",9:"#AF52DE",10:"#5AC8FA",
 11:"#FFFFFF",12:"#8E8E93",13:"#5E5E5E",14:"#FFCCBC",15:"#8B4513"
 };
 
+/* =========================
+   NIVELES (AÑADE AQUÍ LOS QUE QUIERAS)
+========================= */
+
 const LEVELS=[
-{name:"MARIO",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]},
-{name:"PACMAN",grid:[[0,3,3,0],[3,3,2,3],[3,3,3,3],[0,3,3,0]]}
+{name:"SETAS",grid:[
+[0,1,1,1,0],
+[1,14,14,14,1],
+[1,14,2,14,1],
+[0,1,1,1,0]
+]},
+{name:"FANTASMA",grid:[
+[0,3,3,3,0],
+[3,3,2,3,3],
+[3,3,3,3,3],
+[3,2,3,2,3],
+[3,3,3,3,3]
+]},
+{name:"CORAZON",grid:[
+[0,8,0,8,0],
+[8,8,8,8,8],
+[8,8,8,8,8],
+[0,8,8,8,0],
+[0,0,8,0,0]
+]},
+{name:"HELADO",grid:[
+[0,7,7,7,0],
+[7,7,7,7,7],
+[7,7,7,7,7],
+[0,15,15,15,0],
+[0,15,15,15,0]
+]},
+{name:"CARITA",grid:[
+[0,3,3,3,0],
+[3,2,3,2,3],
+[3,3,3,3,3],
+[3,3,3,3,3],
+[0,3,3,3,0]
+]}
 ];
 
-let selected=1,tool="pen",painting=false,free=false;
-let tx=0,ty=0,zoom=1,drag=false,lastX,lastY;
+/* =========================
+   ESTADO
+========================= */
 
-/* INIT */
+let mode="numbers"; // numbers | free
+let tool="pencil";
+let brushSize=1;
+let selectedColor="#000000";
+let painting=false;
+
+/* =========================
+   MENU AUTOMATICO
+========================= */
+
 window.onload=()=>{
 setTimeout(()=>{
-document.getElementById("splash").style.display="none";
-document.getElementById("menu").style.display="block";
-},900);
+splash.style.display="none";
+menu.style.display="block";
+},700);
 
-const levels=document.getElementById("levels");
-LEVELS.forEach((l,i)=>{
-levels.innerHTML+=`<div class="card" onclick="start(${i})">${l.name}</div>`;
+const container=document.getElementById("levels");
+LEVELS.forEach((lvl,i)=>{
+container.innerHTML+=`<div class="card" onclick="startLevel(${i})">${lvl.name}</div>`;
 });
 };
 
-function start(i){
-free=false;
-document.getElementById("menu").style.display="none";
-document.getElementById("game").style.display="flex";
-build(LEVELS[i].grid);
-paletteBuild(LEVELS[i].grid);
+/* =========================
+   INICIAR NIVELES
+========================= */
+
+function startLevel(i){
+mode="numbers";
+menu.style.display="none";
+game.style.display="flex";
+buildNumbers(LEVELS[i].grid);
+buildNumberPalette(LEVELS[i].grid);
 }
 
 function freeMode(size){
-free=true;
-document.getElementById("menu").style.display="none";
-document.getElementById("game").style.display="flex";
-let g=Array(size).fill().map(()=>Array(size).fill(11));
-build(g);
-paletteBuild(null,true);
+mode="free";
+menu.style.display="none";
+game.style.display="flex";
+let grid=Array(size).fill().map(()=>Array(size).fill("#ffffff"));
+buildFree(grid);
+buildFreePalette();
 }
 
-function build(grid){
-const wrap=document.getElementById("canvas-wrapper");
+/* =========================
+   PINTAR POR NUMEROS
+========================= */
+
+function buildNumbers(grid){
+const wrap=canvas-wrapper;
 wrap.innerHTML="";
 wrap.style.gridTemplateColumns=`repeat(${grid[0].length},40px)`;
 
@@ -184,94 +249,116 @@ grid.forEach(row=>{
 row.forEach(v=>{
 let d=document.createElement("div");
 d.className="pixel";
-
-if(!free&&v!==0){
+if(v!==0){
 d.dataset.target=v;
 d.textContent=v;
 d.style.background="#fff";
-}else d.style.background=COLORS[v]||"#fff";
-
-d.onpointerdown=()=>{painting=true;paint(d)};
-d.onpointerenter=()=>painting&&paint(d);
-
+}
+d.onpointerdown=()=>paintNumber(d);
 wrap.appendChild(d);
 });
 });
 }
 
-window.onpointerup=()=>painting=false;
-
-function paint(px){
-if(tool!=="pen")return;
-
-if(free){px.style.background=COLORS[selected];return;}
-
-if(Number(px.dataset.target)===selected){
-px.style.background=COLORS[selected];
+function paintNumber(px){
+if(Number(px.dataset.target)===Number(selectedColor)){
+px.style.background=NUMBER_COLORS[selectedColor];
 px.textContent="";
 px.dataset.done=1;
-update();
+updateProgress();
 }
 }
 
-function update(){
+function updateProgress(){
 let t=document.querySelectorAll(".pixel[data-target]").length;
 let d=document.querySelectorAll(".pixel[data-done]").length;
-document.getElementById("percent").textContent=Math.floor(d/t*100)+"%";
+percent.textContent=Math.floor(d/t*100)+"%";
 }
 
-function paletteBuild(grid,all=false){
-const pal=document.getElementById("palette");
-pal.innerHTML="";
-let list=all?Object.keys(COLORS):[...new Set(grid.flat())].filter(v=>v!=0);
-
+function buildNumberPalette(grid){
+palette.innerHTML="";
+let list=[...new Set(grid.flat())].filter(v=>v!=0);
 list.forEach(n=>{
 let c=document.createElement("div");
 c.className="color";
-c.style.background=COLORS[n];
+c.style.background=NUMBER_COLORS[n];
 c.textContent=n;
-if(n==selected)c.classList.add("active");
-c.onclick=()=>{
-document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
-c.classList.add("active");
-selected=Number(n);
-};
-pal.appendChild(c);
+c.onclick=()=>selectNumberColor(n,c);
+palette.appendChild(c);
 });
 }
 
-function setTool(t){
-tool=t;
-document.querySelectorAll(".tool").forEach(b=>b.classList.remove("active"));
-document.getElementById(t).classList.add("active");
+function selectNumberColor(n,el){
+document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
+el.classList.add("active");
+selectedColor=n;
 }
 
-document.getElementById("view").onpointerdown=e=>{
-if(tool!=="move")return;
-drag=true;lastX=e.clientX;lastY=e.clientY;
-};
+/* =========================
+   MODO LIBRE (BROCHA)
+========================= */
 
-window.onpointermove=e=>{
-if(!drag)return;
-tx+=e.clientX-lastX;ty+=e.clientY-lastY;
-lastX=e.clientX;lastY=e.clientY;
-transform();
-};
+function buildFree(grid){
+const wrap=canvas-wrapper;
+wrap.innerHTML="";
+wrap.style.gridTemplateColumns=`repeat(${grid[0].length},20px)`;
 
-window.onpointerup=()=>drag=false;
+grid.forEach((row,y)=>{
+row.forEach((v,x)=>{
+let d=document.createElement("div");
+d.className="pixel";
+d.style.background=v;
+d.dataset.x=x;
+d.dataset.y=y;
 
-document.getElementById("view").onwheel=e=>{
-e.preventDefault();
-zoom+=e.deltaY*-0.001;
-zoom=Math.min(Math.max(.3,zoom),4);
-transform();
-};
+d.onpointerdown=()=>{painting=true;paintFree(x,y)};
+d.onpointerenter=()=>painting&&paintFree(x,y);
 
-function transform(){
-document.getElementById("canvas-wrapper").style.transform=`translate(${tx}px,${ty}px) scale(${zoom})`;
+wrap.appendChild(d);
+});
+});
+
+window.onpointerup=()=>painting=false;
 }
 
-function resetZoom(){tx=0;ty=0;zoom=1;transform()}
+function paintFree(x,y){
+let pixels=document.querySelectorAll(".pixel");
+pixels.forEach(p=>{
+let dx=p.dataset.x-x;
+let dy=p.dataset.y-y;
+if(Math.sqrt(dx*dx+dy*dy)<=brushSize)
+p.style.background=selectedColor;
+});
+}
+
+/* =========================
+   PALETA LIBRE
+========================= */
+
+function buildFreePalette(){
+palette.innerHTML="";
+
+DRAW_COLORS.forEach(col=>{
+let c=document.createElement("div");
+c.className="color";
+c.style.background=col;
+c.onclick=()=>{
+document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
+c.classList.add("active");
+selectedColor=col;
+};
+palette.appendChild(c);
+});
+
+/* herramientas */
+palette.innerHTML+=`
+<div style="display:flex;gap:10px;margin-left:20px">
+<button onclick="tool='pencil'">Lápiz</button>
+<button onclick="tool='brush'">Brocha</button>
+<input type="range" min="1" max="4" value="1" onchange="brushSize=this.value">
+</div>`;
+}
+
 </script>
 
 </body>
