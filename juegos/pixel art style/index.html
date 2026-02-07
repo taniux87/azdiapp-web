@@ -83,65 +83,72 @@ let color="#000";
 let tool="pencil";
 let lastX=0,lastY=0;
 
-/* CANVAS SIZE */
+/* ===== CANVAS ===== */
 function resize(){
 canvas.width=window.innerWidth;
 canvas.height=window.innerHeight-140;
 ctx.fillStyle="#fff";
 ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.lineCap="round";
+ctx.lineJoin="round";
 }
 window.addEventListener("resize",resize);
 resize();
 
-/* INPUT */
-canvas.addEventListener("pointerdown",e=>{
-drawing=true;
-[lastX,lastY]=pos(e);
-draw(e);
-});
-canvas.addEventListener("pointermove",e=>drawing&&draw(e));
-window.addEventListener("pointerup",()=>drawing=false);
-
+/* ===== POSICION REAL ===== */
 function pos(e){
 const r=canvas.getBoundingClientRect();
 return [e.clientX-r.left,e.clientY-r.top];
 }
 
-/* DIBUJO */
-function draw(e){
+/* ===== INTERPOLACIÓN SUAVE ===== */
+function drawLine(x0,y0,x1,y1,size){
+const dist=Math.hypot(x1-x0,y1-y0);
+const steps=Math.max(1,dist/2);
+
+for(let i=0;i<steps;i++){
+const t=i/steps;
+const x=x0+(x1-x0)*t;
+const y=y0+(y1-y0)*t;
+ctx.beginPath();
+ctx.arc(x,y,size/2,0,Math.PI*2);
+ctx.fill();
+}
+}
+
+/* ===== INPUT ===== */
+canvas.addEventListener("pointerdown",e=>{
+drawing=true;
+[lastX,lastY]=pos(e);
+paint(e);
+});
+canvas.addEventListener("pointermove",e=>drawing&&paint(e));
+window.addEventListener("pointerup",()=>drawing=false);
+
+/* ===== DIBUJO ===== */
+function paint(e){
 const [x,y]=pos(e);
 const size=document.getElementById("size").value;
 
 if(tool==="eraser"){
 ctx.globalCompositeOperation="destination-out";
-ctx.beginPath();
-ctx.arc(x,y,size/2,0,Math.PI*2);
-ctx.fill();
+ctx.fillStyle="rgba(0,0,0,1)";
+drawLine(lastX,lastY,x,y,size);
 ctx.globalCompositeOperation="source-over";
 }
 
 else if(tool==="pencil"){
-ctx.strokeStyle=color;
-ctx.lineWidth=2;
-ctx.lineCap="round";
-ctx.beginPath();
-ctx.moveTo(lastX,lastY);
-ctx.lineTo(x,y);
-ctx.stroke();
+ctx.fillStyle=color;
+drawLine(lastX,lastY,x,y,2);
 }
 
 else if(tool==="marker"){
-ctx.strokeStyle=color;
-ctx.lineWidth=size;
-ctx.lineCap="round";
-ctx.beginPath();
-ctx.moveTo(lastX,lastY);
-ctx.lineTo(x,y);
-ctx.stroke();
+ctx.fillStyle=color;
+drawLine(lastX,lastY,x,y,size);
 }
 
 else if(tool==="spray"){
-for(let i=0;i<15;i++){
+for(let i=0;i<25;i++){
 const a=Math.random()*Math.PI*2;
 const r=Math.random()*size;
 ctx.fillStyle=color;
@@ -150,25 +157,26 @@ ctx.fillRect(x+Math.cos(a)*r,y+Math.sin(a)*r,1,1);
 }
 
 else if(tool==="water"){
-ctx.globalAlpha=0.1;
+ctx.globalAlpha=0.08;
 ctx.fillStyle=color;
-ctx.beginPath();
-ctx.arc(x,y,size,0,Math.PI*2);
-ctx.fill();
+drawLine(lastX,lastY,x,y,size*1.4);
 ctx.globalAlpha=1;
 }
 
 [lastX,lastY]=[x,y];
 }
 
-/* PALETAS */
+/* ===== PALETAS GRANDES ===== */
+
 const palettes={
-basico:["#000","#444","#888","#fff","#f00","#0f0","#00f","#ff0"],
-pastel:["#ffd1dc","#ffe4b5","#e0ffff","#e6e6fa","#fffacd","#d8bfd8"],
-neon:["#ff00ff","#00ffff","#39ff14","#ff073a","#ff6ec7","#00f5ff"],
-piel:["#f6d7c3","#eac086","#c68642","#8d5524","#ffdbac","#ffe0bd"]
+basico:["#000000","#404040","#808080","#c0c0c0","#ffffff","#ff0000","#00ff00","#0000ff","#ffff00","#ff00ff","#00ffff"],
+pastel:["#ffd1dc","#ffe4e1","#fffacd","#e0ffff","#e6e6fa","#f0fff0","#fafad2","#f5deb3","#ffc0cb","#e0b0ff","#d8bfd8"],
+neon:["#ff00ff","#00ffff","#39ff14","#ff073a","#ff6ec7","#00f5ff","#fffb00","#ff1493","#00ffea","#ff5f1f","#7fff00"],
+piel:["#f6d7c3","#eac086","#d1a17a","#b97a56","#8d5524","#ffdbac","#ffe0bd","#fcd5b5","#e0ac69","#c68642"],
+naturaleza:["#2e8b57","#3cb371","#66cdaa","#8fbc8f","#556b2f","#6b8e23","#228b22","#9acd32","#32cd32","#7cfc00"]
 };
 
+/* selector paleta */
 function loadPalette(name){
 palette.innerHTML="";
 palettes[name].forEach(c=>{
@@ -183,6 +191,7 @@ d.classList.add("active");
 palette.appendChild(d);
 });
 }
+
 loadPalette("basico");
 
 /* BOTONES HERRAMIENTA */
