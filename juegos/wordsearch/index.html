@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopa de Letras Pro</title>
+    <title>Word Quest: Master Edition</title>
     <style>
         :root {
             --bg: #020617;
             --panel: #1e293b;
             --accent: #22c55e;
             --gold: #facc15;
-            --neon1: #38bdf8;
+            --theme-color: #38bdf8; /* Este color cambia por nivel */
             --neon2: #a78bfa;
             --glass: rgba(255, 255, 255, 0.05);
         }
@@ -31,25 +31,20 @@
         .screen { display: none; width: min(94vw, 500px); flex-direction: column; gap: 15px; }
         .active { display: flex; }
 
-        h1, h2 {
-            text-align: center;
-            margin: 10px 0;
-        }
-
+        h1, h2 { text-align: center; margin: 10px 0; }
         h1 {
-            font-size: clamp(32px, 8vw, 48px);
-            background: linear-gradient(to right, var(--neon1), var(--neon2));
+            font-size: clamp(28px, 7vw, 42px);
+            background: linear-gradient(to right, var(--theme-color), var(--neon2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+            filter: drop-shadow(0 0 10px var(--theme-color));
         }
 
-        /* --- BOTONES --- */
         button {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border-radius: 14px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: white;
             border: 1px solid rgba(255,255,255,0.1);
@@ -57,21 +52,20 @@
             backdrop-filter: blur(10px);
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
         }
 
         button:hover {
             background: rgba(255,255,255,0.1);
-            transform: translateY(-2px);
-            border-color: var(--neon1);
+            border-color: var(--theme-color);
+            box-shadow: 0 0 15px var(--theme-color);
         }
-
-        button:active { transform: scale(0.98); }
 
         /* --- TABLERO --- */
         #board {
             display: grid;
-            gap: 5px;
+            gap: 4px;
             background: rgba(255,255,255,0.03);
             padding: 8px;
             border-radius: 12px;
@@ -88,34 +82,34 @@
             aspect-ratio: 1/1;
             border-radius: 6px;
             font-weight: 800;
-            font-size: clamp(14px, 4vw, 22px);
-            transition: background 0.2s;
+            font-size: clamp(12px, 3.5vw, 20px);
+            transition: 0.2s;
             cursor: pointer;
         }
 
         .cell.selected {
-            background: var(--neon1);
+            background: var(--theme-color);
             color: #000;
-            box-shadow: 0 0 15px var(--neon1);
+            box-shadow: 0 0 15px var(--theme-color);
             z-index: 10;
         }
 
         .cell.found {
             color: white;
-            font-weight: bold;
             animation: pop 0.3s ease-out;
         }
 
-        /* Animación de Pista */
+        /* --- ANIMACIONES --- */
         .cell.hint-flash {
-            animation: hintFlash 1s ease-in-out infinite;
+            animation: hintFlash 0.8s ease-in-out infinite;
             background: var(--gold) !important;
             color: #000 !important;
             z-index: 20;
         }
+
         @keyframes hintFlash {
-            0%, 100% { opacity: 1; box-shadow: 0 0 20px var(--gold); }
-            50% { opacity: 0.6; box-shadow: 0 0 5px var(--gold); }
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px var(--gold); transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
         }
 
         @keyframes pop {
@@ -124,40 +118,62 @@
             100% { transform: scale(1); }
         }
 
-        /* --- LISTA DE PALABRAS --- */
+        /* --- LISTA PALABRAS --- */
         #wordList {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 5px;
             justify-content: center;
             background: var(--glass);
-            padding: 12px;
+            padding: 10px;
             border-radius: 12px;
         }
 
         .word-item {
-            padding: 4px 12px;
+            padding: 4px 10px;
             background: #334155;
             border-radius: 20px;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            transition: all 0.3s;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .word-item.done {
             background: var(--accent) !important;
             text-decoration: line-through;
-            opacity: 0.6;
+            opacity: 0.5;
             transform: scale(0.9);
         }
 
-        /* --- TIENDA --- */
-        #shopItems {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--glass);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
+        /* --- PANTALLA VICTORIA --- */
+        #winScreen {
+            text-align: center;
+            background: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 40px 20px;
+            border-radius: 24px;
+            border: 2px solid var(--theme-color);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        .win-title {
+            font-size: 32px;
+            color: var(--accent);
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        /* --- TIENDA --- */
         .shopAvatar {
             font-size: 32px;
             padding: 15px;
@@ -166,39 +182,10 @@
             text-align: center;
             cursor: pointer;
             border: 2px solid transparent;
+            transition: 0.3s;
         }
-
-        .shopAvatar.locked { opacity: 0.4; filter: grayscale(1); }
-        .shopAvatar.selected-avatar { border-color: var(--neon1); background: rgba(56, 189, 248, 0.1); }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            font-weight: bold;
-            background: var(--glass);
-            border-radius: 10px;
-        }
-
-        .timer { color: var(--neon1); }
-        .coin { color: var(--gold); }
-
-        /* --- PANTALLA DE VICTORIA --- */
-        #winScreen {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 40px 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        #winScreen h2 {
-            font-size: 36px;
-            color: var(--accent);
-            text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
-        }
+        .shopAvatar.locked { opacity: 0.3; filter: grayscale(1); }
+        .shopAvatar.selected-avatar { border-color: var(--theme-color); background: rgba(255,255,255,0.1); }
 
     </style>
 </head>
@@ -206,63 +193,72 @@
 
 <div id="menu" class="screen active">
     <h1>WORD QUEST</h1>
-    <div id="avatarDisplay" style="font-size:80px;text-align:center;margin:20px 0">🙂</div>
-    <button onclick="openMode('kids')">👶 MODO INFANTIL</button>
-    <button onclick="openMode('adult')">🧠 MODO ADULTO</button>
-    <button onclick="openShop()">🛒 TIENDA</button>
+    <div id="avatarDisplay" style="font-size:80px;text-align:center;margin:10px 0">🙂</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button onclick="openCategory('animales')">🐾 Animales</button>
+        <button onclick="openCategory('ciudades')">🏙 Ciudades</button>
+        <button onclick="openCategory('rios')">🌊 Ríos</button>
+        <button onclick="openCategory('cultura')">📚 Cultura</button>
+    </div>
+    <button onclick="openShop()" style="margin-top:10px; border-color: var(--gold); color: var(--gold)">🛒 TIENDA DE AVATARES</button>
 </div>
 
 <div id="levels" class="screen">
-    <h2 id="modeTitle">NIVELES</h2>
-    <div id="levelButtons" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px;"></div>
-    <button onclick="show('menu')" style="margin-top:20px">← VOLVER</button>
+    <h2 id="categoryTitle">NIVELES</h2>
+    <div id="levelButtons" style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 10px;"></div>
+    <button onclick="show('menu')" style="margin-top:20px">← VOLVER AL MENÚ</button>
 </div>
 
 <div id="game" class="screen">
     <div class="topbar">
-        <span id="levelName">NIVEL 1</span>
-        <span class="timer">⏱ <span id="time">0</span></span>
-        <span class="coin">🪙 <span id="coinsDisplay">0</span></span>
+        <span id="gameInfo">NIVEL 1</span>
+        <span style="color:var(--theme-color)">⏱ <span id="time">0</span></span>
+        <span style="color:var(--gold)">🪙 <span id="coinsDisplay">0</span></span>
     </div>
     <div id="wordList"></div>
     <div id="board"></div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px">
-        <button onclick="hint()" style="background: rgba(250, 204, 21, 0.1); color: var(--gold)">💡 PISTA (-10)</button>
-        <button onclick="giveUp()" style="background: rgba(239, 68, 68, 0.1); color: #ef4444">SALIR</button>
+        <button onclick="hint()" style="color: var(--gold); border-color: var(--gold)">💡 PISTA (-10)</button>
+        <button onclick="giveUp()" style="color: #ef4444; border-color: #ef4444">SALIR</button>
     </div>
 </div>
 
 <div id="winScreen" class="screen">
-    <h2>¡NIVEL COMPLETADO!</h2>
-    <div style="font-size: 60px; margin: 20px;">🎉</div>
-    <p style="font-size: 24px; margin-bottom: 30px;">Ganaste <span class="coin">20 🪙</span></p>
-    <button onclick="show('levels')" style="width: auto; padding: 15px 40px; background: var(--accent);">CONTINUAR</button>
+    <div class="win-title">¡NIVEL SUPERADO!</div>
+    <div id="winEmoji" style="font-size: 80px; margin: 20px;">🎉</div>
+    <p style="font-size: 20px;">Has ganado <span style="color:var(--gold); font-weight: bold;">+25 Monedas</span></p>
+    <button onclick="show('levels')" style="background: var(--accent); margin-top: 20px; color: white; border: none;">CONTINUAR</button>
 </div>
 
 <div id="shop" class="screen">
     <h2>TIENDA DE AVATARES</h2>
-    <div id="shopItems"></div>
-    <button onclick="show('menu')">← VOLVER</button>
+    <div id="shopItems" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:12px"></div>
+    <button onclick="show('menu')" style="margin-top:20px">← VOLVER</button>
 </div>
 
 <script>
-// ================= DATA & SAVE =================
-let save = JSON.parse(localStorage.wordsearch_v2 || '{"coins":50, "avatar":"🙂", "owned":["🙂"]}');
-function saveGame() { localStorage.wordsearch_v2 = JSON.stringify(save); }
+// ================= DATOS (10 niveles por categoría) =================
+const DATA = {
+    animales: ["PERRO","GATO","LEON","TIGRE","CEBRA","JIRAFA","MONO","ELEFANTE","DELFIN","TIBURON","CABALLO","VACA","OVEJA","RANA","SERPIENTE","AGUILA","LORO","PANDA","LOBO","ZORRO","CANGURO","KOALA","BALLENA","OSO"],
+    ciudades: ["MADRID","PARIS","LONDRES","ROMA","BERLIN","TOKIO","PEKIN","ELCAIRO","MEXICO","LIMA","BOGOTA","ATENAS","VIENA","MOSCU","OPORTO","DUBAI","SIDNEY","AMSTERDAM","PRAGA","CANCUN"],
+    rios: ["EBRO","TAJO","NILO","AMAZONAS","SENA","TAMESIS","RIN","DANUBIO","GANGES","VOLGA","DUERO","MIÑO","SEGURA","MISISIPI","YURUA","CONGO","MEKONG","RODANO","PO","TIBER"],
+    cultura: ["ATOMO","ENERGIA","DATOS","CODIGO","SISTEMA","GRAVEDAD","NEURONA","SERVIDOR","CUANTICO","ESTRELLA","GALAXIA","SINTAXIS","BINARIO","ALGORITMO","FOTO","PIANO","ARTE","POESIA"]
+};
 
-const WORDS_KIDS = ["GATO","PERRO","LEON","OSO","VACA","RANA","SOL","LUNA","MAR","FLOR","ROJO","AZUL","VERDE","MESA","CAMA","SILLA","PIZZA","JUGO"];
-const WORDS_ADULT = ["ATOMO","ENERGIA","DATOS","CODIGO","SISTEMA","JAPON","CANADA","BRASIL","EUROPA","AFRICA","OCEANO","GRAVEDAD","NEURONA","SERVIDOR","INTERNET","CUANTICO","ESTRELLA"];
+const AVATARS = [["🙂",0],["😎",50],["🤖",120],["👽",200],["🐱",80],["🐸",90],["🐵",140],["🦊",160],["🐼",220]];
 
-const AVATARS = [
-    ["🙂", 0], ["😎", 50], ["🤖", 100], ["👽", 150], ["🐱", 200], ["🐸", 250], ["🐵", 300], ["🦊", 400], ["🐼", 500]
-];
+// ================= ESTADO Y GUARDADO =================
+let save = JSON.parse(localStorage.wordquest_vfinal || '{"coins":50, "avatar":"🙂", "owned":["🙂"]}');
+function saveGame() { localStorage.wordquest_vfinal = JSON.stringify(save); }
 
-let mode, level, size, grid = [], placedWords = [], foundWords = [];
-let isDragging = false, startCell = null, currentPath = [], timer;
-let wordColors = ["#38bdf8", "#a78bfa", "#22c55e", "#facc15", "#f97316", "#ef4444", "#fb7185"];
-let hintTimeout;
+let currentCat, level, size, grid, placedWords, foundWords, isDragging, startCell, currentPath, timer, hintTimeout;
 
-// ================= NAV =================
+// CAMBIO DE COLOR DINÁMICO
+function updateTheme(lv) {
+    const hue = (lv * 137.5) % 360; // Algoritmo de ángulo áureo para colores distintos
+    document.documentElement.style.setProperty('--theme-color', `hsl(${hue}, 80%, 60%)`);
+}
+
 function show(id) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
@@ -274,53 +270,28 @@ function updateUI() {
     document.getElementById("avatarDisplay").textContent = save.avatar;
 }
 
-// ================= SHOP =================
-function openShop() {
-    show("shop");
-    const container = document.getElementById("shopItems");
-    container.innerHTML = "";
-    AVATARS.forEach(a => {
-        let div = document.createElement("div");
-        div.className = `shopAvatar ${save.owned.includes(a[0]) ? "" : (save.coins < a[1] ? "locked" : "")}`;
-        if(save.avatar === a[0]) div.classList.add("selected-avatar");
-        div.textContent = a[0];
-        div.onclick = () => {
-            if (save.owned.includes(a[0])) {
-                save.avatar = a[0];
-            } else if (save.coins >= a[1]) {
-                save.coins -= a[1];
-                save.owned.push(a[0]);
-                save.avatar = a[0];
-            }
-            saveGame(); openShop(); updateUI();
-        };
-        container.appendChild(div);
-    });
-}
-
-// ================= LEVELS =================
-function openMode(m) {
-    mode = m;
+function openCategory(cat) {
+    currentCat = cat;
     show("levels");
-    document.getElementById("modeTitle").textContent = m === "kids" ? "MODO INFANTIL" : "MODO ADULTO";
+    document.getElementById("categoryTitle").textContent = cat.toUpperCase();
     const container = document.getElementById("levelButtons");
     container.innerHTML = "";
-    for (let i = 1; i <= 16; i++) {
+    for (let i = 1; i <= 10; i++) {
         let b = document.createElement("button");
         b.textContent = i;
-        b.style.padding = "10px";
         b.onclick = () => startLevel(i);
         container.appendChild(b);
     }
 }
 
-// ================= ENGINE =================
+// ================= MOTOR DEL JUEGO =================
 function startLevel(lv) {
     level = lv;
     foundWords = [];
-    size = mode === "kids" ? Math.min(7 + lv, 10) : Math.min(9 + lv, 14);
+    updateTheme(lv);
+    size = Math.min(7 + lv, 12); // El tablero crece con el nivel
     show("game");
-    document.getElementById("levelName").textContent = `NIVEL ${lv}`;
+    document.getElementById("gameInfo").textContent = `${currentCat.toUpperCase()} - NIVEL ${lv}`;
     clearHint();
     generateBoard();
     startTimer();
@@ -329,40 +300,36 @@ function startLevel(lv) {
 function generateBoard() {
     grid = Array(size).fill().map(() => Array(size).fill(""));
     placedWords = [];
-    let pool = [...(mode === "kids" ? WORDS_KIDS : WORDS_ADULT)].sort(() => Math.random() - 0.5);
-    let count = mode === "kids" ? 5 : 8;
+    let pool = [...DATA[currentCat]].sort(() => Math.random() - 0.5);
+    let wordCount = 3 + Math.floor(level / 2);
 
-    pool.slice(0, count).forEach(word => {
+    pool.slice(0, wordCount).forEach(word => {
         if (tryPlace(word)) placedWords.push(word);
     });
 
-    // Rellenar vacíos
     const abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++)
+        for (let x = 0; x < size; x++)
             if (!grid[y][x]) grid[y][x] = abc[Math.floor(Math.random() * abc.length)];
-        }
-    }
+    
     drawBoard();
     drawWordList();
 }
 
 function tryPlace(word) {
     const dirs = [[1,0], [0,1], [1,1], [-1,1], [0,-1], [-1,0]];
-    for (let attempts = 0; attempts < 100; attempts++) {
+    for (let i = 0; i < 100; i++) {
         let d = dirs[Math.floor(Math.random() * dirs.length)];
-        let x = Math.floor(Math.random() * size);
-        let y = Math.floor(Math.random() * size);
-        
-        let canPlace = true;
-        for (let i = 0; i < word.length; i++) {
-            let nx = x + d[0] * i, ny = y + d[1] * i;
-            if (nx < 0 || ny < 0 || nx >= size || ny >= size || (grid[ny][nx] && grid[ny][nx] !== word[i])) {
-                canPlace = false; break;
+        let x = Math.floor(Math.random() * size), y = Math.floor(Math.random() * size);
+        let can = true;
+        for (let j = 0; j < word.length; j++) {
+            let nx = x + d[0] * j, ny = y + d[1] * j;
+            if (nx < 0 || ny < 0 || nx >= size || ny >= size || (grid[ny][nx] && grid[ny][nx] !== word[j])) {
+                can = false; break;
             }
         }
-        if (canPlace) {
-            for (let i = 0; i < word.length; i++) grid[y + d[1] * i][x + d[0] * i] = word[i];
+        if (can) {
+            for (let j = 0; j < word.length; j++) grid[y + d[1] * j][x + d[0] * j] = word[j];
             return true;
         }
     }
@@ -379,20 +346,14 @@ function drawBoard() {
             d.className = "cell";
             d.textContent = grid[y][x];
             d.dataset.x = x; d.dataset.y = y;
-            
-            d.onpointerdown = (e) => {
-                isDragging = true;
-                startCell = d;
-                currentPath = [d];
+            d.onpointerdown = (e) => { 
+                isDragging = true; 
+                startCell = d; 
+                currentPath = [d]; 
                 d.classList.add("selected");
                 d.releasePointerCapture(e.pointerId);
             };
-            
-            d.onpointerenter = () => {
-                if (!isDragging) return;
-                selectPath(startCell, d);
-            };
-            
+            d.onpointerenter = () => { if (isDragging) selectPath(startCell, d); };
             b.appendChild(d);
         }
     }
@@ -400,24 +361,14 @@ function drawBoard() {
 
 function selectPath(start, end) {
     document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
-    let x1 = parseInt(start.dataset.x), y1 = parseInt(start.dataset.y);
-    let x2 = parseInt(end.dataset.x), y2 = parseInt(end.dataset.y);
-    
-    let dx = x2 - x1, dy = y2 - y1;
-    let dist = Math.max(Math.abs(dx), Math.abs(dy));
-    
+    let x1 = +start.dataset.x, y1 = +start.dataset.y, x2 = +end.dataset.x, y2 = +end.dataset.y;
+    let dx = x2 - x1, dy = y2 - y1, dist = Math.max(Math.abs(dx), Math.abs(dy));
     if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) {
         currentPath = [];
-        let stepX = dx === 0 ? 0 : dx / dist;
-        let stepY = dy === 0 ? 0 : dy / dist;
-        
+        let sx = dx === 0 ? 0 : dx/dist, sy = dy === 0 ? 0 : dy/dist;
         for (let i = 0; i <= dist; i++) {
-            let tx = x1 + stepX * i, ty = y1 + stepY * i;
-            let cell = document.querySelector(`.cell[data-x="${tx}"][data-y="${ty}"]`);
-            if (cell) {
-                cell.classList.add("selected");
-                currentPath.push(cell);
-            }
+            let cell = document.querySelector(`.cell[data-x="${x1 + sx * i}"][data-y="${y1 + sy * i}"]`);
+            if (cell) { cell.classList.add("selected"); currentPath.push(cell); }
         }
     }
 }
@@ -426,105 +377,100 @@ function drawWordList() {
     const list = document.getElementById("wordList");
     list.innerHTML = "";
     placedWords.forEach(w => {
-        let span = document.createElement("span");
-        span.className = "word-item";
-        span.textContent = w;
-        span.id = "word-" + w;
-        list.appendChild(span);
+        let s = document.createElement("span");
+        s.className = "word-item";
+        s.textContent = w;
+        s.id = "w-" + w;
+        list.appendChild(s);
     });
 }
 
+// SOLTAR SELECCIÓN
 document.addEventListener("pointerup", () => {
     if (!isDragging) return;
     isDragging = false;
-    checkWord();
-    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
-});
-
-function checkWord() {
     let word = currentPath.map(c => c.textContent).join("");
     let rev = [...word].reverse().join("");
-    
     let found = placedWords.find(w => (w === word || w === rev) && !foundWords.includes(w));
     
     if (found) {
-        clearHint();
-        let color = wordColors[foundWords.length % wordColors.length];
         foundWords.push(found);
-        currentPath.forEach(c => {
-            c.classList.add("found");
-            c.style.background = color;
+        currentPath.forEach(c => { 
+            c.classList.add("found"); 
+            c.style.background = "var(--theme-color)"; 
+            c.style.color = "#000"; 
         });
-        let item = document.getElementById("word-" + found);
-        if (item) item.classList.add("done");
-        
-        save.coins += 5;
-        updateUI();
+        document.getElementById("w-" + found).classList.add("done");
+        save.coins += 5; updateUI(); clearHint();
         if (foundWords.length === placedWords.length) win();
     }
-}
+    document.querySelectorAll(".cell.selected").forEach(c => c.classList.remove("selected"));
+});
 
-// ================= AUX =================
-function startTimer() {
-    clearInterval(timer);
-    let t = mode === "kids" ? 120 : 90;
-    document.getElementById("time").textContent = t;
-    timer = setInterval(() => {
-        t--;
-        document.getElementById("time").textContent = t;
-        if (t <= 0) { clearInterval(timer); alert("¡Tiempo agotado!"); show('levels'); }
-    }, 1000);
-}
-
+// PISTA VISUAL
 function hint() {
     if (save.coins < 10) return;
-    
-    // 1. Buscar palabras pendientes
-    let pending = placedWords.filter(w => !foundWords.includes(w));
-    if (pending.length === 0) return;
-
-    // 2. Elegir una palabra al azar y una letra al azar de esa palabra
-    let targetWord = pending[Math.floor(Math.random() * pending.length)];
-    let targetLetter = targetWord[Math.floor(Math.random() * targetWord.length)];
-
-    // 3. Buscar celdas en el tablero que tengan esa letra y NO estén encontradas
-    let candidateCells = [];
-    document.querySelectorAll('.cell').forEach(cell => {
-        if (!cell.classList.contains('found') && cell.textContent === targetLetter) {
-            candidateCells.push(cell);
+    let pending = placedWords.find(w => !foundWords.includes(w));
+    if (pending) {
+        let firstLetter = pending[0];
+        let targetCell = [...document.querySelectorAll(".cell")].find(c => c.textContent === firstLetter && !c.classList.contains("found"));
+        if (targetCell) {
+            clearHint();
+            targetCell.classList.add("hint-flash");
+            save.coins -= 10; updateUI();
+            hintTimeout = setTimeout(clearHint, 3000);
         }
-    });
-
-    // 4. Si hay candidatas, elegir una y hacerla parpadear
-    if (candidateCells.length > 0) {
-        clearHint();
-        let cellToFlash = candidateCells[Math.floor(Math.random() * candidateCells.length)];
-        cellToFlash.classList.add('hint-flash');
-        
-        save.coins -= 10;
-        updateUI();
-        
-        // Quitar la pista después de 3 segundos
-        hintTimeout = setTimeout(clearHint, 3000);
     }
 }
 
-function clearHint() {
-    clearTimeout(hintTimeout);
-    document.querySelectorAll('.hint-flash').forEach(c => c.classList.remove('hint-flash'));
+function clearHint() { 
+    clearTimeout(hintTimeout); 
+    document.querySelectorAll(".hint-flash").forEach(c => c.classList.remove("hint-flash")); 
+}
+
+function startTimer() {
+    clearInterval(timer);
+    let t = 120;
+    document.getElementById("time").textContent = t;
+    timer = setInterval(() => { 
+        t--; 
+        document.getElementById("time").textContent = t; 
+        if (t <= 0) { clearInterval(timer); alert("¡TIEMPO AGOTADO!"); show("levels"); }
+    }, 1000);
 }
 
 function win() {
     clearInterval(timer);
-    save.coins += 20;
+    save.coins += 25;
     saveGame();
-    // Mostrar la nueva pantalla de victoria después de un pequeño retraso
-    setTimeout(() => {
-        show("winScreen");
-    }, 500);
+    setTimeout(() => show("winScreen"), 600);
 }
 
 function giveUp() { clearInterval(timer); show("levels"); }
+
+// ================= TIENDA =================
+function openShop() {
+    show("shop");
+    const container = document.getElementById("shopItems");
+    container.innerHTML = "";
+    AVATARS.forEach(a => {
+        let d = document.createElement("div");
+        d.className = `shopAvatar ${save.owned.includes(a[0]) ? "" : (save.coins < a[1] ? "locked" : "")}`;
+        if(save.avatar === a[0]) d.classList.add("selected-avatar");
+        d.textContent = a[0];
+        d.onclick = () => {
+            if (save.owned.includes(a[0])) {
+                save.avatar = a[0];
+            } else if (save.coins >= a[1]) {
+                save.coins -= a[1];
+                save.owned.push(a[0]);
+                save.avatar = a[0];
+            }
+            saveGame(); openShop(); updateUI();
+        };
+        container.appendChild(d);
+    });
+}
 
 updateUI();
 </script>
