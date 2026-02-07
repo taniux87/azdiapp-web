@@ -41,7 +41,6 @@ background:linear-gradient(45deg,#ff4fac,#4facfe);
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:20px}
 .card{background:#1a1a1a;border-radius:18px;padding:15px;text-align:center;cursor:pointer;border:2px solid #333}
 .card:hover{border-color:var(--primary)}
-
 .title{font-family:"Luckiest Guy";color:var(--secondary);margin:20px 0}
 
 /* GAME */
@@ -59,41 +58,39 @@ border:none;color:white;padding:10px 18px;border-radius:20px;
 font-family:"Luckiest Guy";cursor:pointer
 }
 
-.view{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.view{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111}
 
 #canvas-wrapper{
 display:grid;
 background:white;
 touch-action:none;
-transform-origin:center;
 }
 
 .pixel{
-width:40px;height:40px;
+width:28px;height:28px;
 display:flex;align-items:center;justify-content:center;
-font-size:12px;font-weight:bold;color:#ccc;
-border:1px solid rgba(0,0,0,.05);
+font-size:11px;font-weight:bold;color:#aaa;
+border:1px solid rgba(0,0,0,.08);
 touch-action:none;
 }
 
+/* panel */
 .controls{
-height:150px;background:white;padding:12px;
+height:170px;background:white;color:black;padding:10px;
 display:flex;flex-direction:column;gap:10px
 }
 
-.palette{display:flex;gap:12px;overflow:auto}
+.palette{display:flex;gap:10px;overflow:auto}
 
 .color{
-min-width:55px;height:55px;border-radius:50%;
-border:4px solid white;cursor:pointer;
+min-width:45px;height:45px;border-radius:50%;
+border:3px solid white;cursor:pointer;
 display:flex;align-items:center;justify-content:center;
-font-family:"Luckiest Guy";color:white;text-shadow:1px 1px 2px #000
+font-weight:bold;color:white;text-shadow:1px 1px 2px #000
 }
-.color.active{transform:scale(1.15);border-color:var(--primary)}
+.color.active{border:3px solid black;transform:scale(1.15)}
 
-.tools{display:flex;justify-content:center;gap:10px}
-.tool{padding:6px 18px;border-radius:12px;border:none;background:#eee;font-weight:bold}
-.tool.active{background:var(--secondary);color:white}
+.tools{display:flex;gap:10px;align-items:center}
 </style>
 </head>
 
@@ -102,13 +99,13 @@ font-family:"Luckiest Guy";color:white;text-shadow:1px 1px 2px #000
 <div id="splash">AZDI STUDIO</div>
 
 <div id="menu">
-<div class="title">DIBUJOS</div>
+<div class="title">PINTAR POR NUMEROS</div>
 <div id="levels" class="grid"></div>
 
-<div class="title">LIBRE</div>
+<div class="title">MODO LIBRE</div>
 <div class="grid">
-<div class="card" onclick="freeMode(20)">20x20</div>
-<div class="card" onclick="freeMode(40)">40x40</div>
+<div class="card" onclick="freeMode(20)">LIENZO 20x20</div>
+<div class="card" onclick="freeMode(40)">LIENZO GRANDE</div>
 </div>
 </div>
 
@@ -116,249 +113,150 @@ font-family:"Luckiest Guy";color:white;text-shadow:1px 1px 2px #000
 <header>
 <button class="btn" onclick="location.reload()">SALIR</button>
 <div id="percent">0%</div>
-<button class="btn" onclick="resetZoom()">CENTRAR</button>
+<button class="btn" onclick="reset()">CENTRAR</button>
 </header>
 
-<div class="view" id="view"><div id="canvas-wrapper"></div></div>
+<div class="view">
+<div id="canvas-wrapper"></div>
+</div>
 
 <div class="controls">
 <div class="tools">
-<button id="pen" class="tool active" onclick="setTool('pen')">PINCEL</button>
-<button id="move" class="tool" onclick="setTool('move')">MOVER</button>
+<b>Herramienta:</b>
+<button onclick="setBrush(1)">Lápiz</button>
+<button onclick="setBrush(3)">Brocha</button>
+<b>Tamaño:</b>
+<input type="range" min="1" max="5" value="1" id="size">
 </div>
 <div id="palette" class="palette"></div>
 </div>
 </div>
 
 <script>
-/* =========================
-   CONFIGURACION GENERAL
-========================= */
-
-const DRAW_COLORS = [
-"#000000","#7f7f7f","#c0c0c0","#ffffff",
-"#ff0000","#ff7f00","#ffff00","#00ff00","#00ffff","#0000ff","#8b00ff",
-"#ff69b4","#a52a2a","#deb887","#f4a460","#ffd700","#98fb98","#20b2aa",
-"#87cefa","#4682b4","#dda0dd","#ffb6c1"
-];
-
-const NUMBER_COLORS={
+/* COLORES */
+const COLORS={
 1:"#FF3B30",2:"#000000",3:"#FFCC00",4:"#007AFF",5:"#4CD964",
 6:"#5856D6",7:"#FF9500",8:"#FF2D55",9:"#AF52DE",10:"#5AC8FA",
 11:"#FFFFFF",12:"#8E8E93",13:"#5E5E5E",14:"#FFCCBC",15:"#8B4513"
 };
 
-/* =========================
-   NIVELES (AÑADE AQUÍ LOS QUE QUIERAS)
-========================= */
-
-const LEVELS=[
-{name:"SETAS",grid:[
-[0,1,1,1,0],
-[1,14,14,14,1],
-[1,14,2,14,1],
-[0,1,1,1,0]
-]},
-{name:"FANTASMA",grid:[
-[0,3,3,3,0],
-[3,3,2,3,3],
-[3,3,3,3,3],
-[3,2,3,2,3],
-[3,3,3,3,3]
-]},
-{name:"CORAZON",grid:[
-[0,8,0,8,0],
-[8,8,8,8,8],
-[8,8,8,8,8],
-[0,8,8,8,0],
-[0,0,8,0,0]
-]},
-{name:"HELADO",grid:[
-[0,7,7,7,0],
-[7,7,7,7,7],
-[7,7,7,7,7],
-[0,15,15,15,0],
-[0,15,15,15,0]
-]},
-{name:"CARITA",grid:[
-[0,3,3,3,0],
-[3,2,3,2,3],
-[3,3,3,3,3],
-[3,3,3,3,3],
-[0,3,3,3,0]
-]}
+const FREE_COLORS=[
+"#000","#777","#fff","#f00","#ff7f00","#ff0","#0f0","#0ff","#00f","#8b00ff",
+"#ff69b4","#a52a2a","#deb887","#ffd700","#98fb98","#20b2aa","#87cefa","#dda0dd"
 ];
 
-/* =========================
-   ESTADO
-========================= */
+/* MUCHOS DIBUJOS */
+const LEVELS=[
+{name:"Corazon",grid:[[0,8,0,8,0],[8,8,8,8,8],[8,8,8,8,8],[0,8,8,8,0],[0,0,8,0,0]]},
+{name:"Fantasma",grid:[[0,3,3,3,0],[3,3,2,3,3],[3,3,3,3,3],[3,2,3,2,3],[3,3,3,3,3]]},
+{name:"Seta",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]},
+{name:"Helado",grid:[[0,7,7,7,0],[7,7,7,7,7],[7,7,7,7,7],[0,15,15,15,0],[0,15,15,15,0]]},
+{name:"Cara",grid:[[0,3,3,3,0],[3,2,3,2,3],[3,3,3,3,3],[3,3,3,3,3],[0,3,3,3,0]]}
+];
 
-let mode="numbers"; // numbers | free
-let tool="pencil";
-let brushSize=1;
-let selectedColor="#000000";
-let painting=false;
+let free=false,painting=false,selected=1,brush=1;
 
-/* =========================
-   MENU AUTOMATICO
-========================= */
-
+/* INIT */
 window.onload=()=>{
-setTimeout(()=>{
-splash.style.display="none";
-menu.style.display="block";
-},700);
-
-const container=document.getElementById("levels");
-LEVELS.forEach((lvl,i)=>{
-container.innerHTML+=`<div class="card" onclick="startLevel(${i})">${lvl.name}</div>`;
-});
+setTimeout(()=>{splash.style.display="none";menu.style.display="block"},700);
+LEVELS.forEach((l,i)=>levels.innerHTML+=`<div class="card" onclick="start(${i})">${l.name}</div>`);
 };
 
-/* =========================
-   INICIAR NIVELES
-========================= */
-
-function startLevel(i){
-mode="numbers";
-menu.style.display="none";
-game.style.display="flex";
-buildNumbers(LEVELS[i].grid);
-buildNumberPalette(LEVELS[i].grid);
+/* NUMEROS */
+function start(i){
+free=false;
+menu.style.display="none";game.style.display="flex";
+drawNumbers(LEVELS[i].grid);
+paletteNumbers(LEVELS[i].grid);
 }
 
-function freeMode(size){
-mode="free";
-menu.style.display="none";
-game.style.display="flex";
-let grid=Array(size).fill().map(()=>Array(size).fill("#ffffff"));
-buildFree(grid);
-buildFreePalette();
-}
-
-/* =========================
-   PINTAR POR NUMEROS
-========================= */
-
-function buildNumbers(grid){
-const wrap=canvas-wrapper;
-wrap.innerHTML="";
-wrap.style.gridTemplateColumns=`repeat(${grid[0].length},40px)`;
+function drawNumbers(grid){
+canvas-wrapper.innerHTML="";
+canvas-wrapper.style.gridTemplateColumns=`repeat(${grid[0].length},28px)`;
 
 grid.forEach(row=>{
 row.forEach(v=>{
-let d=document.createElement("div");
-d.className="pixel";
-if(v!==0){
-d.dataset.target=v;
-d.textContent=v;
-d.style.background="#fff";
-}
-d.onpointerdown=()=>paintNumber(d);
-wrap.appendChild(d);
+let p=document.createElement("div");
+p.className="pixel";
+if(v!==0){p.dataset.n=v;p.textContent=v}
+p.onpointerdown=()=>paintNumber(p);
+canvas-wrapper.appendChild(p);
 });
 });
 }
 
-function paintNumber(px){
-if(Number(px.dataset.target)===Number(selectedColor)){
-px.style.background=NUMBER_COLORS[selectedColor];
-px.textContent="";
-px.dataset.done=1;
-updateProgress();
+function paintNumber(p){
+if(Number(p.dataset.n)===selected){
+p.style.background=COLORS[selected];
+p.textContent="";
+p.dataset.ok=1;
+update();
 }
 }
 
-function updateProgress(){
-let t=document.querySelectorAll(".pixel[data-target]").length;
-let d=document.querySelectorAll(".pixel[data-done]").length;
+function paletteNumbers(grid){
+palette.innerHTML="";
+[...new Set(grid.flat())].filter(v=>v!=0).forEach(n=>{
+let c=document.createElement("div");
+c.className="color";
+c.style.background=COLORS[n];
+c.textContent=n;
+c.onclick=()=>{selected=n;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
+palette.appendChild(c);
+});
+}
+
+function update(){
+let t=document.querySelectorAll(".pixel[data-n]").length;
+let d=document.querySelectorAll(".pixel[data-ok]").length;
 percent.textContent=Math.floor(d/t*100)+"%";
 }
 
-function buildNumberPalette(grid){
-palette.innerHTML="";
-let list=[...new Set(grid.flat())].filter(v=>v!=0);
-list.forEach(n=>{
-let c=document.createElement("div");
-c.className="color";
-c.style.background=NUMBER_COLORS[n];
-c.textContent=n;
-c.onclick=()=>selectNumberColor(n,c);
-palette.appendChild(c);
-});
-}
+/* LIBRE */
+function freeMode(size){
+free=true;
+menu.style.display="none";game.style.display="flex";
 
-function selectNumberColor(n,el){
-document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
-el.classList.add("active");
-selectedColor=n;
-}
+canvas-wrapper.innerHTML="";
+canvas-wrapper.style.gridTemplateColumns=`repeat(${size},18px)`;
 
-/* =========================
-   MODO LIBRE (BROCHA)
-========================= */
+for(let y=0;y<size;y++){
+for(let x=0;x<size;x++){
+let p=document.createElement("div");
+p.className="pixel";
+p.style.background="#fff";
+p.dataset.x=x;p.dataset.y=y;
 
-function buildFree(grid){
-const wrap=canvas-wrapper;
-wrap.innerHTML="";
-wrap.style.gridTemplateColumns=`repeat(${grid[0].length},20px)`;
+p.onpointerdown=()=>{painting=true;paintFree(x,y)};
+p.onpointerenter=()=>painting&&paintFree(x,y);
 
-grid.forEach((row,y)=>{
-row.forEach((v,x)=>{
-let d=document.createElement("div");
-d.className="pixel";
-d.style.background=v;
-d.dataset.x=x;
-d.dataset.y=y;
-
-d.onpointerdown=()=>{painting=true;paintFree(x,y)};
-d.onpointerenter=()=>painting&&paintFree(x,y);
-
-wrap.appendChild(d);
-});
-});
-
+canvas-wrapper.appendChild(p);
+}}
 window.onpointerup=()=>painting=false;
+paletteFree();
 }
 
 function paintFree(x,y){
-let pixels=document.querySelectorAll(".pixel");
-pixels.forEach(p=>{
+document.querySelectorAll(".pixel").forEach(p=>{
 let dx=p.dataset.x-x;
 let dy=p.dataset.y-y;
-if(Math.sqrt(dx*dx+dy*dy)<=brushSize)
-p.style.background=selectedColor;
+if(Math.sqrt(dx*dx+dy*dy)<=brush*size.value)p.style.background=selected;
 });
 }
 
-/* =========================
-   PALETA LIBRE
-========================= */
-
-function buildFreePalette(){
+function paletteFree(){
 palette.innerHTML="";
-
-DRAW_COLORS.forEach(col=>{
+FREE_COLORS.forEach(col=>{
 let c=document.createElement("div");
 c.className="color";
 c.style.background=col;
-c.onclick=()=>{
-document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
-c.classList.add("active");
-selectedColor=col;
-};
+c.onclick=()=>{selected=col;document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));c.classList.add("active");};
 palette.appendChild(c);
 });
-
-/* herramientas */
-palette.innerHTML+=`
-<div style="display:flex;gap:10px;margin-left:20px">
-<button onclick="tool='pencil'">Lápiz</button>
-<button onclick="tool='brush'">Brocha</button>
-<input type="range" min="1" max="4" value="1" onchange="brushSize=this.value">
-</div>`;
 }
 
+function setBrush(b){brush=b}
+function reset(){canvas-wrapper.style.transform="scale(1)"}
 </script>
 
 </body>
