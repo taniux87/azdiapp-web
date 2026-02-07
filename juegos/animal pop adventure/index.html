@@ -3,84 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Animal Pop! - Ads & Rewards</title>
+    <title>AzDi Animal Pop! - Deluxe</title>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     
     <style>
-        :root { --pink: #ff99cc; --blue: #4facfe; --gold: #ffd700; --font: 'Luckiest Guy', cursive; }
-        * { box-sizing: border-box; touch-action: manipulation; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #222; }
-        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #fff; overflow: hidden; }
+        :root { --pink: #ff66b2; --blue: #4facfe; --gold: #ffd700; --font: 'Luckiest Guy', cursive; }
+        * { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; font-family: var(--font); }
+        #game-wrapper { width: 100%; max-width: 450px; height: 100%; margin: 0 auto; position: relative; background: #fff; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
-        /* --- UI STATS --- */
-        .top-stats { position: absolute; top: 70px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 110; }
-        .stat-bubble { background: rgba(0,0,0,0.7); color: white; padding: 5px 15px; border-radius: 20px; font-family: var(--font); font-size: 14px; border: 2px solid white; display: flex; align-items: center; gap: 5px; }
+        /* --- UI TOP --- */
+        .top-stats { position: absolute; top: 15px; left: 0; width: 100%; display: flex; justify-content: space-around; z-index: 110; pointer-events: none; }
+        .stat-bubble { background: rgba(0,0,0,0.6); color: white; padding: 8px 15px; border-radius: 25px; font-size: 16px; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 8px; pointer-events: all; transition: transform 0.2s; }
+        .stat-bubble:active { transform: scale(0.9); }
+        .btn-ads { background: #4caf50; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulse 2s infinite; pointer-events: all; cursor: pointer; color: white; border-radius: 20px; padding: 5px 10px; }
 
         /* --- MAPA --- */
-        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #00f2fe, #a8e063, #56ab2f); z-index: 10; }
-        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-family: var(--font); z-index: 100; backdrop-filter: blur(5px); }
-        .map-nodes { position: relative; width: 100%; height: 7500px; }
-        .level-node { position: absolute; width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font); color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(-50%); cursor: pointer; z-index: 20; }
-        .level-node.locked { background: #888; filter: grayscale(1); }
+        #map-screen { position: absolute; inset: 0; overflow-y: auto; background: linear-gradient(#4facfe, #a8e063, #f7bb97); z-index: 10; scroll-behavior: smooth; }
+        #map-topbar { position: sticky; top: 0; height: 60px; background: rgba(255, 102, 178, 0.9); display: flex; align-items: center; justify-content: center; color: white; z-index: 100; backdrop-filter: blur(5px); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .map-nodes { position: relative; width: 100%; height: 5000px; padding-bottom: 100px; }
+        .level-node { position: absolute; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; background: radial-gradient(circle, #f7a52e, #d47a00); border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transform: translateX(-50%); cursor: pointer; z-index: 20; transition: 0.2s; }
+        .level-node:active { transform: translateX(-50%) scale(0.9); }
+        .level-node.locked { background: #666; filter: grayscale(1); cursor: default; }
 
         /* --- JUEGO --- */
-        #game-screen { display: none; position: absolute; inset: 0; background: #6ddaff; z-index: 50; flex-direction: column; }
-        .game-header { background: var(--pink); padding: 15px; display: flex; justify-content: space-around; color: white; font-family: var(--font); }
-        #grid-container { margin: 15px auto; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 95%; aspect-ratio: 1/1; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 12px; }
-        .cell { background: rgba(255,255,255,0.3); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer; }
-        .cell.selected { transform: scale(1.15); background: white; }
+        #game-screen { display: none; position: absolute; inset: 0; background: radial-gradient(#6ddaff, #2193b0); z-index: 150; flex-direction: column; }
+        .game-header { background: rgba(0,0,0,0.2); padding: 50px 10px 10px; display: flex; justify-content: space-around; color: white; font-size: 18px; }
+        #grid-container { margin: auto; display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; width: 95%; aspect-ratio: 1/1; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 15px; border: 3px solid rgba(255,255,255,0.4); }
+        
+        .cell { background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer; transition: transform 0.1s, background 0.2s; position: relative; }
+        .cell:active { transform: scale(0.9); }
+        .cell.selected { background: white; transform: scale(1.1); box-shadow: 0 0 15px white; z-index: 5; }
+        .cell.special-line { background: #fff380; border: 2px solid gold; box-shadow: inset 0 0 10px orange; }
+        .cell.special-bomb { background: #000; border: 2px solid #ff00ea; box-shadow: 0 0 15px #ff00ea; }
 
-        /* --- BOTONES Y ADS --- */
-        .btn { padding: 12px 20px; border-radius: 30px; border: none; font-family: var(--font); font-size: 16px; cursor: pointer; color: white; text-shadow: 1px 1px 2px black; }
-        .btn-ads { background: #4caf50; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3); animation: pulse 2s infinite; }
+        /* --- PARTICULAS --- */
+        .pop-effect { position: absolute; pointer-events: none; animation: popAnim 0.4s ease-out forwards; }
+        @keyframes popAnim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
         @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* --- MODAL DE CARGA (SIMULAR ANUNCIO) --- */
-        #ad-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; color: white; font-family: var(--font); flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #ad-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="game-wrapper">
-    <div id="ad-overlay">
-        <p>VIENDO ANUNCIO... 📺</p>
-        <div id="ad-timer" style="font-size: 40px;">5</div>
-        <p style="font-size: 12px; margin-top: 20px;">(Aquí iría el anuncio de Google)</p>
+    <div class="top-stats" id="ui-stats">
+        <div class="stat-bubble" onclick="buyLife()">❤️ <span id="val-lives">5</span> <small style="font-size:10px; background:green; padding:2px; border-radius:5px">COMPRAR</small></div>
+        <div class="stat-bubble">💰 <span id="val-coins">0</span></div>
+        <button class="btn-ads" onclick="showRewardAd()">📺+❤️</button>
     </div>
 
-    <div class="top-stats" id="ui-stats">
-        <div class="stat-bubble">❤️ <span id="val-lives">5</span></div>
-        <div class="stat-bubble">💰 <span id="val-coins">0</span></div>
-        <button class="btn btn-ads" onclick="showRewardAd()">+ ❤️ GRATIS</button>
+    <div id="ad-overlay">
+        <h2 style="color:var(--gold)">VIDEO RECOMPENSA</h2>
+        <div id="ad-timer" style="font-size: 60px; margin: 20px;">5</div>
+        <p>Espera para recibir tus premios...</p>
     </div>
 
     <div id="map-screen">
-        <div id="map-topbar"><span>AZDI ANIMAL POP!</span></div>
+        <div id="map-topbar">AZDI ANIMAL POP!</div>
         <div class="map-nodes" id="nodes-container"></div>
-        <button style="position:fixed; bottom:20px; left:20px; background:white; color:#ff2ea6; z-index:1000;" class="btn" onclick="location.reload()">🏠 INICIO</button>
     </div>
 
     <div id="game-screen">
         <div class="game-header">
-            <div>LVL: <span id="cur-lvl">1</span></div>
-            <div>PUNTOS: <span id="score">0</span></div>
-            <div>META: <span id="target">500</span></div>
+            <div>LVL <span id="cur-lvl">1</span></div>
+            <div style="color:var(--gold)">OBJETIVO: <span id="target">500</span></div>
         </div>
+        
+        <div style="text-align: center; color: white; padding: 10px;">
+            <div style="font-size: 24px;">PUNTOS: <span id="score">0</span></div>
+        </div>
+
         <div id="grid-container"></div>
-        <div class="game-footer" style="margin-top:auto; background:var(--pink); padding:20px; text-align:center;">
-            <div style="font-family: var(--font); color: white; font-size: 22px; margin-bottom:10px;">MOVES: <span id="moves">30</span></div>
-            <button class="btn" style="background: #ff4d4d;" onclick="closeGame()">RENDIRSE</button>
+
+        <div style="margin-top:auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+            <div style="color: white; font-size: 30px;">🎈 <span id="moves">25</span></div>
+            <button onclick="closeGame()" style="background:#ff4d4d; border:none; padding:10px 20px; border-radius:15px; color:white; font-family:var(--font);">SALIR</button>
         </div>
     </div>
 </div>
 
 <script>
     const emojis = ['🐶', '🐱', '🐹', '🐰', '🦊', '🐻'];
+    const SPECIALS = { LINE: '🧨', BOMB: '💣' };
+    
     let unlocked = parseInt(localStorage.getItem('azdi_unlocked')) || 1;
-    let coins = parseInt(localStorage.getItem('azdi_coins')) || 0;
+    let coins = parseInt(localStorage.getItem('azdi_coins')) || 100;
     let lives = parseInt(localStorage.getItem('azdi_lives')) || 5;
 
-    let selected = null, score = 0, moves = 30, goal = 500, currentLvl = 1;
+    let selected = null, score = 0, moves = 30, goal = 500, currentLvl = 1, isProcessing = false;
 
     function updateUI() {
         document.getElementById('val-lives').textContent = lives;
@@ -90,32 +102,34 @@
         localStorage.setItem('azdi_lives', lives);
     }
 
-    // --- LÓGICA DE ANUNCIOS RECOMPENSADOS ---
+    function buyLife() {
+        if (coins >= 50) {
+            coins -= 50;
+            lives++;
+            alert("¡Has comprado 1 Vida! ❤️");
+            updateUI();
+        } else {
+            alert("No tienes suficientes monedas (50💰)");
+        }
+    }
+
     function showRewardAd() {
         const overlay = document.getElementById('ad-overlay');
-        const timerTxt = document.getElementById('ad-timer');
         overlay.style.display = 'flex';
-        let count = 5; // Simulación de 5 segundos de video
-        
+        let count = 5;
         const interval = setInterval(() => {
             count--;
-            timerTxt.textContent = count;
+            document.getElementById('ad-timer').textContent = count;
             if (count <= 0) {
                 clearInterval(interval);
                 overlay.style.display = 'none';
-                giveReward();
+                lives += 2; coins += 25;
+                updateUI();
+                alert("¡Recompensa recibida! +2❤️ +25💰");
             }
         }, 1000);
     }
 
-    function giveReward() {
-        lives += 3;
-        coins += 50;
-        alert("¡Gracias por ver el video! 🎉\nRecibes: +3 Vidas ❤️ y +50 Monedas 💰");
-        updateUI();
-    }
-
-    // --- RESTO DE LÓGICA DEL JUEGO ---
     function drawMap() {
         updateUI();
         const container = document.getElementById('nodes-container');
@@ -125,28 +139,24 @@
         for (let i = 1; i <= 50; i++) {
             const div = document.createElement('div');
             div.className = `level-node ${i > unlocked ? 'locked' : ''}`;
-            div.textContent = i;
-            div.style.top = (7200 - (i * 140)) + 'px';
-            div.style.left = (w/2 + Math.sin(i * 0.8) * (w * 0.3)) + 'px';
-            if (i <= unlocked) div.onclick = () => {
-                if (lives > 0) launchLevel(i);
-                else alert("¡Sin vidas! Mira un video para recuperar ❤️");
-            };
+            div.innerHTML = i;
+            div.style.top = (4800 - (i * 120)) + 'px';
+            div.style.left = (w/2 + Math.sin(i * 0.7) * (w * 0.25)) + 'px';
+            if (i <= unlocked) div.onclick = () => (lives > 0) ? launchLevel(i) : alert("¡Sin vidas!");
             container.appendChild(div);
         }
-        document.getElementById('map-screen').scrollTop = 7200 - (unlocked * 140) - 350;
+        document.getElementById('map-screen').scrollTop = 4800 - (unlocked * 120) - 300;
     }
 
     function launchLevel(lvl) {
-        currentLvl = lvl; score = 0;
-        moves = 25 + Math.floor(lvl / 2);
-        goal = 500 + (lvl * 200);
+        currentLvl = lvl; score = 0; isProcessing = false;
+        moves = Math.max(15, 30 - Math.floor(lvl/3));
+        goal = 500 + (lvl * 300);
         document.getElementById('cur-lvl').textContent = lvl;
         document.getElementById('score').textContent = score;
         document.getElementById('target').textContent = goal;
         document.getElementById('moves').textContent = moves;
         document.getElementById('map-screen').style.display = 'none';
-        document.getElementById('ui-stats').style.display = 'none';
         document.getElementById('game-screen').style.display = 'flex';
         initGrid();
     }
@@ -162,20 +172,31 @@
             cell.onclick = () => onCellClick(cell);
             grid.appendChild(cell);
         }
+        // Limpiar matches iniciales sin gastar movimientos
+        checkMatchesSilently();
     }
 
     function onCellClick(cell) {
+        if (isProcessing || moves <= 0) return;
+
         if (!selected) {
             selected = cell;
             cell.classList.add('selected');
         } else {
             const id1 = parseInt(selected.dataset.id);
             const id2 = parseInt(cell.dataset.id);
+
             if (isAdjacent(id1, id2)) {
                 swap(selected, cell);
                 moves--;
                 document.getElementById('moves').textContent = moves;
-                setTimeout(processMatches, 300);
+                isProcessing = true;
+                setTimeout(() => {
+                    if (!processMatches()) {
+                        swap(selected, cell); // Deshacer si no hay match
+                        isProcessing = false;
+                    }
+                }, 300);
             }
             selected.classList.remove('selected');
             selected = null;
@@ -189,38 +210,74 @@
 
     function swap(a, b) {
         const t = a.textContent;
+        const tc = a.className;
         a.textContent = b.textContent;
+        a.className = b.className;
         b.textContent = t;
+        b.className = tc;
+        a.classList.remove('selected');
+        b.classList.remove('selected');
     }
 
     function processMatches() {
         const cells = document.querySelectorAll('.cell');
         let matched = new Set();
-        for (let i = 0; i < 64; i++) {
-            if (i % 8 < 6 && cells[i].textContent && cells[i].textContent === cells[i+1].textContent && cells[i].textContent === cells[i+2].textContent) {
-                matched.add(i); matched.add(i+1); matched.add(i+2);
+        let specialToCreate = null;
+
+        // Buscar horizontales
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 6; c++) {
+                let idx = r * 8 + c;
+                let char = cells[idx].textContent;
+                if (char && char === cells[idx+1].textContent && char === cells[idx+2].textContent) {
+                    matched.add(idx); matched.add(idx+1); matched.add(idx+2);
+                    if (c < 5 && char === cells[idx+3].textContent) { 
+                        matched.add(idx+3); 
+                        specialToCreate = { id: idx, type: 'special-line', emoji: SPECIALS.LINE };
+                    }
+                }
             }
-            if (i < 48 && cells[i].textContent && cells[i].textContent === cells[i+8].textContent && cells[i].textContent === cells[i+16].textContent) {
-                matched.add(i); matched.add(i+8); matched.add(i+16);
+        }
+
+        // Buscar verticales
+        for (let c = 0; c < 8; c++) {
+            for (let r = 0; r < 6; r++) {
+                let idx = r * 8 + c;
+                let char = cells[idx].textContent;
+                if (char && char === cells[idx+8].textContent && char === cells[idx+16].textContent) {
+                    matched.add(idx); matched.add(idx+8); matched.add(idx+16);
+                    if (r < 4 && char === cells[idx+24].textContent) {
+                        matched.add(idx+24);
+                        specialToCreate = { id: idx, type: 'special-bomb', emoji: SPECIALS.BOMB };
+                    }
+                }
             }
         }
 
         if (matched.size > 0) {
-            score += matched.size * 20;
+            score += matched.size * 10;
             document.getElementById('score').textContent = score;
-            matched.forEach(i => cells[i].textContent = '');
-            setTimeout(drop, 300);
-        } else {
-            if (score >= goal) {
-                coins += 20;
-                alert("¡Nivel superado! +20 monedas 💰");
-                if (currentLvl === unlocked) unlocked++;
-                closeGame();
-            } else if (moves <= 0) {
-                lives--;
-                alert("¡Derrota! Pierdes 1 vida ❤️");
-                closeGame();
+
+            matched.forEach(i => {
+                // Si explota una bomba
+                if (cells[i].textContent === SPECIALS.LINE) score += 50; 
+                if (cells[i].textContent === SPECIALS.BOMB) score += 100;
+                
+                cells[i].textContent = '';
+                cells[i].className = 'cell';
+            });
+
+            if (specialToCreate) {
+                cells[specialToCreate.id].textContent = specialToCreate.emoji;
+                cells[specialToCreate.id].classList.add(specialToCreate.type);
             }
+
+            setTimeout(drop, 300);
+            return true;
+        } else {
+            checkGameOver();
+            isProcessing = false;
+            return false;
         }
     }
 
@@ -234,7 +291,9 @@
                     while (top >= 0 && cells[top * 8 + c].textContent === '') top--;
                     if (top >= 0) {
                         cells[i].textContent = cells[top * 8 + c].textContent;
+                        cells[i].className = cells[top * 8 + c].className;
                         cells[top * 8 + c].textContent = '';
+                        cells[top * 8 + c].className = 'cell';
                     } else {
                         cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
                     }
@@ -244,9 +303,35 @@
         setTimeout(processMatches, 300);
     }
 
+    function checkGameOver() {
+        if (score >= goal) {
+            coins += (20 + currentLvl);
+            alert("¡EXCELENTE! 🎉 Nivel superado.");
+            if (currentLvl === unlocked) unlocked++;
+            closeGame();
+        } else if (moves <= 0) {
+            lives--;
+            alert("Te has quedado sin movimientos... 😢");
+            closeGame();
+        }
+    }
+
+    function checkMatchesSilently() {
+        // Limpieza rápida inicial
+        const cells = document.querySelectorAll('.cell');
+        let hasMatch = false;
+        for (let i = 0; i < 64; i++) {
+            // Lógica simplificada solo para rellenar huecos iniciales sin repetir
+            if (i % 8 < 6 && cells[i].textContent === cells[i+1].textContent && cells[i].textContent === cells[i+2].textContent) {
+                cells[i].textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                hasMatch = true;
+            }
+        }
+        if (hasMatch) checkMatchesSilently();
+    }
+
     function closeGame() {
         document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('ui-stats').style.display = 'flex';
         document.getElementById('map-screen').style.display = 'block';
         drawMap();
     }
