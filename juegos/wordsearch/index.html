@@ -140,6 +140,7 @@ document.getElementById("coins").textContent=save.coins;
 document.getElementById("avatarDisplay").textContent=save.avatar;
 }
 
+
 // ================= SHOP =================
 function openShop(){
 show("shop");
@@ -227,14 +228,65 @@ function draw(){
 const b=document.getElementById("board");
 b.style.gridTemplateColumns=`repeat(${size},1fr)`;
 b.innerHTML="";
+
 for(let y=0;y<size;y++)
 for(let x=0;x<size;x++){
+
 let d=document.createElement("div");
 d.className="cell";
 d.textContent=grid[y][x];
-d.onpointerdown=()=>{down=true;path=[d];d.classList.add("selected")};
-d.onpointerenter=()=>{if(down&&!path.includes(d)){path.push(d);d.classList.add("selected")}};
-d.onpointerup=()=>{down=false;check();clear()};
+d.dataset.x=x;
+d.dataset.y=y;
+
+d.onpointerdown=e=>{
+down=true;
+path=[d];
+clearSelection();
+d.classList.add("selected");
+};
+
+d.onpointerenter=e=>{
+if(!down)return;
+
+const first=path[0];
+const dx=d.dataset.x-first.dataset.x;
+const dy=d.dataset.y-first.dataset.y;
+
+// SOLO PERMITIR LINEA RECTA
+if(path.length===1 || (dx===0 || dy===0 || Math.abs(dx)===Math.abs(dy))){
+clearSelection();
+path=getLine(first,d);
+path.forEach(c=>c.classList.add("selected"));
+}
+};
+  
+function getLine(a,b){
+
+let x1=+a.dataset.x, y1=+a.dataset.y;
+let x2=+b.dataset.x, y2=+b.dataset.y;
+
+let dx=Math.sign(x2-x1);
+let dy=Math.sign(y2-y1);
+
+let cells=[];
+let x=x1,y=y1;
+
+while(true){
+let c=document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+if(!c)break;
+cells.push(c);
+if(x===x2 && y===y2)break;
+x+=dx; y+=dy;
+}
+
+return cells;
+}
+d.onpointerup=e=>{
+down=false;
+check();
+clearSelection();
+};
+
 b.appendChild(d);
 }
 }
@@ -243,8 +295,22 @@ b.appendChild(d);
 function startLevel(lv){
 level=lv;
 show("game");
+
 document.getElementById("levelName").textContent="Nivel "+lv;
+
+// generar nivel
 makeLevel(lv);
+
+// 🧠 MOSTRAR PALABRAS
+const list=document.getElementById("wordList");
+list.innerHTML="";
+placed.forEach(w=>{
+ let d=document.createElement("div");
+ d.className="word";
+ d.textContent=w;
+ list.appendChild(d);
+});
+
 startTimer();
 }
 
@@ -262,25 +328,60 @@ if(time<=0)lose();
 function clear(){path.forEach(c=>c.classList.remove("selected"));path=[]}
 
 function check(){
+
 let w=path.map(c=>c.textContent).join("");
 let r=[...w].reverse().join("");
+
 let idx=placed.findIndex(a=>a==w||a==r);
+
 if(idx!=-1){
+
 path.forEach(c=>c.classList.add("found"));
+
+document.querySelectorAll(".word")[idx].classList.add("done");
+
 placed.splice(idx,1);
+
 save.coins+=3;
 saveGame();
 updateUI();
+
 if(!placed.length)win();
 }
 }
 
 function hint(){
+
 if(save.coins<5)return;
+
+let targetWord=placed[0];
+if(!targetWord)return;
+
+for(let y=0;y<size;y++)
+for(let x=0;x<size;x++){
+
+for(let [dx,dy] of [[1,0],[0,1],[1,1],[-1,1]]){
+
+let ok=true;
+let cells=[];
+
+for(let i=0;i<targetWord.length;i++){
+let nx=x+dx*i,ny=y+dy*i;
+if(nx<0||ny<0||nx>=size||ny>=size){ok=false;break;}
+if(grid[ny][nx]!=targetWord[i]){ok=false;break;}
+
+cells.push(document.querySelector(`.cell[data-x="${nx}"][data-y="${ny}"]`));
+}
+
+if(ok){
+cells.forEach(c=>c.classList.add("selected"));
 save.coins-=5;
 saveGame();
 updateUI();
-document.querySelector(".cell:not(.found)")?.classList.add("found");
+return;
+}
+}
+}
 }
 
 function win(){
