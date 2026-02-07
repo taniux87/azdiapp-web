@@ -31,14 +31,17 @@
         .screen { display: none; width: min(94vw, 500px); flex-direction: column; gap: 15px; }
         .active { display: flex; }
 
+        h1, h2 {
+            text-align: center;
+            margin: 10px 0;
+        }
+
         h1 {
             font-size: clamp(32px, 8vw, 48px);
-            text-align: center;
             background: linear-gradient(to right, var(--neon1), var(--neon2));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
-            margin: 10px 0;
         }
 
         /* --- BOTONES --- */
@@ -101,6 +104,18 @@
             color: white;
             font-weight: bold;
             animation: pop 0.3s ease-out;
+        }
+
+        /* Animación de Pista */
+        .cell.hint-flash {
+            animation: hintFlash 1s ease-in-out infinite;
+            background: var(--gold) !important;
+            color: #000 !important;
+            z-index: 20;
+        }
+        @keyframes hintFlash {
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px var(--gold); }
+            50% { opacity: 0.6; box-shadow: 0 0 5px var(--gold); }
         }
 
         @keyframes pop {
@@ -168,6 +183,23 @@
         .timer { color: var(--neon1); }
         .coin { color: var(--gold); }
 
+        /* --- PANTALLA DE VICTORIA --- */
+        #winScreen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #winScreen h2 {
+            font-size: 36px;
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+        }
+
     </style>
 </head>
 <body>
@@ -200,6 +232,13 @@
     </div>
 </div>
 
+<div id="winScreen" class="screen">
+    <h2>¡NIVEL COMPLETADO!</h2>
+    <div style="font-size: 60px; margin: 20px;">🎉</div>
+    <p style="font-size: 24px; margin-bottom: 30px;">Ganaste <span class="coin">20 🪙</span></p>
+    <button onclick="show('levels')" style="width: auto; padding: 15px 40px; background: var(--accent);">CONTINUAR</button>
+</div>
+
 <div id="shop" class="screen">
     <h2>TIENDA DE AVATARES</h2>
     <div id="shopItems"></div>
@@ -221,6 +260,7 @@ const AVATARS = [
 let mode, level, size, grid = [], placedWords = [], foundWords = [];
 let isDragging = false, startCell = null, currentPath = [], timer;
 let wordColors = ["#38bdf8", "#a78bfa", "#22c55e", "#facc15", "#f97316", "#ef4444", "#fb7185"];
+let hintTimeout;
 
 // ================= NAV =================
 function show(id) {
@@ -281,6 +321,7 @@ function startLevel(lv) {
     size = mode === "kids" ? Math.min(7 + lv, 10) : Math.min(9 + lv, 14);
     show("game");
     document.getElementById("levelName").textContent = `NIVEL ${lv}`;
+    clearHint();
     generateBoard();
     startTimer();
 }
@@ -344,7 +385,7 @@ function drawBoard() {
                 startCell = d;
                 currentPath = [d];
                 d.classList.add("selected");
-                d.releasePointerCapture(e.pointerId); // Importante para móvil
+                d.releasePointerCapture(e.pointerId);
             };
             
             d.onpointerenter = () => {
@@ -365,7 +406,6 @@ function selectPath(start, end) {
     let dx = x2 - x1, dy = y2 - y1;
     let dist = Math.max(Math.abs(dx), Math.abs(dy));
     
-    // Solo permitir líneas rectas o diagonales perfectas
     if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) {
         currentPath = [];
         let stepX = dx === 0 ? 0 : dx / dist;
@@ -394,7 +434,6 @@ function drawWordList() {
     });
 }
 
-// Finalizar selección
 document.addEventListener("pointerup", () => {
     if (!isDragging) return;
     isDragging = false;
@@ -409,6 +448,7 @@ function checkWord() {
     let found = placedWords.find(w => (w === word || w === rev) && !foundWords.includes(w));
     
     if (found) {
+        clearHint();
         let color = wordColors[foundWords.length % wordColors.length];
         foundWords.push(found);
         currentPath.forEach(c => {
@@ -438,19 +478,50 @@ function startTimer() {
 
 function hint() {
     if (save.coins < 10) return;
-    let pending = placedWords.find(w => !foundWords.includes(w));
-    if (pending) {
+    
+    // 1. Buscar palabras pendientes
+    let pending = placedWords.filter(w => !foundWords.includes(w));
+    if (pending.length === 0) return;
+
+    // 2. Elegir una palabra al azar y una letra al azar de esa palabra
+    let targetWord = pending[Math.floor(Math.random() * pending.length)];
+    let targetLetter = targetWord[Math.floor(Math.random() * targetWord.length)];
+
+    // 3. Buscar celdas en el tablero que tengan esa letra y NO estén encontradas
+    let candidateCells = [];
+    document.querySelectorAll('.cell').forEach(cell => {
+        if (!cell.classList.contains('found') && cell.textContent === targetLetter) {
+            candidateCells.push(cell);
+        }
+    });
+
+    // 4. Si hay candidatas, elegir una y hacerla parpadear
+    if (candidateCells.length > 0) {
+        clearHint();
+        let cellToFlash = candidateCells[Math.floor(Math.random() * candidateCells.length)];
+        cellToFlash.classList.add('hint-flash');
+        
         save.coins -= 10;
-        alert("Busca la palabra: " + pending);
         updateUI();
+        
+        // Quitar la pista después de 3 segundos
+        hintTimeout = setTimeout(clearHint, 3000);
     }
+}
+
+function clearHint() {
+    clearTimeout(hintTimeout);
+    document.querySelectorAll('.hint-flash').forEach(c => c.classList.remove('hint-flash'));
 }
 
 function win() {
     clearInterval(timer);
     save.coins += 20;
     saveGame();
-    setTimeout(() => { alert("¡Nivel Completado! +20 monedas"); show("levels"); }, 300);
+    // Mostrar la nueva pantalla de victoria después de un pequeño retraso
+    setTimeout(() => {
+        show("winScreen");
+    }, 500);
 }
 
 function giveUp() { clearInterval(timer); show("levels"); }
