@@ -1,380 +1,278 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AzDi Art Studio ULTIMATE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #ff4fac; --secondary: #4facfe; --dark: #0a0a0a;
-            --card-bg: #1a1a1a; --text: #ffffff; --ui-panel: #252525;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AzDi Art Studio</title>
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: var(--dark); font-family: 'Poppins', sans-serif;
-            color: var(--text); overflow: hidden; touch-action: none;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 
-        /* --- PANTALLA CARGA/INICIO --- */
-        #splash-screen {
-            position: fixed; inset: 0; z-index: 2000;
-            background: var(--dark); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; transition: opacity 0.5s;
-        }
+<style>
+:root{
+--primary:#ff4fac;
+--secondary:#4facfe;
+--dark:#0a0a0a;
+}
 
-        .logo-anim {
-            font-family: 'Luckiest Guy', cursive; font-size: 4rem;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 79, 172, 0.4));
-            animation: pulse 2s infinite;
-        }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+html,body{
+margin:0;height:100%;
+background:#0a0a0a;
+font-family:Poppins;
+color:white;
+overflow:hidden;
+}
 
-        /* --- MENÚ PRINCIPAL --- */
-        #main-menu {
-            display: none; height: 100vh; flex-direction: column; padding: 20px;
-            overflow-y: auto; align-items: center;
-        }
+/* SPLASH */
+#splash{
+position:fixed;inset:0;
+display:flex;align-items:center;justify-content:center;
+background:#0a0a0a;z-index:5;
+font-family:"Luckiest Guy";
+font-size:3rem;
+background:linear-gradient(45deg,#ff4fac,#4facfe);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
 
-        .category-title { width: 100%; max-width: 600px; margin: 20px 0; font-family: 'Luckiest Guy'; font-size: 1.5rem; color: var(--secondary); border-left: 5px solid var(--primary); padding-left: 15px; }
+/* MENU */
+#menu{display:none;height:100%;padding:20px;overflow:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:20px}
+.card{background:#1a1a1a;border-radius:18px;padding:15px;text-align:center;cursor:pointer;border:2px solid #333}
+.card:hover{border-color:var(--primary)}
 
-        .level-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 20px; width: 100%; max-width: 800px; margin-bottom: 40px;
-        }
+.title{font-family:"Luckiest Guy";color:var(--secondary);margin:20px 0}
 
-        .level-card {
-            background: var(--card-bg); border-radius: 20px; padding: 15px;
-            border: 2px solid #333; cursor: pointer; transition: 0.3s;
-            text-align: center; position: relative;
-        }
+/* GAME */
+#game{display:none;height:100%;flex-direction:column}
 
-        .level-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .level-card .icon { font-size: 3rem; display: block; margin-bottom: 10px; }
-        .level-card .name { font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+header{
+height:70px;background:#252525;
+display:flex;align-items:center;justify-content:space-between;
+padding:0 20px;border-bottom:3px solid var(--primary)
+}
 
-        /* --- INTERFAZ JUEGO --- */
-        #game-ui { display: none; height: 100vh; flex-direction: column; }
+.btn{
+background:var(--primary);
+border:none;color:white;padding:10px 18px;border-radius:20px;
+font-family:"Luckiest Guy";cursor:pointer
+}
 
-        header {
-            height: 70px; background: var(--ui-panel); display: flex;
-            align-items: center; justify-content: space-between; padding: 0 20px;
-            border-bottom: 3px solid var(--primary); z-index: 100;
-        }
+.view{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}
 
-        .view-container {
-            flex: 1; position: relative; background: #111; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-        }
+#canvas-wrapper{
+display:grid;
+background:white;
+touch-action:none;
+transform-origin:center;
+}
 
-        #canvas-wrapper {
-            position: relative; background: #fff; transform-origin: center;
-            will-change: transform; transition: transform 0.1s ease-out;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
+.pixel{
+width:40px;height:40px;
+display:flex;align-items:center;justify-content:center;
+font-size:12px;font-weight:bold;color:#ccc;
+border:1px solid rgba(0,0,0,.05);
+touch-action:none;
+}
 
-        .pixel {
-            width: 40px; height: 40px; border: 0.1px solid rgba(0,0,0,0.05);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold; color: #ccc;
-        }
+.controls{
+height:150px;background:white;padding:12px;
+display:flex;flex-direction:column;gap:10px
+}
 
-        /* --- PANEL DE CONTROL --- */
-        .controls-panel {
-            background: #fff; height: 160px; display: flex; flex-direction: column;
-            padding: 15px; border-top-left-radius: 25px; border-top-right-radius: 25px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.3); z-index: 100;
-        }
+.palette{display:flex;gap:12px;overflow:auto}
 
-        .tool-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
-        .tool-btn {
-            background: #eee; border: none; padding: 8px 20px; border-radius: 12px;
-            font-weight: bold; color: #444; cursor: pointer; transition: 0.2s;
-        }
-        .tool-btn.active { background: var(--secondary); color: white; }
+.color{
+min-width:55px;height:55px;border-radius:50%;
+border:4px solid white;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+font-family:"Luckiest Guy";color:white;text-shadow:1px 1px 2px #000
+}
+.color.active{transform:scale(1.15);border-color:var(--primary)}
 
-        .palette-slider {
-            display: flex; gap: 12px; overflow-x: auto; padding: 5px;
-            scrollbar-width: none;
-        }
-        .palette-slider::-webkit-scrollbar { display: none; }
-
-        .color-item {
-            min-width: 60px; height: 60px; border-radius: 50%; border: 4px solid #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; align-items: center;
-            justify-content: center; font-family: 'Luckiest Guy'; font-size: 1.4rem;
-            color: white; text-shadow: 1px 1px 2px #000; flex-shrink: 0; cursor: pointer;
-        }
-        .color-item.active { transform: translateY(-10px) scale(1.1); border-color: var(--primary); }
-
-        /* --- BOTONES --- */
-        .btn-ui {
-            background: var(--primary); color: white; border: none;
-            padding: 10px 20px; border-radius: 50px; font-family: 'Luckiest Guy';
-            cursor: pointer; box-shadow: 0 4px 0 #b02e75;
-        }
-        .btn-ui:active { transform: translateY(2px); box-shadow: 0 2px 0 #b02e75; }
-
-        /* --- MODAL VICTORIA --- */
-        #win-modal {
-            display: none; position: fixed; inset: 0; z-index: 3000;
-            background: rgba(0,0,0,0.95); flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
-        }
-    </style>
+.tools{display:flex;justify-content:center;gap:10px}
+.tool{padding:6px 18px;border-radius:12px;border:none;background:#eee;font-weight:bold}
+.tool.active{background:var(--secondary);color:white}
+</style>
 </head>
+
 <body>
 
-<div id="splash-screen">
-    <div class="logo-anim">AZDI STUDIO</div>
-    <p style="margin-top: 20px; color: #666; letter-spacing: 5px;">CARGANDO EXPERIENCIA...</p>
+<div id="splash">AZDI STUDIO</div>
+
+<div id="menu">
+<div class="title">DIBUJOS</div>
+<div id="levels" class="grid"></div>
+
+<div class="title">LIBRE</div>
+<div class="grid">
+<div class="card" onclick="freeMode(20)">20x20</div>
+<div class="card" onclick="freeMode(40)">40x40</div>
+</div>
 </div>
 
-<div id="main-menu">
-    <div class="logo-anim" style="font-size: 2.5rem; margin: 40px 0;">ART STUDIO</div>
-    
-    <div class="category-title">BIBLIOTECA DE DIBUJOS</div>
-    <div class="level-grid" id="library-container"></div>
+<div id="game">
+<header>
+<button class="btn" onclick="location.reload()">SALIR</button>
+<div id="percent">0%</div>
+<button class="btn" onclick="resetZoom()">CENTRAR</button>
+</header>
 
-    <div class="category-title">CREACIÓN PRO</div>
-    <div class="level-grid">
-        <div class="level-card" onclick="initFreeMode(20)">
-            <span class="icon">🎨</span>
-            <span class="name">LIENZO 20x20</span>
-        </div>
-        <div class="level-card" onclick="initFreeMode(40)">
-            <span class="icon">🖼️</span>
-            <span class="name">GRAN FORMATO</span>
-        </div>
-    </div>
+<div class="view" id="view"><div id="canvas-wrapper"></div></div>
+
+<div class="controls">
+<div class="tools">
+<button id="pen" class="tool active" onclick="setTool('pen')">PINCEL</button>
+<button id="move" class="tool" onclick="setTool('move')">MOVER</button>
 </div>
-
-<div id="game-ui">
-    <header>
-        <button class="btn-ui" onclick="location.reload()">SALIR</button>
-        <div style="text-align: center;">
-            <div id="draw-title" style="font-weight: bold; font-size: 0.8rem; color: #888;">NIVEL 1</div>
-            <div id="percentage" style="font-family: 'Luckiest Guy'; font-size: 1.2rem; color: var(--primary);">0%</div>
-        </div>
-        <button class="btn-ui" style="background: var(--secondary); box-shadow: 0 4px 0 #2a80c0;" onclick="resetZoom()">CENTRAR</button>
-    </header>
-
-    <div class="view-container" id="pan-area">
-        <div id="canvas-wrapper"></div>
-    </div>
-
-    <div class="controls-panel">
-        <div class="tool-bar">
-            <button id="tool-pen" class="tool-btn active" onclick="setTool('pen')">PINCEL</button>
-            <button id="tool-move" class="tool-btn" onclick="setTool('move')">MOVER</button>
-            <button id="tool-fill" class="tool-btn" onclick="setTool('fill')">CUBO</button>
-        </div>
-        <div class="palette-slider" id="color-palette"></div>
-    </div>
+<div id="palette" class="palette"></div>
 </div>
-
-<div id="win-modal">
-    <h1 style="font-family: 'Luckiest Guy'; font-size: 4rem; color: var(--primary);">¡BRUTAL!</h1>
-    <p style="font-size: 1.5rem;">Has completado el dibujo a la perfección.</p>
-    <button class="btn-ui" style="padding: 20px 50px; font-size: 1.5rem;" onclick="location.reload()">CONTINUAR</button>
 </div>
 
 <script>
-    // --- DATABASE ---
-    const COLORS = {
-        1: "#FF3B30", 2: "#000000", 3: "#FFCC00", 4: "#007AFF", 5: "#4CD964",
-        6: "#5856D6", 7: "#FF9500", 8: "#FF2D55", 9: "#AF52DE", 10: "#5AC8FA",
-        11: "#FFFFFF", 12: "#8E8E93", 13: "#5E5E5E", 14: "#FFCCBC", 15: "#8B4513"
-    };
+const COLORS={
+1:"#FF3B30",2:"#000000",3:"#FFCC00",4:"#007AFF",5:"#4CD964",
+6:"#5856D6",7:"#FF9500",8:"#FF2D55",9:"#AF52DE",10:"#5AC8FA",
+11:"#FFFFFF",12:"#8E8E93",13:"#5E5E5E",14:"#FFCCBC",15:"#8B4513"
+};
 
-    const LEVELS = [
-        { name: "SUPER MARIO", icon: "🍄", grid: [
-            [0,0,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[0,15,15,15,14,14,2,14,0],
-            [0,15,14,15,14,14,14,2,0],[0,15,14,15,15,14,14,14,0],[0,15,15,14,14,14,14,0,0],
-            [0,0,14,14,14,14,14,0,0],[0,0,1,1,4,1,1,0,0],[0,1,1,1,4,1,1,1,0]
-        ]},
-        { name: "PIKACHU", icon: "⚡", grid: [
-            [2,0,0,0,0,0,0,2],[2,3,3,3,3,3,3,2],[3,3,3,3,3,3,3,3],[3,2,3,3,3,3,2,3],
-            [3,3,3,2,2,3,3,3],[3,3,1,3,3,1,3,3],[3,3,3,3,3,3,3,3],[0,3,3,3,3,3,3,0]
-        ]},
-        { name: "IRON MAN", icon: "🤖", grid: [
-            [0,1,1,1,1,1,1,0],[1,1,1,1,1,1,1,1],[1,10,1,1,1,1,10,1],[1,1,1,1,1,1,1,1],
-            [1,1,3,3,3,3,1,1],[0,1,3,3,3,3,1,0],[0,0,1,1,1,1,0,0]
-        ]},
-        { name: "PACMAN", icon: "👾", grid: [
-            [0,3,3,3,3,3,0],[3,3,3,3,3,3,3],[3,3,2,3,3,3,3],[3,3,3,3,3,0,0],
-            [3,3,3,3,3,3,3],[3,3,3,3,3,3,3],[0,3,3,3,3,3,0]
-        ]}
-    ];
+const LEVELS=[
+{name:"MARIO",grid:[[0,1,1,1,0],[1,14,14,14,1],[1,14,2,14,1],[0,1,1,1,0]]},
+{name:"PACMAN",grid:[[0,3,3,0],[3,3,2,3],[3,3,3,3],[0,3,3,0]]}
+];
 
-    // --- STATE ---
-    let mode = 'pen';
-    let isFreeMode = false;
-    let selectedColor = 1;
-    let zoom = 1;
-    let isDragging = false;
-    let lastX, lastY, tx = 0, ty = 0;
+let selected=1,tool="pen",painting=false,free=false;
+let tx=0,ty=0,zoom=1,drag=false,lastX,lastY;
 
-    // --- INIT ---
-    window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('splash-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.display = 'none';
-                document.getElementById('main-menu').style.display = 'flex';
-            }, 500);
-        }, 1500);
+/* INIT */
+window.onload=()=>{
+setTimeout(()=>{
+document.getElementById("splash").style.display="none";
+document.getElementById("menu").style.display="block";
+},900);
 
-        const lib = document.getElementById('library-container');
-        LEVELS.forEach((lvl, i) => {
-            const card = document.createElement('div');
-            card.className = 'level-card';
-            card.innerHTML = `<span class="icon">${lvl.icon}</span><span class="name">${lvl.name}</span>`;
-            card.onclick = () => initGame(i);
-            lib.appendChild(card);
-        });
-    };
+const levels=document.getElementById("levels");
+LEVELS.forEach((l,i)=>{
+levels.innerHTML+=`<div class="card" onclick="start(${i})">${l.name}</div>`;
+});
+};
 
-    function initGame(idx) {
-        isFreeMode = false;
-        setupUI(LEVELS[idx].name);
-        buildCanvas(LEVELS[idx].grid);
-        buildPalette(LEVELS[idx].grid);
-    }
+function start(i){
+free=false;
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="flex";
+build(LEVELS[i].grid);
+paletteBuild(LEVELS[i].grid);
+}
 
-    function initFreeMode(size) {
-        isFreeMode = true;
-        setupUI(`LIENZO LIBRE ${size}x${size}`);
-        const grid = Array(size).fill().map(() => Array(size).fill(11));
-        buildCanvas(grid);
-        buildPalette(null, true);
-    }
+function freeMode(size){
+free=true;
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="flex";
+let g=Array(size).fill().map(()=>Array(size).fill(11));
+build(g);
+paletteBuild(null,true);
+}
 
-    function setupUI(name) {
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'flex';
-        document.getElementById('draw-title').textContent = name;
-    }
+function build(grid){
+const wrap=document.getElementById("canvas-wrapper");
+wrap.innerHTML="";
+wrap.style.gridTemplateColumns=`repeat(${grid[0].length},40px)`;
 
-    function buildCanvas(grid) {
-        const wrapper = document.getElementById('canvas-wrapper');
-        wrapper.style.gridTemplateColumns = `repeat(${grid[0].length}, 1fr)`;
-        wrapper.innerHTML = '';
-        tx = 0; ty = 0; zoom = 1;
-        updateTransform();
+grid.forEach(row=>{
+row.forEach(v=>{
+let d=document.createElement("div");
+d.className="pixel";
 
-        grid.forEach(row => {
-            row.forEach(val => {
-                const px = document.createElement('div');
-                px.className = 'pixel';
-                if(!isFreeMode && val !== 0) {
-                    px.dataset.target = val;
-                    px.textContent = val;
-                } else if(isFreeMode) {
-                    px.style.background = COLORS[val];
-                }
-                px.onclick = () => handlePixel(px);
-                wrapper.appendChild(px);
-            });
-        });
-    }
+if(!free&&v!==0){
+d.dataset.target=v;
+d.textContent=v;
+d.style.background="#fff";
+}else d.style.background=COLORS[v]||"#fff";
 
-    function buildPalette(grid, all = false) {
-        const pal = document.getElementById('color-palette');
-        pal.innerHTML = '';
-        let list = all ? Object.keys(COLORS) : [...new Set(grid.flat())].filter(v => v !== 0);
-        
-        list.forEach(num => {
-            const item = document.createElement('div');
-            item.className = `color-item ${num == selectedColor ? 'active' : ''}`;
-            item.style.background = COLORS[num];
-            item.textContent = num;
-            item.onclick = () => {
-                document.querySelectorAll('.color-item').forEach(el => el.classList.remove('active'));
-                item.classList.add('active');
-                selectedColor = num;
-            };
-            pal.appendChild(item);
-        });
-    }
+d.onpointerdown=()=>{painting=true;paint(d)};
+d.onpointerenter=()=>painting&&paint(d);
 
-    function handlePixel(px) {
-        if(mode !== 'pen') return;
+wrap.appendChild(d);
+});
+});
+}
 
-        if(isFreeMode) {
-            px.style.background = COLORS[selectedColor];
-        } else {
-            if(px.dataset.target == selectedColor) {
-                px.style.background = COLORS[selectedColor];
-                px.style.color = "transparent";
-                px.dataset.done = "true";
-                updateProgress();
-            } else {
-                px.animate([
-                    { background: '#ff000033' },
-                    { background: '#fff' }
-                ], { duration: 300 });
-            }
-        }
-    }
+window.onpointerup=()=>painting=false;
 
-    function updateProgress() {
-        const total = document.querySelectorAll('.pixel[data-target]').length;
-        const done = document.querySelectorAll('.pixel[data-done="true"]').length;
-        const p = Math.floor((done/total)*100);
-        document.getElementById('percentage').textContent = p + "%";
-        if(p === 100) document.getElementById('win-modal').style.display = 'flex';
-    }
+function paint(px){
+if(tool!=="pen")return;
 
-    // --- ENGINE: ZOOM & PAN ---
-    const panArea = document.getElementById('pan-area');
-    const wrapper = document.getElementById('canvas-wrapper');
+if(free){px.style.background=COLORS[selected];return;}
 
-    panArea.onpointerdown = (e) => {
-        if(mode === 'move') {
-            isDragging = true;
-            lastX = e.clientX; lastY = e.clientY;
-        }
-    };
+if(Number(px.dataset.target)===selected){
+px.style.background=COLORS[selected];
+px.textContent="";
+px.dataset.done=1;
+update();
+}
+}
 
-    window.onpointermove = (e) => {
-        if(isDragging) {
-            tx += e.clientX - lastX;
-            ty += e.clientY - lastY;
-            lastX = e.clientX; lastY = e.clientY;
-            updateTransform();
-        }
-    };
+function update(){
+let t=document.querySelectorAll(".pixel[data-target]").length;
+let d=document.querySelectorAll(".pixel[data-done]").length;
+document.getElementById("percent").textContent=Math.floor(d/t*100)+"%";
+}
 
-    window.onpointerup = () => isDragging = false;
+function paletteBuild(grid,all=false){
+const pal=document.getElementById("palette");
+pal.innerHTML="";
+let list=all?Object.keys(COLORS):[...new Set(grid.flat())].filter(v=>v!=0);
 
-    panArea.onwheel = (e) => {
-        e.preventDefault();
-        zoom += e.deltaY * -0.001;
-        zoom = Math.min(Math.max(0.3, zoom), 4);
-        updateTransform();
-    };
+list.forEach(n=>{
+let c=document.createElement("div");
+c.className="color";
+c.style.background=COLORS[n];
+c.textContent=n;
+if(n==selected)c.classList.add("active");
+c.onclick=()=>{
+document.querySelectorAll(".color").forEach(e=>e.classList.remove("active"));
+c.classList.add("active");
+selected=Number(n);
+};
+pal.appendChild(c);
+});
+}
 
-    function updateTransform() {
-        wrapper.style.transform = `translate(${tx}px, ${ty}px) scale(${zoom})`;
-    }
+function setTool(t){
+tool=t;
+document.querySelectorAll(".tool").forEach(b=>b.classList.remove("active"));
+document.getElementById(t).classList.add("active");
+}
 
-    function resetZoom() {
-        tx = 0; ty = 0; zoom = 1;
-        updateTransform();
-    }
+document.getElementById("view").onpointerdown=e=>{
+if(tool!=="move")return;
+drag=true;lastX=e.clientX;lastY=e.clientY;
+};
 
-    function setTool(t) {
-        mode = t;
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tool-' + t).classList.add('active');
-    }
+window.onpointermove=e=>{
+if(!drag)return;
+tx+=e.clientX-lastX;ty+=e.clientY-lastY;
+lastX=e.clientX;lastY=e.clientY;
+transform();
+};
+
+window.onpointerup=()=>drag=false;
+
+document.getElementById("view").onwheel=e=>{
+e.preventDefault();
+zoom+=e.deltaY*-0.001;
+zoom=Math.min(Math.max(.3,zoom),4);
+transform();
+};
+
+function transform(){
+document.getElementById("canvas-wrapper").style.transform=`translate(${tx}px,${ty}px) scale(${zoom})`;
+}
+
+function resetZoom(){tx=0;ty=0;zoom=1;transform()}
 </script>
+
 </body>
 </html>
