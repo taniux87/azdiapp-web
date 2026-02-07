@@ -20,6 +20,7 @@ overflow:hidden;
 #canvas{
 position:absolute;
 top:0;left:0;
+touch-action:none;
 }
 
 /* PANEL */
@@ -76,6 +77,8 @@ background:#ff4fac;color:white;
 
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
+ctx.imageSmoothingEnabled=true;
+canvas.style.touchAction="none";
 const palette=document.getElementById("palette");
 
 let drawing=false;
@@ -118,14 +121,25 @@ ctx.fill();
 
 /* ===== INPUT ===== */
 canvas.addEventListener("pointerdown",e=>{
+e.preventDefault();
+canvas.setPointerCapture(e.pointerId);
 drawing=true;
 [lastX,lastY]=pos(e);
 paint(e);
 });
-canvas.addEventListener("pointermove",e=>drawing&&paint(e));
-window.addEventListener("pointerup",()=>drawing=false);
 
-/* ===== DIBUJO ===== */
+canvas.addEventListener("pointermove",e=>{
+if(!drawing) return;
+e.preventDefault();
+paint(e);
+});
+
+canvas.addEventListener("pointerup",e=>{
+drawing=false;
+canvas.releasePointerCapture(e.pointerId);
+});
+
+canvas.addEventListener("pointercancel",()=>drawing=false);/* ===== DIBUJO ===== */
 function paint(e){
 const [x,y]=pos(e);
 const size=document.getElementById("size").value;
