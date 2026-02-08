@@ -263,6 +263,9 @@ function init() {
     gridEl.innerHTML = '';
     state.grid = [];
     state.specials = [];
+    state.jelly.fill(false);
+state.blocks.fill(false);
+state.inventoryBombs=[];
     state.score = 0;
     state.moves = 25;
 
@@ -337,53 +340,55 @@ async function onCellClick(idx) {
 
 // --- GESTIÓN DE MATCHES Y COMBOS ---
 async function handleMatches(matches) {
+async function handleMatches(matches) {
+
     let toDestroy = new Set(matches);
 
-    // Detección de creación de especiales
-    // (Simplificada: si el match es grande, creamos especial en la posición del primer click)
-    // CREAR ESPECIALES MEJORADOS
-if(matches.length===4){
-    state.specials[matches[0]]='row';
-}
-else if(matches.length===5){
-    state.specials[matches[0]]='wrapped';
-}
-else if(matches.length>=6){
-    state.grid[matches[0]]=HYPER;
-    state.specials[matches[0]]='hyper';
-}
-
-    // Activar explosiones especiales
-    matches.forEach(m => {
-
-    if(state.specials[m]==='wrapped'){
-        state.inventoryBombs.push(m);
+    // CREAR ESPECIALES
+    if(matches.length===4){
+        state.specials[matches[0]]='row';
+    }
+    else if(matches.length===5){
+        state.specials[matches[0]]='wrapped';
+    }
+    else if(matches.length>=6){
+        state.grid[matches[0]]=HYPER;
+        state.specials[matches[0]]='hyper';
     }
 
-    if (state.specials[m] === 'row') explodeRow(Math.floor(m/8), toDestroy);
+    // ACTIVAR ESPECIALES
+    matches.forEach(m => {
 
-    // Puntuación y efectos
+        if(state.specials[m]==='wrapped'){
+            state.inventoryBombs.push(m);
+        }
+
+        if (state.specials[m] === 'row') explodeRow(Math.floor(m/8), toDestroy);
+        if (state.specials[m] === 'col') explodeCol(m%8, toDestroy);
+        if (state.specials[m] === 'wrapped') explodeArea(m, toDestroy);
+    });
+
+    // PUNTUACION
     state.score += toDestroy.size * 25;
     updateUI();
     playSfx(200 + (toDestroy.size * 10), 'triangle', 0.2);
     shakeBoard();
 
-    // Eliminar piezas
+    // DESTRUIR
     toDestroy.forEach(idx => {
-    createParticles(idx);
+        createParticles(idx);
 
-    if(state.jelly[idx]) state.jelly[idx]=false;
-    if(state.blocks[idx]) state.blocks[idx]=false;
+        if(state.jelly[idx]) state.jelly[idx]=false;
+        if(state.blocks[idx]) state.blocks[idx]=false;
 
-    state.grid[idx] = null;
-    state.specials[idx] = null;
-});
+        state.grid[idx] = null;
+        state.specials[idx] = null;
+    });
 
     render();
     await wait(400);
     await fillCascada();
 }
-
 // --- SISTEMA DE CASCADA (EL CORAZÓN) ---
 async function fillCascada() {
     for (let c = 0; c < 8; c++) {
@@ -531,25 +536,27 @@ function nextLevel() {
         init();
     }, 500);
 }
+window.onload = ()=>{
+    init();
 
-window.onload = init;
     document.getElementById('detonateBtn').onclick=async ()=>{
-    if(state.inventoryBombs.length===0) return;
+        if(state.inventoryBombs.length===0) return;
 
-    state.isLocked=true;
+        state.isLocked=true;
 
-    let toDestroy=new Set();
+        let toDestroy=new Set();
 
-    state.inventoryBombs.forEach(idx=>{
-        explodeArea(idx,toDestroy);
-        explodeRow(Math.floor(idx/8),toDestroy);
-        explodeCol(idx%8,toDestroy);
-    });
+        state.inventoryBombs.forEach(idx=>{
+            explodeArea(idx,toDestroy);
+            explodeRow(Math.floor(idx/8),toDestroy);
+            explodeCol(idx%8,toDestroy);
+        });
 
-    state.inventoryBombs=[];
+        state.inventoryBombs=[];
 
-    await handleMatches([...toDestroy]);
-    state.isLocked=false;
+        await handleMatches([...toDestroy]);
+        state.isLocked=false;
+    };
 };
 </script>
 </body>
